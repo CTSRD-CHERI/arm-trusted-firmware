@@ -939,7 +939,12 @@ func el3_exit
 	ldp	x16, x17, [sp, #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
 	msr	scr_el3, x18
 	msr	spsr_el3, x16
+#if ENABLE_MORELLO_CAP
+	cvtp	c17, x17
+	msr	celr_el3, c17
+#else
 	msr	elr_el3, x17
+#endif
 
 #if IMAGE_BL31 && DYNAMIC_WORKAROUND_CVE_2018_3639
 	/* ----------------------------------------------------------

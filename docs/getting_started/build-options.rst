@@ -274,6 +274,11 @@ Common build options
    platform hook needs to be implemented. The value is passed as the last
    component of the option ``-fstack-protector-$ENABLE_STACK_PROTECTOR``.
 
+-  ``ENABLE_MORELLO_CAP`` : Boolean option to enable the Morello capability aware
+   firmware. This option is supported only with LLVM CLANG toolchain and not with
+   GCC toolchain. Capability awareness is currently enabled only in BL31 firmware
+   and not in other firmware types of trusted firmware.
+
 -  ``ENCRYPT_BL31``: Binary flag to enable encryption of BL31 firmware. This
    flag depends on ``DECRYPTION_SUPPORT`` build flag which is marked as
    experimental.

@@ -441,6 +441,9 @@
 #define TAM_BIT			(U(1) << 30)
 #define TTA_BIT			(U(1) << 20)
 #define TFP_BIT			(U(1) << 10)
+#if ENABLE_MORELLO_CAP
+#define EC_BIT			(U(1) << 9)
+#endif
 #define CPTR_EZ_BIT		(U(1) << 8)
 #define CPTR_EL3_RESET_VAL	U(0x0)
 

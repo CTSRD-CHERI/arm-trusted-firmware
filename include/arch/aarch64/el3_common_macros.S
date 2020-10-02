@@ -316,9 +316,11 @@
 	 * Set the exception vectors.
 	 * ---------------------------------------------------------------------
 	 */
+#if !ENABLE_MORELLO_CAP
 	adr	x0, \_exception_vectors
 	msr	vbar_el3, x0
 	isb
+#endif
 
 	/* ---------------------------------------------------------------------
 	 * It is a cold boot.
@@ -329,6 +331,35 @@
 	bl	reset_handler
 
 	el3_arch_init_common
+
+#if ENABLE_MORELLO_CAP
+	/*
+	 * Disable Morello capability traps to EL3
+	 */
+	mrs	x0, cptr_el3
+	orr	x0, x0, #EC_BIT
+	msr	cptr_el3, x0
+	isb
+
+	/*
+	 * SETTAG: disable privileged tag-setting operations
+	 */
+	mov	x0, #1
+	msr	cscr_el3, x0
+
+	/*
+	 * Disable PCC/DCC base offset
+	 */
+	msr	cctlr_el3, xzr
+
+	/*
+	 * Set capability vector base address register
+	 */
+	adr	x0, \_exception_vectors
+	cvtp	c1, x0
+	msr	cvbar_el3, c1
+	isb
+#endif
 
 	.if \_secondary_cold_boot
 		/* -------------------------------------------------------------

@@ -724,6 +724,16 @@ ifneq (${DECRYPTION_SUPPORT},none)
     endif
 endif
 
+ifeq ($(ENABLE_MORELLO_CAP),1)
+    ifeq ($(findstring clang,$(notdir $(CC))),)
+    # not using clang
+        $(error ENABLE_MORELLO_CAP requires Clang toolchain)
+    endif
+    $(info Morello capability is an experimental feature)
+    ASFLAGS_aarch64 += -march=morello
+    TF_LDFLAGS += -z notext
+endif
+
 ################################################################################
 # Process platform overrideable behaviour
 ################################################################################
@@ -917,6 +927,7 @@ $(eval $(call assert_booleans,\
         RAS_TRAP_LOWER_EL_ERR_ACCESS \
         COT_DESC_IN_DTB \
         USE_SP804_TIMER \
+        ENABLE_MORELLO_CAP \
 )))
 
 $(eval $(call assert_numerics,\
@@ -1005,6 +1016,7 @@ $(eval $(call add_defines,\
         RAS_TRAP_LOWER_EL_ERR_ACCESS \
         COT_DESC_IN_DTB \
         USE_SP804_TIMER \
+        ENABLE_MORELLO_CAP \
 )))
 
 ifeq (${SANITIZE_UB},trap)
