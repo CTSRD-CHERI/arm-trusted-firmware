@@ -161,6 +161,78 @@
 		clock-frequency = <24000000>;
 		clock-output-names = "bp:clock24mhz";
 	};
+
+    vencoder {
+        compatible = "drm,virtual-encoder";
+
+        port {
+            dpu_display: endpoint {
+                remote-endpoint = <&dpu_out>;
+            };
+        };
+
+        display-timings {
+            native-mode = <&timing0>;
+            timing0: timing {
+                /* 640x480@60 framebuffer */
+                clock-frequency = <25175000>;
+                hactive = <640>;
+                vactive = <480>;
+                hfront-porch = <16>;
+                hback-porch = <48>;
+                hsync-len = <96>;
+                vfront-porch = <10>;
+                vback-porch = <33>;
+                vsync-len = <2>;
+            };
+        };
+    };
+
+    fake_dpu_pixel_clk: fake-dpu-pixel-clk {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <25175000>;
+        clock-output-names = "pxclk";
+    };
+
+    fake_dpu_ref_clk: fake-dpu-ref-clk {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <260000000>;
+        clock-output-names = "dpu_ref_clk";
+    };
+
+    dp0: display@2cc00000 {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        compatible = "arm,mali-d71";
+        reg = <0 0x2cc00000 0 0x200000>;
+        interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
+        interrupt-names = "DPU";
+        clocks = <&fake_dpu_ref_clk 0>;
+        clock-names = "aclk";
+        pl0: pipeline@0 {
+            reg = <0>;
+            clocks = <&fake_dpu_pixel_clk 0>;
+            clock-names = "pxclk";
+            pl_id = <0>;
+            ports {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                port@0 {
+                    reg = <0>;
+                    dpu_out: endpoint {
+                        remote-endpoint = <&dpu_display>;
+                    };
+                };
+            };
+        };
+        pl1: pipeline@1 {
+            reg = <1>;
+            clocks = <&fake_dpu_pixel_clk 0>;
+            clock-names = "pxclk";
+        };
+    };
 };
 
 &gic {
