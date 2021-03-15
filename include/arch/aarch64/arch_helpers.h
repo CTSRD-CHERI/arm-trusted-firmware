@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2020, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2013-2021, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -80,7 +80,7 @@ static inline void _op(uint64_t v)			\
 #define DEFINE_SYSOP_TYPE_FUNC(_op, _type)		\
 static inline void _op ## _type(void)			\
 {							\
-	__asm__ (#_op " " #_type);			\
+	__asm__ (#_op " " #_type : : : "memory");			\
 }
 
 /* Define function for system instruction with register parameter */
@@ -245,6 +245,7 @@ void disable_mmu_icache_el3(void);
 
 DEFINE_SYSREG_RW_FUNCS(par_el1)
 DEFINE_SYSREG_READ_FUNC(id_pfr1_el1)
+DEFINE_SYSREG_READ_FUNC(id_aa64isar0_el1)
 DEFINE_SYSREG_READ_FUNC(id_aa64isar1_el1)
 DEFINE_SYSREG_READ_FUNC(id_aa64pfr0_el1)
 DEFINE_SYSREG_READ_FUNC(id_aa64pfr1_el1)
@@ -484,6 +485,8 @@ DEFINE_RENAME_SYSREG_RW_FUNCS(icc_sgi1r, ICC_SGI1R)
 
 DEFINE_RENAME_SYSREG_READ_FUNC(amcfgr_el0, AMCFGR_EL0)
 DEFINE_RENAME_SYSREG_READ_FUNC(amcgcr_el0, AMCGCR_EL0)
+DEFINE_RENAME_SYSREG_READ_FUNC(amcg1idr_el0, AMCG1IDR_EL0)
+DEFINE_RENAME_SYSREG_RW_FUNCS(amcr_el0, AMCR_EL0)
 DEFINE_RENAME_SYSREG_RW_FUNCS(amcntenclr0_el0, AMCNTENCLR0_EL0)
 DEFINE_RENAME_SYSREG_RW_FUNCS(amcntenset0_el0, AMCNTENSET0_EL0)
 DEFINE_RENAME_SYSREG_RW_FUNCS(amcntenclr1_el0, AMCNTENCLR1_EL0)
@@ -521,6 +524,10 @@ DEFINE_RENAME_SYSREG_RW_FUNCS(tfsre0_el1, TFSRE0_EL1)
 DEFINE_RENAME_SYSREG_RW_FUNCS(tfsr_el1, TFSR_EL1)
 DEFINE_RENAME_SYSREG_RW_FUNCS(rgsr_el1, RGSR_EL1)
 DEFINE_RENAME_SYSREG_RW_FUNCS(gcr_el1, GCR_EL1)
+
+/* Armv8.5 FEAT_RNG Registers */
+DEFINE_SYSREG_READ_FUNC(rndr)
+DEFINE_SYSREG_READ_FUNC(rndrrs)
 
 /* DynamIQ Shared Unit power management */
 DEFINE_RENAME_SYSREG_RW_FUNCS(clusterpwrdn_el1, CLUSTERPWRDN_EL1)

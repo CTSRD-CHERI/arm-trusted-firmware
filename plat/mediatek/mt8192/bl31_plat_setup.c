@@ -11,11 +11,17 @@
 #include <common/bl_common.h>
 #include <common/debug.h>
 #include <common/desc_image_load.h>
+#include <drivers/generic_delay_timer.h>
 #include <drivers/ti/uart/uart_16550.h>
 #include <lib/coreboot.h>
 
 /* Platform Includes */
+#include <emi_mpu/emi_mpu.h>
+#include <gpio/mtgpio.h>
 #include <mt_gic_v3.h>
+#include <mt_spm.h>
+#include <mt_timer.h>
+#include <mtk_dcm.h>
 #include <plat_params.h>
 #include <plat_private.h>
 
@@ -80,9 +86,22 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
  ******************************************************************************/
 void bl31_platform_setup(void)
 {
+	/* Set dcm on */
+	if (!dcm_set_default()) {
+		ERROR("Failed to set default dcm on!!\n");
+	}
+
+	/* MPU Init */
+	emi_mpu_init();
+
 	/* Initialize the GIC driver, CPU and distributor interfaces */
 	mt_gic_driver_init();
 	mt_gic_init();
+
+	plat_mt8192_gpio_init();
+	mt_systimer_init();
+	generic_delay_timer_init();
+	spm_boot_init();
 }
 
 /*******************************************************************************

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2020, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2013-2021, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,6 +12,9 @@
 #include <lib/psci/psci.h>
 #if defined(SPD_spmd)
  #include <services/spm_core_manifest.h>
+#endif
+#if TRNG_SUPPORT
+#include "plat_trng.h"
 #endif
 
 /*******************************************************************************
@@ -111,7 +114,7 @@ uintptr_t plat_get_my_stack(void);
 void plat_report_exception(unsigned int exception_type);
 int plat_crash_console_init(void);
 int plat_crash_console_putc(int c);
-int plat_crash_console_flush(void);
+void plat_crash_console_flush(void);
 void plat_error_handler(int err) __dead2;
 void plat_panic_handler(void) __dead2;
 const char *plat_log_get_prefix(unsigned int log_level);

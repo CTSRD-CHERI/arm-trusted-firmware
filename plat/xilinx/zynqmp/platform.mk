@@ -59,20 +59,22 @@ PLAT_INCLUDES		:=	-Iinclude/plat/arm/common/			\
 				-Iplat/xilinx/zynqmp/include/			\
 				-Iplat/xilinx/zynqmp/pm_service/		\
 
+# Include GICv2 driver files
+include drivers/arm/gic/v2/gicv2.mk
+
 PLAT_BL_COMMON_SOURCES	:=	lib/xlat_tables/xlat_tables_common.c		\
 				lib/xlat_tables/aarch64/xlat_tables.c		\
 				drivers/delay_timer/delay_timer.c		\
 				drivers/delay_timer/generic_delay_timer.c	\
-				drivers/arm/gic/common/gic_common.c		\
-				drivers/arm/gic/v2/gicv2_main.c			\
-				drivers/arm/gic/v2/gicv2_helpers.c		\
+				${GICV2_SOURCES}				\
 				drivers/cadence/uart/aarch64/cdns_console.S	\
 				plat/arm/common/arm_cci.c			\
 				plat/arm/common/arm_common.c			\
 				plat/arm/common/arm_gicv2.c			\
 				plat/common/plat_gicv2.c			\
 				plat/xilinx/common/ipi.c			\
-				plat/xilinx/zynqmp/zynqmp_ipi.c		\
+				plat/xilinx/zynqmp/zynqmp_ipi.c			\
+				plat/common/aarch64/crash_console_helpers.S	\
 				plat/xilinx/zynqmp/aarch64/zynqmp_helpers.S	\
 				plat/xilinx/zynqmp/aarch64/zynqmp_common.c
 
@@ -94,6 +96,8 @@ BL31_SOURCES		+=	drivers/arm/cci/cci.c				\
 				plat/xilinx/zynqmp/pm_service/pm_api_ioctl.c	\
 				plat/xilinx/zynqmp/pm_service/pm_api_clock.c	\
 				plat/xilinx/zynqmp/pm_service/pm_client.c
+
+BL31_CPPFLAGS		+=	-fno-jump-tables
 
 ifneq (${RESET_TO_BL31},1)
   $(error "Using BL31 as the reset vector is only one option supported on ZynqMP. Please set RESET_TO_BL31 to 1.")

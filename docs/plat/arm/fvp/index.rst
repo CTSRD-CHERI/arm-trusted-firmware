@@ -49,8 +49,10 @@ Arm FVPs without shifted affinities, and that do not support threaded CPU cores
 -  ``FVP_RD_E1_edge``      (Version 11.9 build 41)
 -  ``FVP_RD_N1_edge``      (Version 11.10 build 36)
 -  ``FVP_RD_N1_edge_dual`` (Version 11.10 build 36)
--  ``FVP_RD_Daniel``       (Version 11.10 build 36)
+-  ``FVP_RD_Daniel``       (Version 11.13 build 10)
+-  ``FVP_RD_N2``           (Version 11.13 build 10)
 -  ``FVP_TC0``             (Version 0.0 build 6114)
+-  ``FVP_Base_AEMv8A-GIC600AE`` (Version 0.0 build 6415)
 -  ``Foundation_Platform``
 
 The latest version of the AArch32 build of TF-A has been tested on the
@@ -140,6 +142,11 @@ Arm FVP Platform Specific Build Options
    similar to the ``FVP_HW_CONFIG_DTS`` option, but it directly specifies the
    HW_CONFIG blob instead of the DTS file. This option is useful to override
    the default HW_CONFIG selected by the build system.
+
+-  ``FVP_GICR_REGION_PROTECTION``: Mark the redistributor pages of
+   inactive/fused CPU cores as read-only. The default value of this option
+   is ``0``, which means the redistributor pages of all CPU cores are marked
+   as read and write.
 
 Booting Firmware Update images
 ------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2019-2021, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -26,8 +26,10 @@
 #define TIMEOUT_US_1_MS			1000U
 
 /* FMC2 Compatibility */
-#define DT_FMC2_COMPAT			"st,stm32mp15-fmc2"
+#define DT_FMC2_EBI_COMPAT		"st,stm32mp1-fmc2-ebi"
+#define DT_FMC2_NFC_COMPAT		"st,stm32mp1-fmc2-nfc"
 #define MAX_CS				2U
+#define MAX_BANK			5U
 
 /* FMC2 Controller Registers */
 #define FMC2_BCR1			0x00U
@@ -198,9 +200,6 @@ static void stm32_fmc2_nand_setup_timing(void)
 	if ((twait < NAND_TCS_MIN) && (tset_mem < (NAND_TCS_MIN - twait))) {
 		tset_mem = NAND_TCS_MIN - twait;
 	}
-	if ((twait < NAND_TALS_MIN) && (tset_mem < (NAND_TALS_MIN - twait))) {
-		tset_mem = NAND_TALS_MIN - twait;
-	}
 	if ((twait > thiz) && ((twait - thiz) < NAND_TDS_MIN) &&
 	    (tset_mem < (NAND_TDS_MIN - (twait - thiz)))) {
 		tset_mem = NAND_TDS_MIN - (twait - thiz);
@@ -241,12 +240,6 @@ static void stm32_fmc2_nand_setup_timing(void)
 	tset_att = hclkp;
 	if ((twait < NAND_TCS_MIN) && (tset_att < (NAND_TCS_MIN - twait))) {
 		tset_att = NAND_TCS_MIN - twait;
-	}
-	if ((twait < NAND_TCLS_MIN) && (tset_att < (NAND_TCLS_MIN - twait))) {
-		tset_att = NAND_TCLS_MIN - twait;
-	}
-	if ((twait < NAND_TALS_MIN) && (tset_att < (NAND_TALS_MIN - twait))) {
-		tset_att = NAND_TALS_MIN - twait;
 	}
 	if ((thold_mem < NAND_TRHW_MIN) &&
 	    (tset_att < (NAND_TRHW_MIN - thold_mem))) {
@@ -793,23 +786,26 @@ static const struct nand_ctrl_ops ctrl_ops = {
 
 int stm32_fmc2_init(void)
 {
-	int fmc_node;
-	int fmc_subnode = 0;
+	int fmc_ebi_node;
+	int fmc_nfc_node;
+	int fmc_flash_node = 0;
 	int nchips = 0;
 	unsigned int i;
 	void *fdt = NULL;
 	const fdt32_t *cuint;
 	struct dt_node_info info;
+	uintptr_t bank_address[MAX_BANK] = { 0, 0, 0, 0, 0 };
+	uint8_t bank_assigned = 0;
+	uint8_t bank;
 	int ret;
 
 	if (fdt_get_address(&fdt) == 0) {
 		return -FDT_ERR_NOTFOUND;
 	}
 
-	fmc_node = dt_get_node(&info, -1, DT_FMC2_COMPAT);
-	if (fmc_node == -FDT_ERR_NOTFOUND) {
-		WARN("No FMC2 node found\n");
-		return fmc_node;
+	fmc_ebi_node = dt_get_node(&info, -1, DT_FMC2_EBI_COMPAT);
+	if (fmc_ebi_node < 0) {
+		return fmc_ebi_node;
 	}
 
 	if (info.status == DT_DISABLED) {
@@ -825,27 +821,69 @@ int stm32_fmc2_init(void)
 	stm32_fmc2.clock_id = (unsigned long)info.clock;
 	stm32_fmc2.reset_id = (unsigned int)info.reset;
 
-	cuint = fdt_getprop(fdt, fmc_node, "reg", NULL);
+	cuint = fdt_getprop(fdt, fmc_ebi_node, "ranges", NULL);
 	if (cuint == NULL) {
 		return -FDT_ERR_BADVALUE;
 	}
 
-	cuint += 2;
-
-	for (i = 0U; i < MAX_CS; i++) {
-		stm32_fmc2.cs[i].data_base = fdt32_to_cpu(*cuint);
-		stm32_fmc2.cs[i].cmd_base = fdt32_to_cpu(*(cuint + 2));
-		stm32_fmc2.cs[i].addr_base = fdt32_to_cpu(*(cuint + 4));
-		cuint += 6;
+	for (i = 0U; i < MAX_BANK; i++) {
+		bank = fdt32_to_cpu(*cuint);
+		if ((bank >= MAX_BANK) || ((bank_assigned & BIT(bank)) != 0U)) {
+			return -FDT_ERR_BADVALUE;
+		}
+		bank_assigned |= BIT(bank);
+		bank_address[bank] = fdt32_to_cpu(*(cuint + 2));
+		cuint += 4;
 	}
 
 	/* Pinctrl initialization */
-	if (dt_set_pinctrl_config(fmc_node) != 0) {
+	if (dt_set_pinctrl_config(fmc_ebi_node) != 0) {
 		return -FDT_ERR_BADVALUE;
 	}
 
+	/* Parse NFC controller node */
+	fmc_nfc_node = fdt_node_offset_by_compatible(fdt, fmc_ebi_node,
+						     DT_FMC2_NFC_COMPAT);
+	if (fmc_nfc_node < 0) {
+		return fmc_nfc_node;
+	}
+
+	if (fdt_get_status(fmc_nfc_node) == DT_DISABLED) {
+		return -FDT_ERR_NOTFOUND;
+	}
+
+	cuint = fdt_getprop(fdt, fmc_nfc_node, "reg", NULL);
+	if (cuint == NULL) {
+		return -FDT_ERR_BADVALUE;
+	}
+
+	for (i = 0U; i < MAX_CS; i++) {
+		bank = fdt32_to_cpu(*cuint);
+		if (bank >= MAX_BANK) {
+			return -FDT_ERR_BADVALUE;
+		}
+		stm32_fmc2.cs[i].data_base = fdt32_to_cpu(*(cuint + 1)) +
+					     bank_address[bank];
+
+		bank = fdt32_to_cpu(*(cuint + 3));
+		if (bank >= MAX_BANK) {
+			return -FDT_ERR_BADVALUE;
+		}
+		stm32_fmc2.cs[i].cmd_base = fdt32_to_cpu(*(cuint + 4)) +
+					    bank_address[bank];
+
+		bank = fdt32_to_cpu(*(cuint + 6));
+		if (bank >= MAX_BANK) {
+			return -FDT_ERR_BADVALUE;
+		}
+		stm32_fmc2.cs[i].addr_base = fdt32_to_cpu(*(cuint + 7)) +
+					     bank_address[bank];
+
+		cuint += 9;
+	}
+
 	/* Parse flash nodes */
-	fdt_for_each_subnode(fmc_subnode, fdt, fmc_node) {
+	fdt_for_each_subnode(fmc_flash_node, fdt, fmc_nfc_node) {
 		nchips++;
 	}
 
@@ -854,14 +892,19 @@ int stm32_fmc2_init(void)
 		return -FDT_ERR_BADVALUE;
 	}
 
-	fdt_for_each_subnode(fmc_subnode, fdt, fmc_node) {
+	fdt_for_each_subnode(fmc_flash_node, fdt, fmc_nfc_node) {
 		/* Get chip select */
-		cuint = fdt_getprop(fdt, fmc_subnode, "reg", NULL);
+		cuint = fdt_getprop(fdt, fmc_flash_node, "reg", NULL);
 		if (cuint == NULL) {
 			WARN("Chip select not well defined\n");
 			return -FDT_ERR_BADVALUE;
 		}
+
 		stm32_fmc2.cs_sel = fdt32_to_cpu(*cuint);
+		if (stm32_fmc2.cs_sel >= MAX_CS) {
+			return -FDT_ERR_BADVALUE;
+		}
+
 		VERBOSE("NAND CS %i\n", stm32_fmc2.cs_sel);
 	}
 

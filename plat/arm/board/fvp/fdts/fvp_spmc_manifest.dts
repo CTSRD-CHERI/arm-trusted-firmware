@@ -5,13 +5,12 @@
  */
 /dts-v1/;
 
-#define AFF 00
+#define	AFF	00
 
 #include "fvp-defs.dtsi"
 #undef POST
-#define POST \
-		enable-method = "psci"; \
-		};
+#define	POST \
+	};
 
 / {
 	compatible = "arm,ffa-core-manifest-1.0";
@@ -28,17 +27,14 @@
 		binary_size = <0x80000>;
 	};
 
-	chosen {
-		linux,initrd-start = <0>;
-		linux,initrd-end = <0>;
-	};
-
 	hypervisor {
 		compatible = "hafnium,hafnium";
 		vm1 {
 			is_ffa_partition;
 			debug_name = "cactus-primary";
 			load_address = <0x7000000>;
+			vcpu_count = <8>;
+			mem_size = <1048576>;
 		};
 		vm2 {
 			is_ffa_partition;
@@ -61,7 +57,11 @@
 		#size-cells = <0x0>;
 
 		CPU_0
-		/* SPM(Hafnium) requires secondary cpu nodes are declared in descending order */
+
+		/*
+		 * SPMC (Hafnium) requires secondary core nodes are declared
+		 * in descending order.
+		 */
 		CPU_7
 		CPU_6
 		CPU_5
@@ -71,7 +71,7 @@
 		CPU_1
 	};
 
-	memory@60000000 {
+	memory@6000000 {
 		device_type = "memory";
 		reg = <0x0 0x6000000 0x2000000>; /* Trusted DRAM */
 	};

@@ -42,6 +42,8 @@ Both GCC and Clang compiler toolchains have support for *GNU99* mode, though
 Clang does lack support for a small number of GNU extensions. These
 missing extensions are rarely used, however, and should not pose a problem.
 
+.. _misra-compliance:
+
 MISRA Compliance
 ----------------
 
@@ -99,7 +101,7 @@ Note that there is no space between the name of a function and the following
 parentheses.
 
 Control statements (``if``, ``for``, ``switch``, ``while``, etc) must be
-separated from the following open paranthesis by a single space. The previous
+separated from the following open parenthesis by a single space. The previous
 example illustrates this for an ``if`` statement.
 
 Line Length

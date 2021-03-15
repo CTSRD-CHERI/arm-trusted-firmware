@@ -4,8 +4,6 @@
 # SPDX-License-Identifier:     BSD-3-Clause
 # https://spdx.org/licenses
 
-include tools/marvell/doimage/doimage.mk
-
 PLAT_FAMILY		:= a8k
 PLAT_INCLUDE_BASE	:= include/plat/marvell/armada/$(PLAT_FAMILY)
 PLAT_COMMON_BASE	:= plat/marvell/armada/a8k/common
@@ -32,6 +30,36 @@ $(eval $(call add_define,AP_NUM))
 
 DOIMAGEPATH		?=	tools/marvell/doimage
 DOIMAGETOOL		?=	${DOIMAGEPATH}/doimage
+
+include plat/marvell/marvell.mk
+include tools/marvell/doimage/doimage.mk
+
+ifeq (${MARVELL_SECURE_BOOT},1)
+DOIMAGE_SEC_FLAGS := -c $(DOIMAGE_SEC)
+DOIMAGE_LIBS_CHECK = \
+        if ! [ -d "/usr/include/mbedtls" ]; then \
+                        echo "****************************************" >&2; \
+                        echo "Missing mbedTLS installation! " >&2; \
+                        echo "Please download it from \"tls.mbed.org\"" >&2; \
+			echo "Alternatively on Debian/Ubuntu system install" >&2; \
+			echo "\"libmbedtls-dev\" package" >&2; \
+                        echo "Make sure to use version 2.1.0 or later" >&2; \
+                        echo "****************************************" >&2; \
+                exit 1; \
+        else if ! [ -f "/usr/include/libconfig.h" ]; then \
+                        echo "********************************************************" >&2; \
+                        echo "Missing Libconfig installation!" >&2; \
+                        echo "Please download it from \"www.hyperrealm.com/libconfig/\"" >&2; \
+                        echo "Alternatively on Debian/Ubuntu system install packages" >&2; \
+                        echo "\"libconfig8\" and \"libconfig8-dev\"" >&2; \
+                        echo "********************************************************" >&2; \
+                exit 1; \
+        fi \
+        fi
+else #MARVELL_SECURE_BOOT
+DOIMAGE_LIBS_CHECK =
+DOIMAGE_SEC_FLAGS =
+endif #MARVELL_SECURE_BOOT
 
 ROM_BIN_EXT ?= $(BUILD_PLAT)/ble.bin
 DOIMAGE_FLAGS	+= -b $(ROM_BIN_EXT) $(NAND_DOIMAGE_FLAGS) $(DOIMAGE_SEC_FLAGS)
@@ -86,7 +114,8 @@ MARVELL_DRV		:= 	$(MARVELL_DRV_BASE)/io_win.c	\
 				$(MARVELL_DRV_BASE)/cache_llc.c	\
 				$(MARVELL_DRV_BASE)/comphy/phy-comphy-cp110.c \
 				$(MARVELL_DRV_BASE)/mc_trustzone/mc_trustzone.c \
-				$(MARVELL_DRV_BASE)/mg_conf_cm3/mg_conf_cm3.c
+				$(MARVELL_DRV_BASE)/mg_conf_cm3/mg_conf_cm3.c \
+				drivers/rambus/trng_ip_76.c
 
 BL31_PORTING_SOURCES	:=	$(BOARD_DIR)/board/marvell_plat_config.c
 
@@ -124,8 +153,21 @@ BLE_PATH	?=  $(PLAT_COMMON_BASE)/ble
 include ${BLE_PATH}/ble.mk
 $(eval $(call MAKE_BL,e))
 
-mrvl_flash: ${BUILD_PLAT}/${FIP_NAME} ${DOIMAGETOOL} ${BUILD_PLAT}/ble.bin
-	$(shell truncate -s %128K ${BUILD_PLAT}/bl1.bin)
-	$(shell cat ${BUILD_PLAT}/bl1.bin ${BUILD_PLAT}/${FIP_NAME} > ${BUILD_PLAT}/${BOOT_IMAGE})
-	${DOIMAGETOOL} ${DOIMAGE_FLAGS} ${BUILD_PLAT}/${BOOT_IMAGE} ${BUILD_PLAT}/${FLASH_IMAGE}
+clean realclean distclean: mrvl_clean
 
+.PHONY: mrvl_clean
+mrvl_clean:
+	@echo "  Doimage CLEAN"
+	${Q}${MAKE} PLAT=${PLAT} --no-print-directory -C ${DOIMAGEPATH} clean
+
+${DOIMAGETOOL}: FORCE
+	@$(DOIMAGE_LIBS_CHECK)
+	${Q}${MAKE} --no-print-directory -C ${DOIMAGEPATH}
+
+${BUILD_PLAT}/${FLASH_IMAGE}: ${ROM_BIN_EXT} ${BUILD_PLAT}/${BOOT_IMAGE} ${DOIMAGETOOL}
+	@${ECHO_BLANK_LINE}
+	@echo "Building flash image"
+	${Q}${DOIMAGETOOL} ${DOIMAGE_FLAGS} ${BUILD_PLAT}/${BOOT_IMAGE} ${BUILD_PLAT}/${FLASH_IMAGE}
+	@${ECHO_BLANK_LINE}
+	@echo "Built $@ successfully"
+	@${ECHO_BLANK_LINE}

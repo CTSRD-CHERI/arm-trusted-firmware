@@ -38,7 +38,10 @@ const mmap_region_t plat_arm_mmap[] = {
 	ARM_MAP_SHARED_RAM,
 	TC0_FLASH0_RO,
 	TC0_MAP_DEVICE,
-	ARM_MAP_NS_DRAM1,
+	TC0_MAP_NS_DRAM1,
+#if defined(SPD_spmd)
+	TC0_MAP_TZC_DRAM1,
+#endif
 #if ARM_BL31_IN_DRAM
 	ARM_MAP_BL31_SEC_DRAM,
 #endif
@@ -47,6 +50,10 @@ const mmap_region_t plat_arm_mmap[] = {
 #endif
 #if TRUSTED_BOARD_BOOT && !BL2_AT_EL3
 	ARM_MAP_BL1_RW,
+#endif
+#ifdef SPD_opteed
+	ARM_MAP_OPTEE_CORE_MEM,
+	ARM_OPTEE_PAGEABLE_LOAD_MEM,
 #endif
 	{0}
 };

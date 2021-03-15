@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2016-2020, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -105,15 +105,15 @@ func console_cdns_core_putc
 	cmp	w0, #0xA
 	b.ne	2f
 1:
-	/* Check if the transmit FIFO is full */
+	/* Check if the transmit FIFO is empty */
 	ldr	w2, [x1, #R_UART_SR]
-	tbnz	w2, #UART_SR_INTR_TFUL_BIT, 1b
+	tbz	w2, #UART_SR_INTR_TEMPTY_BIT, 1b
 	mov	w2, #0xD
 	str	w2, [x1, #R_UART_TX]
 2:
-	/* Check if the transmit FIFO is full */
+	/* Check if the transmit FIFO is empty */
 	ldr	w2, [x1, #R_UART_SR]
-	tbnz	w2, #UART_SR_INTR_TFUL_BIT, 2b
+	tbz	w2, #UART_SR_INTR_TEMPTY_BIT, 2b
 	str	w0, [x1, #R_UART_TX]
 	ret
 endfunc console_cdns_core_putc
@@ -184,11 +184,11 @@ func console_cdns_getc
 endfunc console_cdns_getc
 
 	/* ---------------------------------------------
-	 * int console_cdns_core_flush(uintptr_t base_addr)
+	 * void console_cdns_core_flush(uintptr_t base_addr)
 	 * Function to force a write of all buffered
 	 * data that hasn't been output.
 	 * In : x0 - console base address
-	 * Out : return -1 on error else return 0.
+	 * Out : void
 	 * Clobber list : x0, x1
 	 * ---------------------------------------------
 	 */
@@ -198,16 +198,15 @@ func console_cdns_core_flush
 	ASM_ASSERT(ne)
 #endif /* ENABLE_ASSERTIONS */
 	/* Placeholder */
-	mov	w0, #0
 	ret
 endfunc console_cdns_core_flush
 
 	/* ---------------------------------------------
-	 * int console_cdns_flush(console_t *console)
+	 * void console_cdns_flush(console_t *console)
 	 * Function to force a write of all buffered
 	 * data that hasn't been output.
 	 * In : x0 - pointer to console_t structure
-	 * Out : return -1 on error else return 0.
+	 * Out : void.
 	 * Clobber list : x0, x1
 	 * ---------------------------------------------
 	 */

@@ -37,8 +37,15 @@
 #define STM32MP153A_PART_NB	U(0x05000025)
 #define STM32MP151C_PART_NB	U(0x0500002E)
 #define STM32MP151A_PART_NB	U(0x0500002F)
+#define STM32MP157F_PART_NB	U(0x05000080)
+#define STM32MP157D_PART_NB	U(0x05000081)
+#define STM32MP153F_PART_NB	U(0x050000A4)
+#define STM32MP153D_PART_NB	U(0x050000A5)
+#define STM32MP151F_PART_NB	U(0x050000AE)
+#define STM32MP151D_PART_NB	U(0x050000AF)
 
 #define STM32MP1_REV_B		U(0x2000)
+#define STM32MP1_REV_Z		U(0x2001)
 
 /*******************************************************************************
  * PACKAGE ID
@@ -499,6 +506,7 @@ static inline uint32_t tamp_bkpr(uint32_t idx)
 /*******************************************************************************
  * Miscellaneous STM32MP1 peripherals base address
  ******************************************************************************/
+#define BSEC_BASE			U(0x5C005000)
 #define CRYP1_BASE			U(0x54001000)
 #define DBGMCU_BASE			U(0x50081000)
 #define HASH1_BASE			U(0x54002000)
@@ -507,6 +515,8 @@ static inline uint32_t tamp_bkpr(uint32_t idx)
 #define RNG1_BASE			U(0x54003000)
 #define RTC_BASE			U(0x5c004000)
 #define SPI6_BASE			U(0x5c001000)
+#define STGEN_BASE			U(0x5c008000)
+#define SYSCFG_BASE			U(0x50020000)
 
 /*******************************************************************************
  * Device Tree defines
@@ -515,6 +525,5 @@ static inline uint32_t tamp_bkpr(uint32_t idx)
 #define DT_IWDG_COMPAT			"st,stm32mp1-iwdg"
 #define DT_PWR_COMPAT			"st,stm32mp1,pwr-reg"
 #define DT_RCC_CLK_COMPAT		"st,stm32mp1-rcc"
-#define DT_SYSCFG_COMPAT		"st,stm32mp157-syscfg"
 
 #endif /* STM32MP1_DEF_H */

@@ -47,8 +47,11 @@ CASSERT(BL31_BASE >= ARM_FW_CONFIG_LIMIT, assert_bl31_base_overflows);
 #if RECLAIM_INIT_CODE
 IMPORT_SYM(unsigned long, __INIT_CODE_START__, BL_INIT_CODE_BASE);
 IMPORT_SYM(unsigned long, __INIT_CODE_END__, BL_CODE_END_UNALIGNED);
+IMPORT_SYM(unsigned long, __STACKS_END__, BL_STACKS_END_UNALIGNED);
 
 #define	BL_INIT_CODE_END	((BL_CODE_END_UNALIGNED + PAGE_SIZE - 1) & \
+					~(PAGE_SIZE - 1))
+#define	BL_STACKS_END		((BL_STACKS_END_UNALIGNED + PAGE_SIZE - 1) & \
 					~(PAGE_SIZE - 1))
 
 #define MAP_BL_INIT_CODE	MAP_REGION_FLAT(			\
@@ -153,19 +156,6 @@ void __init arm_bl31_early_platform_setup(void *from_bl2, uintptr_t soc_fw_confi
 	bl33_image_ep_info.args.arg0 = (u_register_t)ARM_DRAM1_BASE;
 #endif
 
-# if ARM_LINUX_KERNEL_AS_BL33
-	/*
-	 * According to the file ``Documentation/arm64/booting.txt`` of the
-	 * Linux kernel tree, Linux expects the physical address of the device
-	 * tree blob (DTB) in x0, while x1-x3 are reserved for future use and
-	 * must be 0.
-	 */
-	bl33_image_ep_info.args.arg0 = (u_register_t)ARM_PRELOADED_DTB_BASE;
-	bl33_image_ep_info.args.arg1 = 0U;
-	bl33_image_ep_info.args.arg2 = 0U;
-	bl33_image_ep_info.args.arg3 = 0U;
-# endif
-
 #else /* RESET_TO_BL31 */
 
 	/*
@@ -203,6 +193,19 @@ void __init arm_bl31_early_platform_setup(void *from_bl2, uintptr_t soc_fw_confi
 	if (bl33_image_ep_info.pc == 0U)
 		panic();
 #endif /* RESET_TO_BL31 */
+
+# if ARM_LINUX_KERNEL_AS_BL33
+	/*
+	 * According to the file ``Documentation/arm64/booting.txt`` of the
+	 * Linux kernel tree, Linux expects the physical address of the device
+	 * tree blob (DTB) in x0, while x1-x3 are reserved for future use and
+	 * must be 0.
+	 */
+	bl33_image_ep_info.args.arg0 = (u_register_t)ARM_PRELOADED_DTB_BASE;
+	bl33_image_ep_info.args.arg1 = 0U;
+	bl33_image_ep_info.args.arg2 = 0U;
+	bl33_image_ep_info.args.arg3 = 0U;
+# endif
 }
 
 void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
@@ -291,14 +294,39 @@ void arm_bl31_plat_runtime_setup(void)
 
 #if RECLAIM_INIT_CODE
 /*
- * Zero out and make RW memory used to store image boot time code so it can
- * be reclaimed during runtime
+ * Make memory for image boot time code RW to reclaim it as stack for the
+ * secondary cores, or RO where it cannot be reclaimed:
+ *
+ *            |-------- INIT SECTION --------|
+ *  -----------------------------------------
+ * |  CORE 0  |  CORE 1  |  CORE 2  | EXTRA  |
+ * |  STACK   |  STACK   |  STACK   | SPACE  |
+ *  -----------------------------------------
+ *             <-------------------> <------>
+ *                MAKE RW AND XN       MAKE
+ *                  FOR STACKS       RO AND XN
  */
 void arm_free_init_memory(void)
 {
-	int ret = xlat_change_mem_attributes(BL_INIT_CODE_BASE,
+	int ret = 0;
+
+	if (BL_STACKS_END < BL_INIT_CODE_END) {
+		/* Reclaim some of the init section as stack if possible. */
+		if (BL_INIT_CODE_BASE < BL_STACKS_END) {
+			ret |= xlat_change_mem_attributes(BL_INIT_CODE_BASE,
+					BL_STACKS_END - BL_INIT_CODE_BASE,
+					MT_RW_DATA);
+		}
+		/* Make the rest of the init section read-only. */
+		ret |= xlat_change_mem_attributes(BL_STACKS_END,
+				BL_INIT_CODE_END - BL_STACKS_END,
+				MT_RO_DATA);
+	} else {
+		/* The stacks cover the init section, so reclaim it all. */
+		ret |= xlat_change_mem_attributes(BL_INIT_CODE_BASE,
 				BL_INIT_CODE_END - BL_INIT_CODE_BASE,
 				MT_RW_DATA);
+	}
 
 	if (ret != 0) {
 		ERROR("Could not reclaim initialization code");
