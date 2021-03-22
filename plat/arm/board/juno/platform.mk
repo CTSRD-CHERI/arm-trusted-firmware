@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2020, ARM Limited and Contributors. All rights reserved.
+# Copyright (c) 2013-2021, ARM Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -43,6 +43,8 @@ $(eval $(call assert_boolean,JUNO_TZMP1))
 ifeq (${JUNO_TZMP1}, 1)
 $(eval $(call add_define,JUNO_TZMP1))
 endif
+
+TRNG_SUPPORT		:=	1
 
 ifeq (${JUNO_AARCH32_EL3_RUNTIME}, 1)
 # Include BL32 in FIP
@@ -108,7 +110,7 @@ ifeq ($(USE_ROMLIB),1)
 all : bl1_romlib.bin
 endif
 
-bl1_romlib.bin : $(BUILD_PLAT)/bl1.bin $(BUILD_PLAT)/romlib/romlib.bin
+bl1_romlib.bin : $(BUILD_PLAT)/bl1.bin romlib.bin
 	@echo "Building combined BL1 and ROMLIB binary for Juno $@"
 	./lib/romlib/gen_combined_bl1_romlib.sh -o bl1_romlib.bin $(BUILD_PLAT)
 
@@ -163,6 +165,12 @@ ifeq (${ALLOW_RO_XLAT_TABLES}, 1)
         BL31_CPPFLAGS	+=	-DPLAT_RO_XLAT_TABLES
     endif
 endif
+
+BL1_CPPFLAGS += -march=armv8-a+crc
+BL2_CPPFLAGS += -march=armv8-a+crc
+BL2U_CPPFLAGS += -march=armv8-a+crc
+BL31_CPPFLAGS += -march=armv8-a+crc
+BL32_CPPFLAGS += -march=armv8-a+crc
 
 # Add the FDT_SOURCES and options for Dynamic Config
 FDT_SOURCES		+=	plat/arm/board/juno/fdts/${PLAT}_fw_config.dts	\

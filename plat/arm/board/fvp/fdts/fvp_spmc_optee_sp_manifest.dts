@@ -27,11 +27,6 @@
 		binary_size = <0x80000>;
 	};
 
-	chosen {
-		linux,initrd-start = <0>;
-		linux,initrd-end = <0>;
-	};
-
 	hypervisor {
 		compatible = "hafnium,hafnium";
 		vm1 {
@@ -39,6 +34,8 @@
 			debug_name = "op-tee";
 			load_address = <0x6280000>;
 			smc_whitelist = <0xbe000000>;
+			vcpu_count = <8>;
+			mem_size = <1048576>;
 		};
 	};
 
@@ -49,7 +46,7 @@
 		CPU_0
 
 		/*
-		 * SPMC(Hafnium) requires secondary core nodes are declared
+		 * SPMC (Hafnium) requires secondary core nodes are declared
 		 * in descending order.
 		 */
 		CPU_7
@@ -61,7 +58,7 @@
 		CPU_1
 	};
 
-	memory@60000000 {
+	memory@6000000 {
 		device_type = "memory";
 		reg = <0x0 0x6000000 0x2000000>; /* Trusted DRAM */
 	};

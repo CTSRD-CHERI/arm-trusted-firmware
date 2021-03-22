@@ -43,7 +43,8 @@ TC0_BASE	=	plat/arm/board/tc0
 
 PLAT_INCLUDES		+=	-I${TC0_BASE}/include/
 
-TC0_CPU_SOURCES	:=	lib/cpus/aarch64/cortex_matterhorn.S
+TC0_CPU_SOURCES	:=	lib/cpus/aarch64/cortex_klein.S         \
+			lib/cpus/aarch64/cortex_matterhorn.S
 
 INTERCONNECT_SOURCES	:=	${TC0_BASE}/tc0_interconnect.c
 
@@ -85,6 +86,18 @@ $(eval $(call TOOL_ADD_PAYLOAD,${FW_CONFIG},--fw-config,${FW_CONFIG}))
 # Add the TB_FW_CONFIG to FIP and specify the same to certtool
 $(eval $(call TOOL_ADD_PAYLOAD,${TB_FW_CONFIG},--tb-fw-config,${TB_FW_CONFIG}))
 
+ifeq (${SPD},spmd)
+ifeq ($(ARM_SPMC_MANIFEST_DTS),)
+ARM_SPMC_MANIFEST_DTS	:=	${TC0_BASE}/fdts/${PLAT}_spmc_manifest.dts
+endif
+
+FDT_SOURCES		+=	${ARM_SPMC_MANIFEST_DTS}
+TC0_TOS_FW_CONFIG	:=	${BUILD_PLAT}/fdts/$(notdir $(basename ${ARM_SPMC_MANIFEST_DTS})).dtb
+
+# Add the TOS_FW_CONFIG to FIP and specify the same to certtool
+$(eval $(call TOOL_ADD_PAYLOAD,${TC0_TOS_FW_CONFIG},--tos-fw-config,${TC0_TOS_FW_CONFIG}))
+endif
+
 #Device tree
 TC0_HW_CONFIG_DTS	:=	fdts/tc0.dts
 TC0_HW_CONFIG		:=	${BUILD_PLAT}/fdts/${PLAT}.dtb
@@ -97,6 +110,8 @@ $(eval $(call TOOL_ADD_PAYLOAD,${TC0_HW_CONFIG},--hw-config,${TC0_HW_CONFIG}))
 override CTX_INCLUDE_AARCH32_REGS	:= 0
 
 override CTX_INCLUDE_PAUTH_REGS	:= 1
+
+override ENABLE_SPE_FOR_LOWER_ELS	:= 0
 
 include plat/arm/common/arm_common.mk
 include plat/arm/css/common/css_common.mk

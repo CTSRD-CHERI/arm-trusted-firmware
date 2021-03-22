@@ -16,18 +16,22 @@
 /* Internal layout of the 32bit OTP word board_id */
 #define BOARD_ID_BOARD_NB_MASK		GENMASK(31, 16)
 #define BOARD_ID_BOARD_NB_SHIFT		16
-#define BOARD_ID_VARIANT_MASK		GENMASK(15, 12)
-#define BOARD_ID_VARIANT_SHIFT		12
+#define BOARD_ID_VARCPN_MASK		GENMASK(15, 12)
+#define BOARD_ID_VARCPN_SHIFT		12
 #define BOARD_ID_REVISION_MASK		GENMASK(11, 8)
 #define BOARD_ID_REVISION_SHIFT		8
+#define BOARD_ID_VARFG_MASK		GENMASK(7, 4)
+#define BOARD_ID_VARFG_SHIFT		4
 #define BOARD_ID_BOM_MASK		GENMASK(3, 0)
 
 #define BOARD_ID2NB(_id)		(((_id) & BOARD_ID_BOARD_NB_MASK) >> \
 					 BOARD_ID_BOARD_NB_SHIFT)
-#define BOARD_ID2VAR(_id)		(((_id) & BOARD_ID_VARIANT_MASK) >> \
-					 BOARD_ID_VARIANT_SHIFT)
+#define BOARD_ID2VARCPN(_id)		(((_id) & BOARD_ID_VARCPN_MASK) >> \
+					 BOARD_ID_VARCPN_SHIFT)
 #define BOARD_ID2REV(_id)		(((_id) & BOARD_ID_REVISION_MASK) >> \
 					 BOARD_ID_REVISION_SHIFT)
+#define BOARD_ID2VARFG(_id)		(((_id) & BOARD_ID_VARFG_MASK) >> \
+					 BOARD_ID_VARFG_SHIFT)
 #define BOARD_ID2BOM(_id)		((_id) & BOARD_ID_BOM_MASK)
 
 #if defined(IMAGE_BL2)
@@ -154,6 +158,8 @@ static int get_part_number(uint32_t *part_nb)
 	uint32_t part_number;
 	uint32_t dev_id;
 
+	assert(part_nb != NULL);
+
 	if (stm32mp1_dbgmcu_get_chip_dev_id(&dev_id) < 0) {
 		return -1;
 	}
@@ -174,6 +180,8 @@ static int get_part_number(uint32_t *part_nb)
 static int get_cpu_package(uint32_t *cpu_package)
 {
 	uint32_t package;
+
+	assert(cpu_package != NULL);
 
 	if (bsec_shadow_read_otp(&package, PACKAGE_OTP) != BSEC_OK) {
 		ERROR("BSEC: PACKAGE_OTP Error\n");
@@ -220,6 +228,24 @@ void stm32mp_print_cpuinfo(void)
 	case STM32MP151A_PART_NB:
 		cpu_s = "151A";
 		break;
+	case STM32MP157F_PART_NB:
+		cpu_s = "157F";
+		break;
+	case STM32MP157D_PART_NB:
+		cpu_s = "157D";
+		break;
+	case STM32MP153F_PART_NB:
+		cpu_s = "153F";
+		break;
+	case STM32MP153D_PART_NB:
+		cpu_s = "153D";
+		break;
+	case STM32MP151F_PART_NB:
+		cpu_s = "151F";
+		break;
+	case STM32MP151D_PART_NB:
+		cpu_s = "151D";
+		break;
 	default:
 		cpu_s = "????";
 		break;
@@ -260,6 +286,9 @@ void stm32mp_print_cpuinfo(void)
 	switch (chip_dev_id) {
 	case STM32MP1_REV_B:
 		cpu_r = "B";
+		break;
+	case STM32MP1_REV_Z:
+		cpu_r = "Z";
 		break;
 	default:
 		cpu_r = "?";
@@ -308,9 +337,10 @@ void stm32mp_print_boardinfo(void)
 
 		rev[0] = BOARD_ID2REV(board_id) - 1 + 'A';
 		rev[1] = '\0';
-		NOTICE("Board: MB%04x Var%d Rev.%s-%02d\n",
+		NOTICE("Board: MB%04x Var%u.%u Rev.%s-%02u\n",
 		       BOARD_ID2NB(board_id),
-		       BOARD_ID2VAR(board_id),
+		       BOARD_ID2VARCPN(board_id),
+		       BOARD_ID2VARFG(board_id),
 		       rev,
 		       BOARD_ID2BOM(board_id));
 	}
@@ -320,7 +350,6 @@ void stm32mp_print_boardinfo(void)
 bool stm32mp_is_single_core(void)
 {
 	uint32_t part_number;
-	bool ret = false;
 
 	if (get_part_number(&part_number) < 0) {
 		ERROR("Invalid part number, assume single core chip");
@@ -330,14 +359,13 @@ bool stm32mp_is_single_core(void)
 	switch (part_number) {
 	case STM32MP151A_PART_NB:
 	case STM32MP151C_PART_NB:
-		ret = true;
-		break;
+	case STM32MP151D_PART_NB:
+	case STM32MP151F_PART_NB:
+		return true;
 
 	default:
-		break;
+		return false;
 	}
-
-	return ret;
 }
 
 /* Return true when device is in closed state */

@@ -27,7 +27,7 @@ static const mmap_region_t sunxi_mmap[PLATFORM_MMAP_REGIONS + 1] = {
 			MT_DEVICE | MT_RW | MT_SECURE | MT_EXECUTE_NEVER),
 	MAP_REGION(SUNXI_DRAM_BASE, SUNXI_DRAM_VIRT_BASE, SUNXI_DRAM_SEC_SIZE,
 		   MT_RW_DATA | MT_SECURE),
-	MAP_REGION(PLAT_SUNXI_NS_IMAGE_OFFSET,
+	MAP_REGION(PRELOADED_BL33_BASE,
 		   SUNXI_DRAM_VIRT_BASE + SUNXI_DRAM_SEC_SIZE,
 		   SUNXI_DRAM_MAP_SIZE,
 		   MT_RO_DATA | MT_NS),
@@ -37,15 +37,6 @@ static const mmap_region_t sunxi_mmap[PLATFORM_MMAP_REGIONS + 1] = {
 unsigned int plat_get_syscnt_freq2(void)
 {
 	return SUNXI_OSC24M_CLK_IN_HZ;
-}
-
-uintptr_t plat_get_ns_image_entrypoint(void)
-{
-#ifdef PRELOADED_BL33_BASE
-	return PRELOADED_BL33_BASE;
-#else
-	return PLAT_SUNXI_NS_IMAGE_OFFSET;
-#endif
 }
 
 void sunxi_configure_mmu_el3(int flags)
@@ -125,11 +116,9 @@ int sunxi_init_platform_r_twi(uint16_t socid, bool use_rsb)
 		device_bit = BIT(6);
 		break;
 	case SUNXI_SOC_H6:
-		if (use_rsb)
-			return -ENODEV;
-		pin_func = 0x33;
+		pin_func = use_rsb ? 0x22 : 0x33;
 		device_bit = BIT(16);
-		reset_offset = 0x19c;
+		reset_offset = use_rsb ? 0x1bc : 0x19c;
 		break;
 	case SUNXI_SOC_A64:
 		pin_func = use_rsb ? 0x22 : 0x33;
@@ -157,7 +146,7 @@ int sunxi_init_platform_r_twi(uint16_t socid, bool use_rsb)
 	if (socid != SUNXI_SOC_H6)
 		mmio_setbits_32(SUNXI_R_PRCM_BASE + 0x28, device_bit);
 	else
-		mmio_setbits_32(SUNXI_R_PRCM_BASE + 0x19c, device_bit | BIT(0));
+		mmio_setbits_32(SUNXI_R_PRCM_BASE + reset_offset, BIT(0));
 
 	/* assert, then de-assert reset of I2C/RSB controller */
 	mmio_clrbits_32(SUNXI_R_PRCM_BASE + reset_offset, device_bit);

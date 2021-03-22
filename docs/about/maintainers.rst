@@ -295,6 +295,15 @@ Measured Boot
 :F: include/drivers/measured_boot
 :F: plat/arm/board/fvp/fvp_measured_boot.c
 
+System Control and Management Interface (SCMI) Server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:M: Etienne Carriere <etienne.carriere@st.com>
+:G: `etienne-lms`_
+:M: Peng Fan <peng.fan@nxp.com>
+:G: `MrVan`_
+:F: drivers/scmi-msg
+:F: include/drivers/scmi\*
+
 Platform Ports
 ~~~~~~~~~~~~~~
 
@@ -482,9 +491,26 @@ Renesas rcar-gen3 platform port
 :M: Marek Vasut <marek.vasut@gmail.com>
 :G: `marex`_
 :F: docs/plat/rcar-gen3.rst
+:F: plat/renesas/common
 :F: plat/renesas/rcar
+:F: drivers/renesas/common
 :F: drivers/renesas/rcar
 :F: tools/renesas/rcar_layout_create
+
+Renesas RZ/G2 platform port
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:M: Biju Das <biju.das.jz@bp.renesas.com>
+:G: `bijucdas`_
+:M: Marek Vasut <marek.vasut@gmail.com>
+:G: `marex`_
+:M: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+:G: `prabhakarlad`_
+:F: docs/plat/rz-g2.rst
+:F: plat/renesas/common
+:F: plat/renesas/rzg
+:F: drivers/renesas/common
+:F: drivers/renesas/rzg
+:F: tools/renesas/rzg_layout_create
 
 RockChip platform port
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -516,8 +542,8 @@ Synquacer platform port
 
 Texas Instruments platform port
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-:M: Andrew F. Davis <afd@ti.com>
-:G: `glneo`_
+:M: Nishanth Menon <nm@ti.com>
+:G: `nmenon`_
 :F: docs/plat/ti-k3.rst
 :F: plat/ti/
 
@@ -529,8 +555,10 @@ UniPhier platform port
 
 Xilinx platform port
 ^^^^^^^^^^^^^^^^^^^^
-:M: Siva Durga Prasad Paladugu <siva.durga.paladugu@xilinx.com>
-:G: `sivadur`_
+:M: Michal Simek <michal.simek@xilinx.com>
+:G: `michalsimek`_
+:M: Venkatesh Yadav Abbarapu <venkatesh.abbarapu@xilinx.com>
+:G: `venkatesh`_
 :F: docs/plat/xilinx-zynqmp.rst
 :F: plat/xilinx/
 
@@ -599,6 +627,7 @@ Build system
 .. _AlexeiFedorov: https://github.com/AlexeiFedorov
 .. _Andre-ARM: https://github.com/Andre-ARM
 .. _Anson-Huang: https://github.com/Anson-Huang
+.. _bijucdas: https://github.com/bijucdas
 .. _bryanodonoghue: https://github.com/bryanodonoghue
 .. _b49020: https://github.com/b49020
 .. _carlocaione: https://github.com/carlocaione
@@ -614,23 +643,26 @@ Build system
 .. _ldts: https://github.com/ldts
 .. _marex: https://github.com/marex
 .. _masahir0y: https://github.com/masahir0y
+.. _michalsimek: https://github.com/michalsimek
 .. _mmind: https://github.com/mmind
+.. _MrVan: https://github.com/MrVan
 .. _mtk09422: https://github.com/mtk09422
 .. _niej: https://github.com/niej
 .. _npoushin: https://github.com/npoushin
+.. _prabhakarlad: https://github.com/prabhakarlad
 .. _qoriq-open-source: https://github.com/qoriq-open-source
 .. _remi-triplefault: https://github.com/repk
 .. _rockchip-linux: https://github.com/rockchip-linux
 .. _sandrine-bailleux-arm: https://github.com/sandrine-bailleux-arm
 .. _sgorecha: https://github.com/sgorecha
 .. _shawnguo2: https://github.com/shawnguo2
-.. _sivadur: https://github.com/sivadur
 .. _smaeul: https://github.com/smaeul
 .. _soby-mathew: https://github.com/soby-mathew
 .. _thloh85-intel: https://github.com/thloh85-intel
 .. _thomas-arm: https://github.com/thomas-arm
 .. _TonyXie06: https://github.com/TonyXie06
 .. _vwadekar: https://github.com/vwadekar
+.. _venkatesh: https://github.com/vabbarap
 .. _Yann-lms: https://github.com/Yann-lms
 .. _manish-pandey-arm: https://github.com/manish-pandey-arm
 .. _mardyk01: https://github.com/mardyk01
@@ -648,5 +680,6 @@ Build system
 .. _john-powell-arm: https://github.com/john-powell-arm
 .. _raghuncstate: https://github.com/raghuncstate
 .. _CJKay: https://github.com/cjkay
+.. _nmenon: https://github.com/nmenon
 
 .. _Project Maintenance Process: https://developer.trustedfirmware.org/w/collaboration/project-maintenance-process/
