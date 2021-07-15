@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Arm Limited. All rights reserved.
+# Copyright (c) 2020-2021, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -43,8 +43,9 @@ TC0_BASE	=	plat/arm/board/tc0
 
 PLAT_INCLUDES		+=	-I${TC0_BASE}/include/
 
-TC0_CPU_SOURCES	:=	lib/cpus/aarch64/cortex_klein.S         \
-			lib/cpus/aarch64/cortex_matterhorn.S
+TC0_CPU_SOURCES	:=	lib/cpus/aarch64/cortex_a510.S         \
+			lib/cpus/aarch64/cortex_a710.S \
+			lib/cpus/aarch64/cortex_x2.S
 
 INTERCONNECT_SOURCES	:=	${TC0_BASE}/tc0_interconnect.c
 

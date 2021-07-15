@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015-2020, ARM Limited and Contributors. All rights reserved.
+# Copyright (c) 2015-2021, ARM Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -8,6 +8,8 @@ ARM_CORTEX_A7		:=	yes
 ARM_WITH_NEON		:=	yes
 BL2_AT_EL3		:=	1
 USE_COHERENT_MEM	:=	0
+
+ENABLE_PIE		:=	1
 
 STM32_TF_VERSION	?=	0
 
@@ -40,11 +42,7 @@ STM32MP_SDMMC		?=	0
 STM32MP_RAW_NAND	?=	0
 STM32MP_SPI_NAND	?=	0
 STM32MP_SPI_NOR		?=	0
-
-ifeq ($(filter 1,${STM32MP_EMMC} ${STM32MP_SDMMC} ${STM32MP_RAW_NAND} \
-	${STM32MP_SPI_NAND} ${STM32MP_SPI_NOR}),)
-$(error "No boot device driver is enabled")
-endif
+STM32MP_EMMC_BOOT	?=	0
 
 # Device tree
 DTB_FILE_NAME		?=	stm32mp157c-ev1.dtb
@@ -66,6 +64,7 @@ endif
 # Variables for use with stm32image
 STM32IMAGEPATH		?= tools/stm32image
 STM32IMAGE		?= ${STM32IMAGEPATH}/stm32image${BIN_EXT}
+STM32IMAGE_SRC		:= ${STM32IMAGEPATH}/stm32image.c
 
 # Enable flags for C files
 $(eval $(call assert_booleans,\
@@ -75,6 +74,7 @@ $(eval $(call assert_booleans,\
 		STM32MP_RAW_NAND \
 		STM32MP_SPI_NAND \
 		STM32MP_SPI_NOR \
+		STM32MP_EMMC_BOOT \
 		PLAT_XLAT_TABLES_DYNAMIC \
 )))
 
@@ -91,6 +91,7 @@ $(eval $(call add_defines,\
 		STM32MP_RAW_NAND \
 		STM32MP_SPI_NAND \
 		STM32MP_SPI_NOR \
+		STM32MP_EMMC_BOOT \
 		PLAT_XLAT_TABLES_DYNAMIC \
 		STM32_TF_A_COPIES \
 		PLAT_PARTITION_MAX_ENTRIES \
@@ -194,12 +195,24 @@ BL2_SOURCES		+=	lib/optee/optee_utils.c
 endif
 
 # Compilation rules
-.PHONY: check_dtc_version stm32image clean_stm32image
+.PHONY: check_dtc_version stm32image clean_stm32image check_boot_device
 .SUFFIXES:
 
 all: check_dtc_version stm32image ${STM32_TF_STM32}
 
 distclean realclean clean: clean_stm32image
+
+bl2: check_boot_device
+
+check_boot_device:
+	@if [ ${STM32MP_EMMC} != 1 ] && \
+	    [ ${STM32MP_SDMMC} != 1 ] && \
+	    [ ${STM32MP_RAW_NAND} != 1 ] && \
+	    [ ${STM32MP_SPI_NAND} != 1 ] && \
+	    [ ${STM32MP_SPI_NOR} != 1 ]; then \
+		echo "No boot device driver is enabled"; \
+		false; \
+	fi
 
 stm32image: ${STM32IMAGE}
 

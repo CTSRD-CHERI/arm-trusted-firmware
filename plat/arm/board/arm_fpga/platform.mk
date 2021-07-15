@@ -67,9 +67,11 @@ else
 				lib/cpus/aarch64/cortex_a78_ae.S	\
 				lib/cpus/aarch64/cortex_a65.S		\
 				lib/cpus/aarch64/cortex_a65ae.S		\
-				lib/cpus/aarch64/cortex_klein.S		\
-				lib/cpus/aarch64/cortex_matterhorn.S	\
-				lib/cpus/aarch64/cortex_makalu.S
+				lib/cpus/aarch64/cortex_a510.S		\
+				lib/cpus/aarch64/cortex_a710.S	\
+				lib/cpus/aarch64/cortex_makalu.S	\
+				lib/cpus/aarch64/cortex_makalu_elp_arm.S \
+				lib/cpus/aarch64/cortex_a78c.S
 
 # AArch64/AArch32 cores
 	FPGA_CPU_LIBS	+=	lib/cpus/aarch64/cortex_a55.S	\
