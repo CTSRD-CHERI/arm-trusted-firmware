@@ -260,6 +260,12 @@ For Cortex-A77, the following errata build flags are defined :
 -  ``ERRATA_A77_1925769``: This applies errata 1925769 workaround to Cortex-A77
    CPU. This needs to be enabled only for revision <= r1p1 of the CPU.
 
+-  ``ERRATA_A77_1946167``: This applies errata 1946167 workaround to Cortex-A77
+   CPU. This needs to be enabled only for revision <= r1p1 of the CPU.
+
+-  ``ERRATA_A77_1791578``: This applies errata 1791578 workaround to Cortex-A77
+   CPU. This needs to be enabled for r0p0, r1p0, and r1p1, it is still open.
+
 For Cortex-A78, the following errata build flags are defined :
 
 -  ``ERRATA_A78_1688305``: This applies errata 1688305 workaround to Cortex-A78
@@ -271,6 +277,9 @@ For Cortex-A78, the following errata build flags are defined :
 -  ``ERRATA_A78_1951500``: This applies errata 1951500 workaround to Cortex-A78
    CPU. This needs to be enabled for revisions r1p0 and r1p1, r0p0 has the same
    issue but there is no workaround for that revision.
+
+-  ``ERRATA_A78_1821534``: This applies errata 1821534 workaround to Cortex-A78
+   CPU. This needs to be enabled for revisions r0p0 and r1p0.
 
 For Neoverse N1, the following errata build flags are defined :
 
@@ -385,7 +394,7 @@ architecture that can be enabled by the platform as desired.
 
 --------------
 
-*Copyright (c) 2014-2020, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2014-2021, Arm Limited and Contributors. All rights reserved.*
 
 .. _CVE-2017-5715: http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5715
 .. _CVE-2018-3639: http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-3639

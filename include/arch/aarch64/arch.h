@@ -170,6 +170,7 @@
 #define ID_AA64PFR0_GIC_MASK	ULL(0xf)
 #define ID_AA64PFR0_SVE_SHIFT	U(32)
 #define ID_AA64PFR0_SVE_MASK	ULL(0xf)
+#define ID_AA64PFR0_SVE_LENGTH	U(4)
 #define ID_AA64PFR0_SEL2_SHIFT	U(36)
 #define ID_AA64PFR0_SEL2_MASK	ULL(0xf)
 #define ID_AA64PFR0_MPAM_SHIFT	U(40)
@@ -434,8 +435,16 @@
 #define SCR_RESET_VAL		SCR_RES1_BITS
 
 /* MDCR_EL3 definitions */
+#define MDCR_EnPMSN_BIT		(ULL(1) << 36)
+#define MDCR_MPMX_BIT		(ULL(1) << 35)
+#define MDCR_MCCD_BIT		(ULL(1) << 34)
 #define MDCR_MTPME_BIT		(ULL(1) << 28)
+#define MDCR_TDCC_BIT		(ULL(1) << 27)
 #define MDCR_SCCD_BIT		(ULL(1) << 23)
+#define MDCR_EPMAD_BIT		(ULL(1) << 21)
+#define MDCR_EDAD_BIT		(ULL(1) << 20)
+#define MDCR_TTRF_BIT		(ULL(1) << 19)
+#define MDCR_STE_BIT		(ULL(1) << 18)
 #define MDCR_SPME_BIT		(ULL(1) << 17)
 #define MDCR_SDD_BIT		(ULL(1) << 16)
 #define MDCR_SPD32(x)		((x) << 14)
@@ -524,7 +533,7 @@
 #define EC_BIT			(U(1) << 9)
 #endif
 #define CPTR_EZ_BIT		(U(1) << 8)
-#define CPTR_EL3_RESET_VAL	U(0x0)
+#define CPTR_EL3_RESET_VAL	(TCPAC_BIT | TAM_BIT | TTA_BIT | TFP_BIT & ~(CPTR_EZ_BIT))
 
 /* CPTR_EL2 definitions */
 #define CPTR_EL2_RES1		((U(1) << 13) | (U(1) << 12) | (U(0x3ff)))
