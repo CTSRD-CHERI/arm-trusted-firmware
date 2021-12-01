@@ -179,7 +179,12 @@ func smc_handler64
 	bl	bl1_print_next_bl_ep_info
 
 	ldp	x0, x1, [x20, #ENTRY_POINT_INFO_PC_OFFSET]
+#if ENABLE_MORELLO_CAP
+	cvtp    c0, x0
+	msr     celr_el3, c0
+#else
 	msr	elr_el3, x0
+#endif
 	msr	spsr_el3, x1
 	ubfx	x0, x1, #MODE_EL_SHIFT, #2
 	cmp	x0, #MODE_EL3
