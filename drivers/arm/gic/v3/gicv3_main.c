@@ -123,13 +123,7 @@ void __init gicv3_driver_init(const gicv3_driver_data_t *plat_driver_data)
 	gic_version &= PIDR2_ARCH_REV_MASK;
 
 	/* Check GIC version */
-#if GIC_ENABLE_V4_EXTN
-	assert(gic_version == ARCH_REV_GICV4);
-
-	/* GICv4 supports Direct Virtual LPI injection */
-	assert((gicd_read_typer(plat_driver_data->gicd_base)
-					& TYPER_DVIS) != 0);
-#else
+#if !GIC_ENABLE_V4_EXTN
 	assert(gic_version == ARCH_REV_GICV3);
 #endif
 	/*
@@ -332,6 +326,8 @@ void gicv3_cpuif_enable(unsigned int proc_num)
 	write_icc_igrpen1_el3(read_icc_igrpen1_el3() |
 				IGRPEN1_EL3_ENABLE_G1S_BIT);
 	isb();
+	/* Add DSB to ensure visibility of System register writes */
+	dsb();
 }
 
 /*******************************************************************************
@@ -363,6 +359,8 @@ void gicv3_cpuif_disable(unsigned int proc_num)
 
 	/* Synchronise accesses to group enable registers */
 	isb();
+	/* Add DSB to ensure visibility of System register writes */
+	dsb();
 
 	/* Mark the connected core as asleep */
 	gicr_base = gicv3_driver_data->rdistif_base_addrs[proc_num];
@@ -1294,7 +1292,7 @@ int gicv3_rdistif_probe(const uintptr_t gicr_frame)
 			gicr_frame_found = true;
 			break;
 		}
-		rdistif_base += (uintptr_t)(ULL(1) << GICR_PCPUBASE_SHIFT);
+		rdistif_base += gicv3_redist_size(typer_val);
 	} while ((typer_val & TYPER_LAST_BIT) == 0U);
 
 	if (!gicr_frame_found) {

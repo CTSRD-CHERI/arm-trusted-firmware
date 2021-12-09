@@ -17,6 +17,7 @@
 /* Functions to save and get boot context address given by ROM code */
 void stm32mp_save_boot_ctx_address(uintptr_t address);
 uintptr_t stm32mp_get_boot_ctx_address(void);
+uint16_t stm32mp_get_boot_itf_selected(void);
 
 bool stm32mp_is_single_core(void);
 bool stm32mp_is_closed_device(void);
@@ -45,6 +46,11 @@ uint32_t stm32_iwdg_get_otp_config(uint32_t iwdg_inst);
 #if defined(IMAGE_BL2)
 /* Update OTP shadow registers with IWDG configuration from device tree */
 uint32_t stm32_iwdg_shadow_update(uint32_t iwdg_inst, uint32_t flags);
+#endif
+
+#if STM32MP_UART_PROGRAMMER
+/* Get the UART address from its instance number */
+uintptr_t get_uart_address(uint32_t instance_nb);
 #endif
 
 /*
@@ -94,6 +100,7 @@ unsigned long stm32mp_clk_get_rate(unsigned long id);
 /* Initialise the IO layer and register platform IO devices */
 void stm32mp_io_setup(void);
 
+#if STM32MP_USE_STM32IMAGE
 /*
  * Check that the STM32 header of a .stm32 binary image is valid
  * @param header: pointer to the stm32 image header
@@ -101,6 +108,7 @@ void stm32mp_io_setup(void);
  * @return: 0 on success, negative value in case of error
  */
 int stm32mp_check_header(boot_api_image_header_t *header, uintptr_t buffer);
+#endif /* STM32MP_USE_STM32IMAGE */
 
 /* Functions to map DDR in MMU with non-cacheable attribute, and unmap it */
 int stm32mp_map_ddr_non_cacheable(void);
