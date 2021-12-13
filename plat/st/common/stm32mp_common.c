@@ -17,6 +17,8 @@
 #include <plat/common/platform.h>
 #include <services/arm_arch_svc.h>
 
+#define HEADER_VERSION_MAJOR_MASK	GENMASK(23, 16)
+
 uintptr_t plat_get_ns_image_entrypoint(void)
 {
 	return BL33_BASE;
@@ -28,15 +30,24 @@ unsigned int plat_get_syscnt_freq2(void)
 }
 
 static uintptr_t boot_ctx_address;
+static uint16_t boot_itf_selected;
 
 void stm32mp_save_boot_ctx_address(uintptr_t address)
 {
+	boot_api_context_t *boot_context = (boot_api_context_t *)address;
+
 	boot_ctx_address = address;
+	boot_itf_selected = boot_context->boot_interface_selected;
 }
 
 uintptr_t stm32mp_get_boot_ctx_address(void)
 {
 	return boot_ctx_address;
+}
+
+uint16_t stm32mp_get_boot_itf_selected(void)
+{
+	return boot_itf_selected;
 }
 
 uintptr_t stm32mp_ddrctrl_base(void)
@@ -67,6 +78,7 @@ bool stm32mp_lock_available(void)
 	return (read_sctlr() & c_m_bits) == c_m_bits;
 }
 
+#if STM32MP_USE_STM32IMAGE
 int stm32mp_check_header(boot_api_image_header_t *header, uintptr_t buffer)
 {
 	uint32_t i;
@@ -83,7 +95,8 @@ int stm32mp_check_header(boot_api_image_header_t *header, uintptr_t buffer)
 		return -EINVAL;
 	}
 
-	if (header->header_version != BOOT_API_HEADER_VERSION) {
+	if ((header->header_version & HEADER_VERSION_MAJOR_MASK) !=
+	    (BOOT_API_HEADER_VERSION & HEADER_VERSION_MAJOR_MASK)) {
 		ERROR("Header version\n");
 		return -EINVAL;
 	}
@@ -100,12 +113,13 @@ int stm32mp_check_header(boot_api_image_header_t *header, uintptr_t buffer)
 
 	return 0;
 }
+#endif /* STM32MP_USE_STM32IMAGE */
 
 int stm32mp_map_ddr_non_cacheable(void)
 {
 	return  mmap_add_dynamic_region(STM32MP_DDR_BASE, STM32MP_DDR_BASE,
 					STM32MP_DDR_MAX_SIZE,
-					MT_NON_CACHEABLE | MT_RW | MT_NS);
+					MT_NON_CACHEABLE | MT_RW | MT_SECURE);
 }
 
 int stm32mp_unmap_ddr(void)

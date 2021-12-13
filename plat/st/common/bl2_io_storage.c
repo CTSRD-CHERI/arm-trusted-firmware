@@ -7,13 +7,13 @@
 #include <assert.h>
 #include <string.h>
 
-#include <platform_def.h>
-
 #include <arch_helpers.h>
 #include <common/debug.h>
+#include <common/desc_image_load.h>
 #include <drivers/io/io_block.h>
 #include <drivers/io/io_driver.h>
-#include <drivers/io/io_dummy.h>
+#include <drivers/io/io_fip.h>
+#include <drivers/io/io_memmap.h>
 #include <drivers/io/io_mtd.h>
 #include <drivers/io/io_storage.h>
 #include <drivers/mmc.h>
@@ -22,34 +22,33 @@
 #include <drivers/spi_nand.h>
 #include <drivers/spi_nor.h>
 #include <drivers/st/io_mmc.h>
-#include <drivers/st/io_stm32image.h>
 #include <drivers/st/stm32_fmc2_nand.h>
 #include <drivers/st/stm32_qspi.h>
 #include <drivers/st/stm32_sdmmc2.h>
+#include <drivers/usb_device.h>
+#include <lib/fconf/fconf.h>
 #include <lib/mmio.h>
 #include <lib/utils.h>
 #include <plat/common/platform.h>
+#include <tools_share/firmware_image_package.h>
+
+#include <platform_def.h>
+#include <stm32cubeprogrammer.h>
+#include <stm32mp_fconf_getter.h>
+#include <usb_dfu.h>
 
 /* IO devices */
-#ifndef AARCH32_SP_OPTEE
-static const io_dev_connector_t *dummy_dev_con;
-static uintptr_t dummy_dev_handle;
-static uintptr_t dummy_dev_spec;
-#endif
+uintptr_t fip_dev_handle;
+uintptr_t storage_dev_handle;
 
-static uintptr_t image_dev_handle;
-static uintptr_t storage_dev_handle;
+static const io_dev_connector_t *fip_dev_con;
 
 #if STM32MP_SDMMC || STM32MP_EMMC
 static struct mmc_device_info mmc_info;
-static io_block_spec_t gpt_block_spec = {
-	.offset = 0,
-	.length = 34 * MMC_BLOCK_SIZE, /* Size of GPT table */
-};
 
 static uint32_t block_buffer[MMC_BLOCK_SIZE] __aligned(MMC_BLOCK_SIZE);
 
-static const io_block_dev_spec_t mmc_block_dev_spec = {
+static io_block_dev_spec_t mmc_block_dev_spec = {
 	/* It's used as temp buffer in block driver */
 	.buffer = {
 		.offset = (size_t)&block_buffer,
@@ -60,30 +59,6 @@ static const io_block_dev_spec_t mmc_block_dev_spec = {
 		.write = NULL,
 	},
 	.block_size = MMC_BLOCK_SIZE,
-};
-
-#if STM32MP_EMMC_BOOT
-static io_block_spec_t emmc_boot_ssbl_block_spec = {
-	.offset = PLAT_EMMC_BOOT_SSBL_OFFSET,
-	.length = MMC_BLOCK_SIZE, /* We are interested only in first 4 bytes */
-};
-
-static const io_block_dev_spec_t mmc_block_dev_boot_part_spec = {
-	/* It's used as temp buffer in block driver */
-	.buffer = {
-		.offset = (size_t)&block_buffer,
-		.length = MMC_BLOCK_SIZE,
-	},
-	.ops = {
-		.read = mmc_boot_part_read_blocks,
-		.write = NULL,
-	},
-	.block_size = MMC_BLOCK_SIZE,
-};
-#endif
-
-static struct io_mmc_dev_spec mmc_device_spec = {
-	.use_boot_part = false,
 };
 
 static const io_dev_connector_t *mmc_dev_con;
@@ -103,6 +78,7 @@ static io_mtd_dev_spec_t nand_dev_spec = {
 	.ops = {
 		.init = nand_raw_init,
 		.read = nand_read,
+		.seek = nand_seek_bb
 	},
 };
 
@@ -114,6 +90,7 @@ static io_mtd_dev_spec_t spi_nand_dev_spec = {
 	.ops = {
 		.init = spi_nand_init,
 		.read = nand_read,
+		.seek = nand_seek_bb
 	},
 };
 #endif
@@ -122,175 +99,24 @@ static io_mtd_dev_spec_t spi_nand_dev_spec = {
 static const io_dev_connector_t *spi_dev_con;
 #endif
 
-#ifdef AARCH32_SP_OPTEE
-static const struct stm32image_part_info optee_header_partition_spec = {
-	.name = OPTEE_HEADER_IMAGE_NAME,
-	.binary_type = OPTEE_HEADER_BINARY_TYPE,
-};
-
-static const struct stm32image_part_info optee_core_partition_spec = {
-	.name = OPTEE_CORE_IMAGE_NAME,
-	.binary_type = OPTEE_CORE_BINARY_TYPE,
-};
-
-static const struct stm32image_part_info optee_paged_partition_spec = {
-	.name = OPTEE_PAGED_IMAGE_NAME,
-	.binary_type = OPTEE_PAGED_BINARY_TYPE,
-};
-#else
-static const io_block_spec_t bl32_block_spec = {
-	.offset = BL32_BASE,
-	.length = STM32MP_BL32_SIZE
-};
+#if STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER
+static const io_dev_connector_t *memmap_dev_con;
 #endif
 
-static const struct stm32image_part_info bl33_partition_spec = {
-	.name = BL33_IMAGE_NAME,
-	.binary_type = BL33_BINARY_TYPE,
+io_block_spec_t image_block_spec = {
+	.offset = 0U,
+	.length = 0U,
 };
 
-enum {
-	IMG_IDX_BL33,
-#ifdef AARCH32_SP_OPTEE
-	IMG_IDX_OPTEE_HEADER,
-	IMG_IDX_OPTEE_CORE,
-	IMG_IDX_OPTEE_PAGED,
-#endif
-	IMG_IDX_NUM
-};
-
-static struct stm32image_device_info stm32image_dev_info_spec __unused = {
-	.lba_size = MMC_BLOCK_SIZE,
-	.part_info[IMG_IDX_BL33] = {
-		.name = BL33_IMAGE_NAME,
-		.binary_type = BL33_BINARY_TYPE,
-	},
-#ifdef AARCH32_SP_OPTEE
-	.part_info[IMG_IDX_OPTEE_HEADER] = {
-		.name = OPTEE_HEADER_IMAGE_NAME,
-		.binary_type = OPTEE_HEADER_BINARY_TYPE,
-	},
-	.part_info[IMG_IDX_OPTEE_CORE] = {
-		.name = OPTEE_CORE_IMAGE_NAME,
-		.binary_type = OPTEE_CORE_BINARY_TYPE,
-	},
-	.part_info[IMG_IDX_OPTEE_PAGED] = {
-		.name = OPTEE_PAGED_IMAGE_NAME,
-		.binary_type = OPTEE_PAGED_BINARY_TYPE,
-	},
-#endif
-};
-
-static io_block_spec_t stm32image_block_spec = {
-	.offset = 0,
-	.length = 0,
-};
-
-static const io_dev_connector_t *stm32image_dev_con __unused;
-
-#ifndef AARCH32_SP_OPTEE
-static int open_dummy(const uintptr_t spec);
-#endif
-static int open_image(const uintptr_t spec);
-static int open_storage(const uintptr_t spec);
-
-struct plat_io_policy {
-	uintptr_t *dev_handle;
-	uintptr_t image_spec;
-	int (*check)(const uintptr_t spec);
-};
-
-static const struct plat_io_policy policies[] = {
-#ifdef AARCH32_SP_OPTEE
-	[BL32_IMAGE_ID] = {
-		.dev_handle = &image_dev_handle,
-		.image_spec = (uintptr_t)&optee_header_partition_spec,
-		.check = open_image
-	},
-	[BL32_EXTRA1_IMAGE_ID] = {
-		.dev_handle = &image_dev_handle,
-		.image_spec = (uintptr_t)&optee_core_partition_spec,
-		.check = open_image
-	},
-	[BL32_EXTRA2_IMAGE_ID] = {
-		.dev_handle = &image_dev_handle,
-		.image_spec = (uintptr_t)&optee_paged_partition_spec,
-		.check = open_image
-	},
-#else
-	[BL32_IMAGE_ID] = {
-		.dev_handle = &dummy_dev_handle,
-		.image_spec = (uintptr_t)&bl32_block_spec,
-		.check = open_dummy
-	},
-#endif
-	[BL33_IMAGE_ID] = {
-		.dev_handle = &image_dev_handle,
-		.image_spec = (uintptr_t)&bl33_partition_spec,
-		.check = open_image
-	},
-#if STM32MP_SDMMC || STM32MP_EMMC
-	[GPT_IMAGE_ID] = {
-		.dev_handle = &storage_dev_handle,
-		.image_spec = (uintptr_t)&gpt_block_spec,
-		.check = open_storage
-	},
-#endif
-	[STM32_IMAGE_ID] = {
-		.dev_handle = &storage_dev_handle,
-		.image_spec = (uintptr_t)&stm32image_block_spec,
-		.check = open_storage
-	}
-};
-
-#ifndef AARCH32_SP_OPTEE
-static int open_dummy(const uintptr_t spec)
+int open_fip(const uintptr_t spec)
 {
-	return io_dev_init(dummy_dev_handle, 0);
-}
-#endif
-
-static int open_image(const uintptr_t spec)
-{
-	return io_dev_init(image_dev_handle, 0);
+	return io_dev_init(fip_dev_handle, (uintptr_t)FIP_IMAGE_ID);
 }
 
-static int open_storage(const uintptr_t spec)
+int open_storage(const uintptr_t spec)
 {
 	return io_dev_init(storage_dev_handle, 0);
 }
-
-#if STM32MP_EMMC_BOOT
-static uint32_t get_boot_part_ssbl_header(void)
-{
-	uint32_t magic = 0;
-	int io_result;
-	size_t bytes_read;
-
-	io_result = register_io_dev_block(&mmc_dev_con);
-	if (io_result != 0) {
-		panic();
-	}
-
-	io_result = io_dev_open(mmc_dev_con, (uintptr_t)&mmc_block_dev_boot_part_spec,
-				&storage_dev_handle);
-	assert(io_result == 0);
-
-	io_result = io_open(storage_dev_handle, (uintptr_t) &emmc_boot_ssbl_block_spec,
-			    &image_dev_handle);
-	assert(io_result == 0);
-
-	io_result = io_read(image_dev_handle, (uintptr_t) &magic, sizeof(magic),
-			    &bytes_read);
-	assert(io_result == 0);
-	assert(bytes_read == sizeof(magic));
-
-	io_result = io_dev_close(storage_dev_handle);
-	assert(io_result == 0);
-
-	return magic;
-}
-#endif
 
 static void print_boot_device(boot_api_context_t *boot_context)
 {
@@ -310,8 +136,15 @@ static void print_boot_device(boot_api_context_t *boot_context)
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_QSPI:
 		INFO("Using SPI NAND\n");
 		break;
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_UART:
+		INFO("Using UART\n");
+		break;
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_USB:
+		INFO("Using USB\n");
+		break;
 	default:
-		ERROR("Boot interface not found\n");
+		ERROR("Boot interface %u not found\n",
+		      boot_context->boot_interface_selected);
 		panic();
 		break;
 	}
@@ -321,29 +154,12 @@ static void print_boot_device(boot_api_context_t *boot_context)
 	}
 }
 
-static void stm32image_io_setup(void)
-{
-	int io_result __unused;
-
-	io_result = register_io_dev_stm32image(&stm32image_dev_con);
-	assert(io_result == 0);
-
-	io_result = io_dev_open(stm32image_dev_con,
-				(uintptr_t)&stm32image_dev_info_spec,
-				&image_dev_handle);
-	assert(io_result == 0);
-}
-
 #if STM32MP_SDMMC || STM32MP_EMMC
 static void boot_mmc(enum mmc_device_type mmc_dev_type,
 		     uint16_t boot_interface_instance)
 {
 	int io_result __unused;
-	uint8_t idx;
-	struct stm32image_part_info *part;
 	struct stm32_sdmmc2_params params;
-	const partition_entry_t *entry __unused;
-	uint32_t magic __unused;
 
 	zeromem(&params, sizeof(struct stm32_sdmmc2_params));
 
@@ -375,26 +191,6 @@ static void boot_mmc(enum mmc_device_type mmc_dev_type,
 		panic();
 	}
 
-	stm32image_dev_info_spec.device_size =
-		stm32_sdmmc2_mmc_get_device_size();
-
-#if STM32MP_EMMC_BOOT
-	magic = get_boot_part_ssbl_header();
-
-	if (magic == BOOT_API_IMAGE_HEADER_MAGIC_NB) {
-		VERBOSE("%s, header found, jump to emmc load\n", __func__);
-		idx = IMG_IDX_BL33;
-		part = &stm32image_dev_info_spec.part_info[idx];
-		part->part_offset = PLAT_EMMC_BOOT_SSBL_OFFSET;
-		part->bkp_offset = 0U;
-		mmc_device_spec.use_boot_part = true;
-
-		goto emmc_boot;
-	} else {
-		WARN("%s: Can't find STM32 header on a boot partition\n", __func__);
-	}
-#endif
-
 	/* Open MMC as a block device to read GPT table */
 	io_result = register_io_dev_block(&mmc_dev_con);
 	if (io_result != 0) {
@@ -404,37 +200,6 @@ static void boot_mmc(enum mmc_device_type mmc_dev_type,
 	io_result = io_dev_open(mmc_dev_con, (uintptr_t)&mmc_block_dev_spec,
 				&storage_dev_handle);
 	assert(io_result == 0);
-
-	partition_init(GPT_IMAGE_ID);
-
-	io_result = io_dev_close(storage_dev_handle);
-	assert(io_result == 0);
-
-	for (idx = 0U; idx < IMG_IDX_NUM; idx++) {
-		part = &stm32image_dev_info_spec.part_info[idx];
-		entry = get_partition_entry(part->name);
-		if (entry == NULL) {
-			ERROR("Partition %s not found\n", part->name);
-			panic();
-		}
-
-		part->part_offset = entry->start;
-		part->bkp_offset = 0U;
-	}
-
-#if STM32MP_EMMC_BOOT
-emmc_boot:
-#endif
-	/*
-	 * Re-open MMC with io_mmc, for better perfs compared to
-	 * io_block.
-	 */
-	io_result = register_io_dev_mmc(&mmc_dev_con);
-	assert(io_result == 0);
-
-	io_result = io_dev_open(mmc_dev_con, (uintptr_t)&mmc_device_spec,
-				&storage_dev_handle);
-	assert(io_result == 0);
 }
 #endif /* STM32MP_SDMMC || STM32MP_EMMC */
 
@@ -442,8 +207,6 @@ emmc_boot:
 static void boot_spi_nor(boot_api_context_t *boot_context)
 {
 	int io_result __unused;
-	uint8_t idx;
-	struct stm32image_part_info *part;
 
 	io_result = stm32_qspi_init();
 	assert(io_result == 0);
@@ -456,30 +219,6 @@ static void boot_spi_nor(boot_api_context_t *boot_context)
 				(uintptr_t)&spi_nor_dev_spec,
 				&storage_dev_handle);
 	assert(io_result == 0);
-
-	stm32image_dev_info_spec.device_size = spi_nor_dev_spec.device_size;
-
-	idx = IMG_IDX_BL33;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NOR_BL33_OFFSET;
-	part->bkp_offset = 0U;
-
-#ifdef AARCH32_SP_OPTEE
-	idx = IMG_IDX_OPTEE_HEADER;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NOR_TEEH_OFFSET;
-	part->bkp_offset = 0U;
-
-	idx = IMG_IDX_OPTEE_PAGED;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NOR_TEED_OFFSET;
-	part->bkp_offset = 0U;
-
-	idx = IMG_IDX_OPTEE_CORE;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NOR_TEEX_OFFSET;
-	part->bkp_offset = 0U;
-#endif
 }
 #endif /* STM32MP_SPI_NOR */
 
@@ -487,8 +226,6 @@ static void boot_spi_nor(boot_api_context_t *boot_context)
 static void boot_fmc2_nand(boot_api_context_t *boot_context)
 {
 	int io_result __unused;
-	uint8_t idx;
-	struct stm32image_part_info *part;
 
 	io_result = stm32_fmc2_init();
 	assert(io_result == 0);
@@ -501,30 +238,6 @@ static void boot_fmc2_nand(boot_api_context_t *boot_context)
 	io_result = io_dev_open(nand_dev_con, (uintptr_t)&nand_dev_spec,
 				&storage_dev_handle);
 	assert(io_result == 0);
-
-	stm32image_dev_info_spec.device_size = nand_dev_spec.device_size;
-
-	idx = IMG_IDX_BL33;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_BL33_OFFSET;
-	part->bkp_offset = nand_dev_spec.erase_size;
-
-#ifdef AARCH32_SP_OPTEE
-	idx = IMG_IDX_OPTEE_HEADER;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_TEEH_OFFSET;
-	part->bkp_offset = nand_dev_spec.erase_size;
-
-	idx = IMG_IDX_OPTEE_PAGED;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_TEED_OFFSET;
-	part->bkp_offset = nand_dev_spec.erase_size;
-
-	idx = IMG_IDX_OPTEE_CORE;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_TEEX_OFFSET;
-	part->bkp_offset = nand_dev_spec.erase_size;
-#endif
 }
 #endif /* STM32MP_RAW_NAND */
 
@@ -532,8 +245,6 @@ static void boot_fmc2_nand(boot_api_context_t *boot_context)
 static void boot_spi_nand(boot_api_context_t *boot_context)
 {
 	int io_result __unused;
-	uint8_t idx;
-	struct stm32image_part_info *part;
 
 	io_result = stm32_qspi_init();
 	assert(io_result == 0);
@@ -546,33 +257,51 @@ static void boot_spi_nand(boot_api_context_t *boot_context)
 				(uintptr_t)&spi_nand_dev_spec,
 				&storage_dev_handle);
 	assert(io_result == 0);
-
-	stm32image_dev_info_spec.device_size =
-		spi_nand_dev_spec.device_size;
-
-	idx = IMG_IDX_BL33;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_BL33_OFFSET;
-	part->bkp_offset = spi_nand_dev_spec.erase_size;
-
-#ifdef AARCH32_SP_OPTEE
-	idx = IMG_IDX_OPTEE_HEADER;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_TEEH_OFFSET;
-	part->bkp_offset = spi_nand_dev_spec.erase_size;
-
-	idx = IMG_IDX_OPTEE_PAGED;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_TEED_OFFSET;
-	part->bkp_offset = spi_nand_dev_spec.erase_size;
-
-	idx = IMG_IDX_OPTEE_CORE;
-	part = &stm32image_dev_info_spec.part_info[idx];
-	part->part_offset = STM32MP_NAND_TEEX_OFFSET;
-	part->bkp_offset = spi_nand_dev_spec.erase_size;
-#endif
 }
 #endif /* STM32MP_SPI_NAND */
+
+#if STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER
+static void mmap_io_setup(void)
+{
+	int io_result __unused;
+
+	io_result = register_io_dev_memmap(&memmap_dev_con);
+	assert(io_result == 0);
+
+	io_result = io_dev_open(memmap_dev_con, (uintptr_t)NULL,
+				&storage_dev_handle);
+	assert(io_result == 0);
+}
+
+#if STM32MP_UART_PROGRAMMER
+static void stm32cubeprogrammer_uart(void)
+{
+	int ret __unused;
+	boot_api_context_t *boot_context =
+		(boot_api_context_t *)stm32mp_get_boot_ctx_address();
+	uintptr_t uart_base;
+
+	uart_base = get_uart_address(boot_context->boot_interface_instance);
+	ret = stm32cubeprog_uart_load(uart_base, DWL_BUFFER_BASE, DWL_BUFFER_SIZE);
+	assert(ret == 0);
+}
+#endif
+
+#if STM32MP_USB_PROGRAMMER
+static void stm32cubeprogrammer_usb(void)
+{
+	int ret __unused;
+	struct usb_handle *pdev;
+
+	/* Init USB on platform */
+	pdev = usb_dfu_plat_init();
+
+	ret = stm32cubeprog_usb_load(pdev, DWL_BUFFER_BASE, DWL_BUFFER_SIZE);
+	assert(ret == 0);
+}
+#endif
+#endif /* STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER */
+
 
 void stm32mp_io_setup(void)
 {
@@ -584,53 +313,56 @@ void stm32mp_io_setup(void)
 
 	if ((boot_context->boot_partition_used_toboot == 1U) ||
 	    (boot_context->boot_partition_used_toboot == 2U)) {
-		INFO("Boot used partition fsbl%d\n",
+		INFO("Boot used partition fsbl%u\n",
 		     boot_context->boot_partition_used_toboot);
 	}
 
-#ifndef AARCH32_SP_OPTEE
-	io_result = register_io_dev_dummy(&dummy_dev_con);
+	io_result = register_io_dev_fip(&fip_dev_con);
 	assert(io_result == 0);
 
-	io_result = io_dev_open(dummy_dev_con, dummy_dev_spec,
-				&dummy_dev_handle);
-	assert(io_result == 0);
-#endif
+	io_result = io_dev_open(fip_dev_con, (uintptr_t)NULL,
+				&fip_dev_handle);
 
 	switch (boot_context->boot_interface_selected) {
 #if STM32MP_SDMMC
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_SD:
 		dmbsy();
 		boot_mmc(MMC_IS_SD, boot_context->boot_interface_instance);
-		stm32image_io_setup();
 		break;
 #endif
 #if STM32MP_EMMC
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_EMMC:
 		dmbsy();
 		boot_mmc(MMC_IS_EMMC, boot_context->boot_interface_instance);
-		stm32image_io_setup();
 		break;
 #endif
 #if STM32MP_SPI_NOR
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NOR_QSPI:
 		dmbsy();
 		boot_spi_nor(boot_context);
-		stm32image_io_setup();
 		break;
 #endif
 #if STM32MP_RAW_NAND
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_FMC:
 		dmbsy();
 		boot_fmc2_nand(boot_context);
-		stm32image_io_setup();
 		break;
 #endif
 #if STM32MP_SPI_NAND
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_QSPI:
 		dmbsy();
 		boot_spi_nand(boot_context);
-		stm32image_io_setup();
+		break;
+#endif
+#if STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER
+#if STM32MP_UART_PROGRAMMER
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_UART:
+#endif
+#if STM32MP_USB_PROGRAMMER
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_USB:
+#endif
+		dmbsy();
+		mmap_io_setup();
 		break;
 #endif
 
@@ -640,6 +372,86 @@ void stm32mp_io_setup(void)
 		panic();
 		break;
 	}
+}
+
+int bl2_plat_handle_pre_image_load(unsigned int image_id)
+{
+	static bool gpt_init_done __unused;
+	uint16_t boot_itf = stm32mp_get_boot_itf_selected();
+
+	switch (boot_itf) {
+#if STM32MP_SDMMC || STM32MP_EMMC
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_SD:
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_EMMC:
+		if (!gpt_init_done) {
+			const partition_entry_t *entry;
+
+			partition_init(GPT_IMAGE_ID);
+			entry = get_partition_entry(FIP_IMAGE_NAME);
+			if (entry == NULL) {
+				ERROR("Could NOT find the %s partition!\n",
+				      FIP_IMAGE_NAME);
+				return -ENOENT;
+			}
+
+			image_block_spec.offset = entry->start;
+			image_block_spec.length = entry->length;
+
+			gpt_init_done = true;
+		} else {
+			bl_mem_params_node_t *bl_mem_params = get_bl_mem_params_node(image_id);
+
+			mmc_block_dev_spec.buffer.offset = bl_mem_params->image_info.image_base;
+			mmc_block_dev_spec.buffer.length = bl_mem_params->image_info.image_max_size;
+		}
+
+		break;
+#endif
+
+#if STM32MP_RAW_NAND || STM32MP_SPI_NAND
+#if STM32MP_RAW_NAND
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_FMC:
+#endif
+#if STM32MP_SPI_NAND
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_QSPI:
+#endif
+		image_block_spec.offset = STM32MP_NAND_FIP_OFFSET;
+		break;
+#endif
+
+#if STM32MP_SPI_NOR
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NOR_QSPI:
+		image_block_spec.offset = STM32MP_NOR_FIP_OFFSET;
+		break;
+#endif
+
+#if STM32MP_UART_PROGRAMMER
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_UART:
+		if (image_id == FW_CONFIG_ID) {
+			stm32cubeprogrammer_uart();
+			/* FIP loaded at DWL address */
+			image_block_spec.offset = DWL_BUFFER_BASE;
+			image_block_spec.length = DWL_BUFFER_SIZE;
+		}
+		break;
+#endif
+#if STM32MP_USB_PROGRAMMER
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_USB:
+		if (image_id == FW_CONFIG_ID) {
+			stm32cubeprogrammer_usb();
+			/* FIP loaded at DWL address */
+			image_block_spec.offset = DWL_BUFFER_BASE;
+			image_block_spec.length = DWL_BUFFER_SIZE;
+		}
+		break;
+#endif
+
+	default:
+		ERROR("FIP Not found\n");
+		panic();
+	}
+
+	return 0;
 }
 
 /*
@@ -652,9 +464,7 @@ int plat_get_image_source(unsigned int image_id, uintptr_t *dev_handle,
 	int rc;
 	const struct plat_io_policy *policy;
 
-	assert(image_id < ARRAY_SIZE(policies));
-
-	policy = &policies[image_id];
+	policy = FCONF_GET_PROPERTY(stm32mp, io_policies, image_id);
 	rc = policy->check(policy->image_spec);
 	if (rc == 0) {
 		*image_spec = policy->image_spec;

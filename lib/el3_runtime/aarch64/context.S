@@ -193,6 +193,11 @@ func el2_sysregs_context_save
 	str	x13, [x0, #CTX_SCXTNUM_EL2]
 #endif
 
+#if ENABLE_FEAT_HCX
+	mrs	x14, hcrx_el2
+	str	x14, [x0, #CTX_HCRX_EL2]
+#endif
+
 	ret
 endfunc el2_sysregs_context_save
 
@@ -360,6 +365,11 @@ func el2_sysregs_context_restore
 #if ARM_ARCH_AT_LEAST(8, 5)
 	ldr	x13, [x0, #CTX_SCXTNUM_EL2]
 	msr	scxtnum_el2, x13
+#endif
+
+#if ENABLE_FEAT_HCX
+	ldr	x14, [x0, #CTX_HCRX_EL2]
+	msr	hcrx_el2, x14
 #endif
 
 	ret
@@ -908,16 +918,11 @@ func el3_exit
 
 #if IMAGE_BL31
 	/* ----------------------------------------------------------
-	 * Restore CPTR_EL3, ZCR_EL3 for SVE support.
-	 * If SVE is not supported - skip the restoration.
+	 * Restore CPTR_EL3.
 	 * ZCR is only restored if SVE is supported and enabled.
 	 * Synchronization is required before zcr_el3 is addressed.
 	 * ----------------------------------------------------------
 	 */
-	mrs	x17, id_aa64pfr0_el1
-	ubfx	x17, x17, ID_AA64PFR0_SVE_SHIFT, ID_AA64PFR0_SVE_LENGTH
-	cbz	x17, sve_not_enabled
-
 	ldp	x19, x20, [sp, #CTX_EL3STATE_OFFSET + CTX_CPTR_EL3]
 	msr	cptr_el3, x19
 
