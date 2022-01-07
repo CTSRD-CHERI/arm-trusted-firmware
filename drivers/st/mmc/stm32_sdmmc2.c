@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2018-2022, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,13 +8,10 @@
 #include <errno.h>
 #include <string.h>
 
-#include <libfdt.h>
-
-#include <platform_def.h>
-
 #include <arch.h>
 #include <arch_helpers.h>
 #include <common/debug.h>
+#include <drivers/clk.h>
 #include <drivers/delay_timer.h>
 #include <drivers/mmc.h>
 #include <drivers/st/stm32_gpio.h>
@@ -22,7 +19,10 @@
 #include <drivers/st/stm32mp_reset.h>
 #include <lib/mmio.h>
 #include <lib/utils.h>
+#include <libfdt.h>
 #include <plat/common/platform.h>
+
+#include <platform_def.h>
 
 /* Registers offsets */
 #define SDMMC_POWER			0x00U
@@ -50,6 +50,7 @@
 
 /* SDMMC power control register */
 #define SDMMC_POWER_PWRCTRL		GENMASK(1, 0)
+#define SDMMC_POWER_PWRCTRL_PWR_CYCLE	BIT(1)
 #define SDMMC_POWER_DIRPOL		BIT(4)
 
 /* SDMMC clock control register */
@@ -117,6 +118,13 @@
 #define TIMEOUT_US_10_MS		10000U
 #define TIMEOUT_US_1_S			1000000U
 
+/* Power cycle delays in ms */
+#define VCC_POWER_OFF_DELAY		2
+#define VCC_POWER_ON_DELAY		2
+#define POWER_CYCLE_DELAY		2
+#define POWER_OFF_DELAY			2
+#define POWER_ON_DELAY			1
+
 #define DT_SDMMC2_COMPAT		"st,stm32-sdmmc2"
 
 static void stm32_sdmmc2_init(void);
@@ -149,10 +157,36 @@ static void stm32_sdmmc2_init(void)
 	uint32_t clock_div;
 	uint32_t freq = STM32MP_MMC_INIT_FREQ;
 	uintptr_t base = sdmmc2_params.reg_base;
+	int ret;
 
 	if (sdmmc2_params.max_freq != 0U) {
 		freq = MIN(sdmmc2_params.max_freq, freq);
 	}
+
+	if (sdmmc2_params.vmmc_regu != NULL) {
+		ret = regulator_disable(sdmmc2_params.vmmc_regu);
+		if (ret < 0) {
+			panic();
+		}
+	}
+
+	mdelay(VCC_POWER_OFF_DELAY);
+
+	mmio_write_32(base + SDMMC_POWER,
+		      SDMMC_POWER_PWRCTRL_PWR_CYCLE | sdmmc2_params.dirpol);
+	mdelay(POWER_CYCLE_DELAY);
+
+	if (sdmmc2_params.vmmc_regu != NULL) {
+		ret = regulator_enable(sdmmc2_params.vmmc_regu);
+		if (ret < 0) {
+			panic();
+		}
+	}
+
+	mdelay(VCC_POWER_ON_DELAY);
+
+	mmio_write_32(base + SDMMC_POWER, sdmmc2_params.dirpol);
+	mdelay(POWER_OFF_DELAY);
 
 	clock_div = div_round_up(sdmmc2_params.clk_rate, freq * 2U);
 
@@ -163,7 +197,7 @@ static void stm32_sdmmc2_init(void)
 	mmio_write_32(base + SDMMC_POWER,
 		      SDMMC_POWER_PWRCTRL | sdmmc2_params.dirpol);
 
-	mdelay(1);
+	mdelay(POWER_ON_DELAY);
 }
 
 static int stm32_sdmmc2_stop_transfer(void)
@@ -689,6 +723,8 @@ static int stm32_sdmmc2_dt_get_config(void)
 		sdmmc2_params.max_freq = fdt32_to_cpu(*cuint);
 	}
 
+	sdmmc2_params.vmmc_regu = regulator_get_by_supply_name(fdt, sdmmc_node, "vmmc");
+
 	return 0;
 }
 
@@ -709,12 +745,14 @@ int stm32_sdmmc2_mmc_init(struct stm32_sdmmc2_params *params)
 
 	memcpy(&sdmmc2_params, params, sizeof(struct stm32_sdmmc2_params));
 
+	sdmmc2_params.vmmc_regu = NULL;
+
 	if (stm32_sdmmc2_dt_get_config() != 0) {
 		ERROR("%s: DT error\n", __func__);
 		return -ENOMEM;
 	}
 
-	stm32mp_clk_enable(sdmmc2_params.clock_id);
+	clk_enable(sdmmc2_params.clock_id);
 
 	rc = stm32mp_reset_assert(sdmmc2_params.reset_id, TIMEOUT_US_1_MS);
 	if (rc != 0) {
@@ -727,7 +765,7 @@ int stm32_sdmmc2_mmc_init(struct stm32_sdmmc2_params *params)
 	}
 	mdelay(1);
 
-	sdmmc2_params.clk_rate = stm32mp_clk_get_rate(sdmmc2_params.clock_id);
+	sdmmc2_params.clk_rate = clk_get_rate(sdmmc2_params.clock_id);
 	sdmmc2_params.device_info->ocr_voltage = OCR_3_2_3_3 | OCR_3_3_3_4;
 
 	return mmc_init(&stm32_sdmmc2_ops, sdmmc2_params.clk_rate,
