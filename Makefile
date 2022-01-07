@@ -794,9 +794,7 @@ ifeq (${ARCH},aarch32)
     endif
     ifeq (${ENABLE_SVE_FOR_NS},1)
         # Warning instead of error due to CI dependency on this
-        $(warning "ENABLE_SVE_FOR_NS cannot be used with ARCH=aarch32")
-        $(warning "Forced ENABLE_SVE_FOR_NS=0")
-        override ENABLE_SVE_FOR_NS	:= 0
+        $(error "ENABLE_SVE_FOR_NS cannot be used with ARCH=aarch32")
     endif
 endif
 
@@ -1455,7 +1453,7 @@ fwu_fip: ${BUILD_PLAT}/${FWU_FIP_NAME}
 
 ${FIPTOOL}: FORCE
 ifdef UNIX_MK
-	${Q}${MAKE} CPPFLAGS="-DVERSION='\"${VERSION_STRING}\"'" FIPTOOL=${FIPTOOL} --no-print-directory -C ${FIPTOOLPATH}
+	${Q}${MAKE} CPPFLAGS="-DVERSION='\"${VERSION_STRING}\"'" FIPTOOL=${FIPTOOL} OPENSSL_DIR=${OPENSSL_DIR} --no-print-directory -C ${FIPTOOLPATH}
 else
 # Clear the MAKEFLAGS as we do not want
 # to pass the gnumake flags to nmake.

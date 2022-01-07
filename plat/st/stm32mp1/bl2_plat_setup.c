@@ -15,6 +15,7 @@
 #include <drivers/generic_delay_timer.h>
 #include <drivers/mmc.h>
 #include <drivers/st/bsec.h>
+#include <drivers/st/regulator_fixed.h>
 #include <drivers/st/stm32_iwdg.h>
 #include <drivers/st/stm32_uart.h>
 #include <drivers/st/stm32mp1_clk.h>
@@ -130,10 +131,6 @@ void bl2_platform_setup(void)
 {
 	int ret;
 
-	if (dt_pmic_status() > 0) {
-		initialize_pmic();
-	}
-
 	ret = stm32mp1_ddr_probe();
 	if (ret < 0) {
 		ERROR("Invalid DDR init: error %d\n", ret);
@@ -159,7 +156,6 @@ void bl2_platform_setup(void)
 
 void bl2_el3_plat_arch_setup(void)
 {
-	int32_t result;
 	const char *board_model;
 	boot_api_context_t *boot_context =
 		(boot_api_context_t *)stm32mp_get_boot_ctx_address();
@@ -227,6 +223,16 @@ void bl2_el3_plat_arch_setup(void)
 	/* Disable MCKPROT */
 	mmio_clrbits_32(rcc_base + RCC_TZCR, RCC_TZCR_MCKPROT);
 
+	/*
+	 * Set minimum reset pulse duration to 31ms for discrete power
+	 * supplied boards.
+	 */
+	if (dt_pmic_status() <= 0) {
+		mmio_clrsetbits_32(rcc_base + RCC_RDLSICR,
+				   RCC_RDLSICR_MRD_MASK,
+				   31U << RCC_RDLSICR_MRD_SHIFT);
+	}
+
 	generic_delay_timer_init();
 
 #if STM32MP_UART_PROGRAMMER
@@ -246,8 +252,6 @@ void bl2_el3_plat_arch_setup(void)
 	if (stm32mp1_clk_init() < 0) {
 		panic();
 	}
-
-	stm32mp1_syscfg_init();
 
 	stm32_save_boot_interface(boot_context->boot_interface_selected,
 				  boot_context->boot_interface_instance);
@@ -277,16 +281,22 @@ void bl2_el3_plat_arch_setup(void)
 	}
 
 skip_console_init:
+	if (fixed_regulator_register() != 0) {
+		panic();
+	}
+
+	if (dt_pmic_status() > 0) {
+		initialize_pmic();
+		print_pmic_info_and_debug();
+	}
+
+	stm32mp1_syscfg_init();
+
 	if (stm32_iwdg_init() < 0) {
 		panic();
 	}
 
 	stm32_iwdg_refresh();
-
-	result = stm32mp1_dbgmcu_freeze_iwdg2();
-	if (result != 0) {
-		INFO("IWDG2 freeze error : %i\n", result);
-	}
 
 	stm32mp1_auth_ops.check_key = boot_context->bootrom_ecdsa_check_key;
 	stm32mp1_auth_ops.verify_signature =

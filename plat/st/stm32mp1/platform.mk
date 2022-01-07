@@ -189,6 +189,7 @@ PLAT_BL_COMMON_SOURCES	+=	${XLAT_TABLES_LIB_SRCS}
 PLAT_BL_COMMON_SOURCES	+=	lib/cpus/aarch32/cortex_a7.S
 
 PLAT_BL_COMMON_SOURCES	+=	drivers/arm/tzc/tzc400.c				\
+				drivers/clk/clk.c					\
 				drivers/delay_timer/delay_timer.c			\
 				drivers/delay_timer/generic_delay_timer.c		\
 				drivers/st/bsec/bsec.c					\
@@ -200,6 +201,8 @@ PLAT_BL_COMMON_SOURCES	+=	drivers/arm/tzc/tzc400.c				\
 				drivers/st/iwdg/stm32_iwdg.c				\
 				drivers/st/pmic/stm32mp_pmic.c				\
 				drivers/st/pmic/stpmic1.c				\
+				drivers/st/regulator/regulator_core.c			\
+				drivers/st/regulator/regulator_fixed.c			\
 				drivers/st/reset/stm32mp1_reset.c			\
 				plat/st/common/stm32mp_dt.c				\
 				plat/st/stm32mp1/stm32mp1_dbgmcu.c			\
