@@ -27,12 +27,12 @@ Platform Ports
    warp7
    imx8
    imx8m
-   ls1043a
    nxp/index
    poplar
    qemu
    qemu-sbsa
    qti
+   qti-msm8916
    rpi3
    rpi4
    rcar-gen3

@@ -7,6 +7,7 @@
 
 #include <arch.h>
 #include <arch_helpers.h>
+#include <assert.h>
 #include <common/bl_common.h>
 #include <common/debug.h>
 #include <common/desc_image_load.h>
@@ -113,6 +114,9 @@ void bl2_el3_plat_arch_setup(void)
 	mmc_info.mmc_dev_type = MMC_IS_SD;
 	mmc_info.ocr_voltage = OCR_3_3_3_4 | OCR_3_2_3_3;
 
+	/* Request ownership and direct access to QSPI */
+	mailbox_hps_qspi_enable();
+
 	switch (boot_source) {
 	case BOOT_SOURCE_SDMMC:
 		dw_mmc_init(&params, &mmc_info);
@@ -120,8 +124,6 @@ void bl2_el3_plat_arch_setup(void)
 		break;
 
 	case BOOT_SOURCE_QSPI:
-		mailbox_set_qspi_open();
-		mailbox_set_qspi_direct();
 		cad_qspi_init(0, QSPI_CONFIG_CPHA, QSPI_CONFIG_CPOL,
 			QSPI_CONFIG_CSDA, QSPI_CONFIG_CSDADS,
 			QSPI_CONFIG_CSEOT, QSPI_CONFIG_CSSOT, 0);
@@ -160,6 +162,8 @@ uint32_t get_spsr_for_bl33_entry(void)
 int bl2_plat_handle_post_image_load(unsigned int image_id)
 {
 	bl_mem_params_node_t *bl_mem_params = get_bl_mem_params_node(image_id);
+
+	assert(bl_mem_params);
 
 	switch (image_id) {
 	case BL33_IMAGE_ID:

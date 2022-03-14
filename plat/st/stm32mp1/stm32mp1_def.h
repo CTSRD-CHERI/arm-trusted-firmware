@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2015-2022, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -22,7 +22,6 @@
 #include <stm32mp_auth.h>
 #include <stm32mp_common.h>
 #include <stm32mp_dt.h>
-#include <stm32mp_shres_helpers.h>
 #include <stm32mp1_dbgmcu.h>
 #include <stm32mp1_private.h>
 #include <stm32mp1_shared_resources.h>
@@ -68,6 +67,7 @@
  ******************************************************************************/
 #define STM32MP_ROM_BASE		U(0x00000000)
 #define STM32MP_ROM_SIZE		U(0x00020000)
+#define STM32MP_ROM_SIZE_2MB_ALIGNED	U(0x00200000)
 
 #define STM32MP_SYSRAM_BASE		U(0x2FFC0000)
 #define STM32MP_SYSRAM_SIZE		U(0x00040000)
@@ -101,6 +101,8 @@ enum ddr_type {
 #define STM32MP_PARAM_LOAD_SIZE		U(0x00002400)	/* 9 KB for param */
 /* 256 Octets reserved for header */
 #define STM32MP_HEADER_SIZE		U(0x00000100)
+/* round_up(STM32MP_PARAM_LOAD_SIZE + STM32MP_HEADER_SIZE, PAGE_SIZE) */
+#define STM32MP_HEADER_RESERVED_SIZE	U(0x3000)
 
 #define STM32MP_BINARY_BASE		(STM32MP_SEC_SYSRAM_BASE +	\
 					 STM32MP_PARAM_LOAD_SIZE +	\
@@ -110,15 +112,25 @@ enum ddr_type {
 					 (STM32MP_PARAM_LOAD_SIZE +	\
 					  STM32MP_HEADER_SIZE))
 
-/* BL2 and BL32/sp_min require 4 tables */
-#define MAX_XLAT_TABLES			U(4)		/* 16 KB for mapping */
+/* BL2 and BL32/sp_min require finer granularity tables */
+#if defined(IMAGE_BL2)
+#define MAX_XLAT_TABLES			U(2) /* 8 KB for mapping */
+#endif
+
+#if defined(IMAGE_BL32)
+#define MAX_XLAT_TABLES			U(4) /* 16 KB for mapping */
+#endif
 
 /*
  * MAX_MMAP_REGIONS is usually:
  * BL stm32mp1_mmap size + mmap regions in *_plat_arch_setup
  */
 #if defined(IMAGE_BL2)
-  #define MAX_MMAP_REGIONS		11
+ #if STM32MP_USB_PROGRAMMER
+  #define MAX_MMAP_REGIONS		8
+ #else
+  #define MAX_MMAP_REGIONS		7
+ #endif
 #endif
 
 #define STM32MP_BL33_BASE		(STM32MP_DDR_BASE + U(0x100000))
@@ -190,7 +202,6 @@ enum ddr_type {
 #define USART6_BASE			U(0x44003000)
 #define UART7_BASE			U(0x40018000)
 #define UART8_BASE			U(0x40019000)
-#define STM32MP_UART_BAUDRATE		U(115200)
 
 /* For UART crash console */
 #define STM32MP_DEBUG_USART_BASE	UART4_BASE
@@ -335,19 +346,19 @@ enum ddr_type {
 
 #define OTP_MAX_SIZE			(STM32MP1_OTP_MAX_ID + 1U)
 
-/* OTP offsets */
-#define DATA0_OTP			U(0)
-#define PART_NUMBER_OTP			U(1)
-#define NAND_OTP			U(9)
-#define UID0_OTP			U(13)
-#define UID1_OTP			U(14)
-#define UID2_OTP			U(15)
-#define PACKAGE_OTP			U(16)
-#define HW2_OTP				U(18)
+/* OTP labels */
+#define CFG0_OTP			"cfg0_otp"
+#define PART_NUMBER_OTP			"part_number_otp"
+#define PACKAGE_OTP			"package_otp"
+#define HW2_OTP				"hw2_otp"
+#define NAND_OTP			"nand_otp"
+#define MONOTONIC_OTP			"monotonic_otp"
+#define UID_OTP				"uid_otp"
+#define BOARD_ID_OTP			"board_id"
 
 /* OTP mask */
-/* DATA0 */
-#define DATA0_OTP_SECURED		BIT(6)
+/* CFG0 */
+#define CFG0_CLOSED_DEVICE		BIT(6)
 
 /* PART NUMBER */
 #define PART_NUMBER_OTP_PART_MASK	GENMASK_32(7, 0)
@@ -404,6 +415,9 @@ enum ddr_type {
 /* NAND number of planes */
 #define NAND_PLANE_BIT_NB_MASK		BIT(14)
 
+/* MONOTONIC OTP */
+#define MAX_MONOTONIC_VALUE		32
+
 /* UID OTP */
 #define UID_WORD_NB			U(3)
 
@@ -414,7 +428,7 @@ enum ddr_type {
 #define TAMP_BKP_REGISTER_BASE		(TAMP_BASE + U(0x100))
 
 #if !(defined(__LINKER__) || defined(__ASSEMBLER__))
-static inline uint32_t tamp_bkpr(uint32_t idx)
+static inline uintptr_t tamp_bkpr(uint32_t idx)
 {
 	return TAMP_BKP_REGISTER_BASE + (idx << 2);
 }
@@ -472,8 +486,11 @@ static inline uint32_t tamp_bkpr(uint32_t idx)
  * Device Tree defines
  ******************************************************************************/
 #define DT_BSEC_COMPAT			"st,stm32mp15-bsec"
+#define DT_DDR_COMPAT			"st,stm32mp1-ddr"
 #define DT_IWDG_COMPAT			"st,stm32mp1-iwdg"
+#define DT_NVMEM_LAYOUT_COMPAT		"st,stm32-nvmem-layout"
 #define DT_PWR_COMPAT			"st,stm32mp1,pwr-reg"
 #define DT_RCC_CLK_COMPAT		"st,stm32mp1-rcc"
+#define DT_RCC_SEC_CLK_COMPAT		"st,stm32mp1-rcc-secure"
 
 #endif /* STM32MP1_DEF_H */

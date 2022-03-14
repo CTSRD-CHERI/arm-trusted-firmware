@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2014-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -63,8 +63,24 @@
 /* No SCP in FVP */
 #define PLAT_ARM_SCP_TZC_DRAM1_SIZE	UL(0x0)
 
-#define PLAT_ARM_DRAM2_BASE		ULL(0x880000000)
-#define PLAT_ARM_DRAM2_SIZE		UL(0x80000000)
+#define PLAT_ARM_DRAM2_BASE	ULL(0x880000000) /* 36-bit range */
+#define PLAT_ARM_DRAM2_SIZE	ULL(0x780000000) /* 30 GB */
+
+#define FVP_DRAM3_BASE	ULL(0x8800000000) /* 40-bit range */
+#define FVP_DRAM3_SIZE	ULL(0x7800000000) /* 480 GB */
+#define FVP_DRAM3_END	(FVP_DRAM3_BASE + FVP_DRAM3_SIZE - 1U)
+
+#define FVP_DRAM4_BASE	ULL(0x88000000000) /* 44-bit range */
+#define FVP_DRAM4_SIZE	ULL(0x78000000000) /* 7.5 TB */
+#define FVP_DRAM4_END	(FVP_DRAM4_BASE + FVP_DRAM4_SIZE - 1U)
+
+#define FVP_DRAM5_BASE	ULL(0x880000000000) /* 48-bit range */
+#define FVP_DRAM5_SIZE	ULL(0x780000000000) /* 120 TB */
+#define FVP_DRAM5_END	(FVP_DRAM5_BASE + FVP_DRAM5_SIZE - 1U)
+
+#define FVP_DRAM6_BASE	ULL(0x8800000000000) /* 52-bit range */
+#define FVP_DRAM6_SIZE	ULL(0x7800000000000) /* 1920 TB */
+#define FVP_DRAM6_END	(FVP_DRAM6_BASE + FVP_DRAM6_SIZE - 1U)
 
 /* Range of kernel DTB load address */
 #define FVP_DTB_DRAM_MAP_START		ULL(0x82000000)
@@ -144,12 +160,10 @@
  * PLAT_ARM_MAX_BL2_SIZE is calculated using the current BL2 debug size plus a
  * little space for growth.
  */
-#if TRUSTED_BOARD_BOOT
-#if COT_DESC_IN_DTB
+#if TRUSTED_BOARD_BOOT && COT_DESC_IN_DTB
 # define PLAT_ARM_MAX_BL2_SIZE	(UL(0x1E000) - FVP_BL2_ROMLIB_OPTIMIZATION)
-#else
+#elif CRYPTO_SUPPORT
 # define PLAT_ARM_MAX_BL2_SIZE	(UL(0x1D000) - FVP_BL2_ROMLIB_OPTIMIZATION)
-#endif
 #else
 # define PLAT_ARM_MAX_BL2_SIZE	(UL(0x13000) - FVP_BL2_ROMLIB_OPTIMIZATION)
 #endif
@@ -187,17 +201,17 @@
  * Size of cacheable stacks
  */
 #if defined(IMAGE_BL1)
-# if TRUSTED_BOARD_BOOT
+# if CRYPTO_SUPPORT
 #  define PLATFORM_STACK_SIZE		UL(0x1000)
 # else
 #  define PLATFORM_STACK_SIZE		UL(0x500)
-# endif
+# endif /* CRYPTO_SUPPORT */
 #elif defined(IMAGE_BL2)
-# if TRUSTED_BOARD_BOOT
+# if CRYPTO_SUPPORT
 #  define PLATFORM_STACK_SIZE		UL(0x1000)
 # else
 #  define PLATFORM_STACK_SIZE		UL(0x600)
-# endif
+# endif /* CRYPTO_SUPPORT */
 #elif defined(IMAGE_BL2U)
 # define PLATFORM_STACK_SIZE		UL(0x400)
 #elif defined(IMAGE_BL31)

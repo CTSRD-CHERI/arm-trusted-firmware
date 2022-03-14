@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2017-2022, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -337,7 +337,7 @@ enum {
 
 static int pmic_set_state(const struct regul_description *desc, bool enable)
 {
-	VERBOSE("%s: set state to %u\n", desc->node_name, enable);
+	VERBOSE("%s: set state to %d\n", desc->node_name, enable);
 
 	if (enable == STATE_ENABLE) {
 		return stpmic1_regulator_enable(desc->node_name);
@@ -403,7 +403,7 @@ static int pmic_set_flag(const struct regul_description *desc, uint16_t flag)
 	}
 }
 
-struct regul_ops pmic_ops = {
+static const struct regul_ops pmic_ops = {
 	.set_state = pmic_set_state,
 	.get_state = pmic_get_state,
 	.set_voltage = pmic_set_voltage,

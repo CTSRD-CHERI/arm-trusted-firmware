@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2014-2022, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -38,7 +38,7 @@
 #ifndef ZYNQMP_ATF_MEM_BASE
 #if !DEBUG && defined(SPD_none) && !SDEI_SUPPORT
 # define BL31_BASE			0xfffea000
-# define BL31_LIMIT			0xffffffff
+# define BL31_LIMIT			0x100000000
 #else
 # define BL31_BASE			0x1000
 # define BL31_LIMIT			0x7ffff
@@ -91,10 +91,11 @@
 #define PLAT_VIRT_ADDR_SPACE_SIZE	(1ULL << 32)
 #if (BL31_LIMIT < PLAT_DDR_LOWMEM_MAX)
 #define MAX_MMAP_REGIONS		8
+#define MAX_XLAT_TABLES			6
 #else
 #define MAX_MMAP_REGIONS		7
-#endif
 #define MAX_XLAT_TABLES			5
+#endif
 
 #define CACHE_WRITEBACK_SHIFT   6
 #define CACHE_WRITEBACK_GRANULE (1 << CACHE_WRITEBACK_SHIFT)

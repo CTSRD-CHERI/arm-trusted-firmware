@@ -427,7 +427,7 @@ Arm Rich IoT Platform ports
 :|G|: `vishnu-banavath`_
 :|F|: plat/arm/board/corstone700
 :|F|: plat/arm/board/a5ds
-:|F|: plat/arm/board/diphda
+:|F|: plat/arm/board/corstone1000
 
 Arm Reference Design platform ports
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -480,6 +480,7 @@ MediaTek platform ports
 ^^^^^^^^^^^^^^^^^^^^^^^
 :|M|: Rex-BC Chen <rex-bc.chen@mediatek.com>
 :|G|: `mtk-rex-bc-chen`_
+:|F|: docs/plat/mt\*.rst
 :|F|: plat/mediatek/
 
 Marvell platform ports and SoC drivers
@@ -499,13 +500,6 @@ NVidia platform ports
 :|F|: include/lib/cpus/aarch64/denver.h
 :|F|: lib/cpus/aarch64/denver.S
 :|F|: plat/nvidia/
-
-NXP QorIQ Layerscape platform ports
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-:|M|: Jiafei Pan <jiafei.pan@nxp.com>
-:|G|: `qoriq-open-source`_
-:|F|: docs/plat/ls1043a.rst
-:|F|: plat/layerscape/
 
 NXP i.MX 7 WaRP7 platform port and SoC drivers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -538,6 +532,8 @@ NXP QorIQ Layerscape common code for platform ports
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 :|M|: Pankaj Gupta <pankaj.gupta@nxp.com>
 :|G|: `pangupta`_
+:|M|: Jiafei Pan <jiafei.pan@nxp.com>
+:|G|: `JiafeiPan`_
 :|F|: docs/plat/nxp/
 :|F|: plat/nxp/
 :|F|: drivers/nxp/
@@ -551,6 +547,29 @@ NXP SoC Part LX2160A and its platform port
 :|F|: plat/nxp/soc-lx2160a/lx2162aqds
 :|F|: plat/nxp/soc-lx2160a/lx2160aqds
 :|F|: plat/nxp/soc-lx2160a/lx2160ardb
+
+NXP SoC Part LS1028A and its platform port
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:|M|: Jiafei Pan <jiafei.pan@nxp.com>
+:|G|: `JiafeiPan`_
+:|F|: plat/nxp/soc-ls1028a
+:|F|: plat/nxp/soc-ls1028a/ls1028ardb
+
+NXP SoC Part LS1043A and its platform port
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:|M|: Jiafei Pan <jiafei.pan@nxp.com>
+:|G|: `JiafeiPan`_
+:|F|: plat/nxp/soc-ls1043a
+:|F|: plat/nxp/soc-ls1043a/ls1043ardb
+
+NXP SoC Part LS1046A and its platform port
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:|M|: Jiafei Pan <jiafei.pan@nxp.com>
+:|G|: `JiafeiPan`_
+:|F|: plat/nxp/soc-ls1046a
+:|F|: plat/nxp/soc-ls1046a/ls1046ardb
+:|F|: plat/nxp/soc-ls1046a/ls1046afrwy
+:|F|: plat/nxp/soc-ls1046a/ls1046aqds
 
 QEMU platform port
 ^^^^^^^^^^^^^^^^^^
@@ -570,6 +589,15 @@ QTI platform port
 :|M|: QTI TF Maintainers <qti.trustedfirmware.maintainers@codeaurora.org>
 :|F|: docs/plat/qti.rst
 :|F|: plat/qti/
+
+QTI MSM8916 platform port
+^^^^^^^^^^^^^^^^^^^^^^^^^
+:|M|: Stephan Gerhold <stephan@gerhold.net>
+:|G|: `stephan-gh`_
+:|M|: Nikita Travkin <nikita@trvn.ru>
+:|G|: `TravMurav`_
+:|F|: docs/plat/qti-msm8916.rst
+:|F|: plat/qti/msm8916/
 
 Raspberry Pi 3 platform port
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -780,7 +808,6 @@ Conventional Changelog Extensions
 .. _niej: https://github.com/niej
 .. _npoushin: https://github.com/npoushin
 .. _prabhakarlad: https://github.com/prabhakarlad
-.. _qoriq-open-source: https://github.com/qoriq-open-source
 .. _remi-triplefault: https://github.com/repk
 .. _rockchip-linux: https://github.com/rockchip-linux
 .. _sandrine-bailleux-arm: https://github.com/sandrine-bailleux-arm
@@ -789,9 +816,11 @@ Conventional Changelog Extensions
 .. _smaeul: https://github.com/smaeul
 .. _soby-mathew: https://github.com/soby-mathew
 .. _sreekare: https://github.com/sreekare
+.. _stephan-gh: https://github.com/stephan-gh
 .. _thloh85-intel: https://github.com/thloh85-intel
 .. _thomas-arm: https://github.com/thomas-arm
 .. _TonyXie06: https://github.com/TonyXie06
+.. _TravMurav: https://github.com/TravMurav
 .. _vwadekar: https://github.com/vwadekar
 .. _venkatesh: https://github.com/vabbarap
 .. _Yann-lms: https://github.com/Yann-lms
@@ -820,5 +849,6 @@ Conventional Changelog Extensions
 .. _arugan02: https://github.com/arugan02
 .. _uarif1: https://github.com/uarif1
 .. _pangupta: https://github.com/pangupta
+.. _JiafeiPan: https://github.com/JiafeiPan
 
 .. _Project Maintenance Process: https://developer.trustedfirmware.org/w/collaboration/project-maintenance-process/
