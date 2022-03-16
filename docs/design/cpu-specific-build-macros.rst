@@ -409,6 +409,18 @@ For Cortex-A710, the following errata build flags are defined :
    Cortex-A710 CPU. This needs to be enabled for revisions r0p0, r1p0 and r2p0
    of the CPU and is still open.
 
+-  ``ERRATA_A710_2267065``: This applies errata 2267065 workaround to
+   Cortex-A710 CPU. This needs to be enabled for revisions r0p0, r1p0 and r2p0
+   of the CPU and is fixed in r2p1.
+
+-  ``ERRATA_A710_2136059``: This applies errata 2136059 workaround to
+   Cortex-A710 CPU. This needs to be enabled for revisions r0p0, r1p0 and r2p0
+   of the CPU and is fixed in r2p1.
+
+-  ``ERRATA_A710_2282622``: This applies errata 2282622 workaround to
+   Cortex-A710 CPU. This needs to be enabled for revisions r0p0, r1p0 and r2p0
+   of the CPU and is fixed in r2p1.
+
 For Neoverse N2, the following errata build flags are defined :
 
 -  ``ERRATA_N2_2002655``: This applies errata 2002655 workaround to Neoverse-N2
@@ -453,6 +465,50 @@ For Cortex-X2, the following errata build flags are defined :
 
 -  ``ERRATA_X2_2083908``: This applies errata 2083908 workaround to Cortex-X2
    CPU. This needs to be enabled for revision r2p0 of the CPU, it is still open.
+
+-  ``ERRATA_X2_2017096``: This applies errata 2017096 workaround to
+   Cortex-X2 CPU. This needs to be enabled only for revisions r0p0, r1p0 and
+   r2p0 of the CPU, it is fixed in r2p1.
+
+-  ``ERRATA_X2_2081180``: This applies errata 2081180 workaround to
+   Cortex-X2 CPU. This needs to be enabled only for revisions r0p0, r1p0 and
+   r2p0 of the CPU, it is fixed in r2p1.
+
+-  ``ERRATA_X2_2216384``: This applies errata 2216384 workaround to
+   Cortex-X2 CPU. This needs to be enabled only for revisions r0p0, r1p0 and
+   r2p0 of the CPU, it is fixed in r2p1.
+
+For Cortex-A510, the following errata build flags are defined :
+
+-  ``ERRATA_A510_1922240``: This applies errata 1922240 workaround to
+   Cortex-A510 CPU. This needs to be enabled only for revision r0p0, it is
+   fixed in r0p1.
+
+-  ``ERRATA_A510_2288014``: This applies errata 2288014 workaround to
+   Cortex-A510 CPU. This needs to be enabled only for revisions r0p0, r0p1,
+   r0p2, r0p3 and r1p0, it is fixed in r1p1.
+
+-  ``ERRATA_A510_2042739``: This applies errata 2042739 workaround to
+   Cortex-A510 CPU. This needs to be enabled only for revisions r0p0, r0p1 and
+   r0p2, it is fixed in r0p3.
+
+-  ``ERRATA_A510_2041909``: This applies errata 2041909 workaround to
+   Cortex-A510 CPU. This needs to be enabled only for revision r0p2 and is fixed
+   in r0p3. The issue is also present in r0p0 and r0p1 but there is no
+   workaround for those revisions.
+
+-  ``ERRATA_A510_2250311``: This applies errata 2250311 workaround to
+   Cortex-A510 CPU. This needs to be enabled for revisions r0p0, r0p1, r0p2,
+   r0p3 and r1p0, it is fixed in r1p1. This workaround disables MPMM even if
+   ENABLE_MPMM=1.
+
+-  ``ERRATA_A510_2218950``: This applies errata 2218950 workaround to
+   Cortex-A510 CPU. This needs to be enabled for revisions r0p0, r0p1, r0p2,
+   r0p3 and r1p0, it is fixed in r1p1.
+
+-  ``ERRATA_A510_2172148``: This applies errata 2172148 workaround to
+   Cortex-A510 CPU. This needs to be enabled for revisions r0p0, r0p1, r0p2,
+   r0p3 and r1p0, it is fixed in r1p1.
 
 DSU Errata Workarounds
 ----------------------

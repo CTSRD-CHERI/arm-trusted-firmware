@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -28,6 +28,7 @@ const event_log_metadata_t fvp_event_log_metadata[] = {
 	{ SCP_BL2_IMAGE_ID, EVLOG_SCP_BL2_STRING, PCR_0 },
 	{ SOC_FW_CONFIG_ID, EVLOG_SOC_FW_CONFIG_STRING, PCR_0 },
 	{ TOS_FW_CONFIG_ID, EVLOG_TOS_FW_CONFIG_STRING, PCR_0 },
+	{ RMM_IMAGE_ID, EVLOG_RMM_STRING, PCR_0},
 
 	{ CRITICAL_DATA_ID, EVLOG_CRITICAL_DATA_STRING, PCR_1 },
 
@@ -87,6 +88,7 @@ int plat_mboot_measure_critical_data(unsigned int critical_data_id,
 	return 0;
 }
 
+#if TRUSTED_BOARD_BOOT
 static int fvp_populate_critical_data(struct fvp_critical_data *critical_data)
 {
 	char *nv_ctr_oids[MAX_NV_CTR_IDS] = {
@@ -104,17 +106,26 @@ static int fvp_populate_critical_data(struct fvp_critical_data *critical_data)
 
 	return 0;
 }
+#endif /* TRUSTED_BOARD_BOOT */
 
 static int fvp_populate_and_measure_critical_data(void)
 {
+	int rc = 0;
+
+/*
+ * FVP platform only measures 'platform NV-counter' and hence its
+ * measurement makes sense during Trusted-Boot flow only.
+ */
+#if TRUSTED_BOARD_BOOT
 	struct fvp_critical_data populate_critical_data;
 
-	int rc = fvp_populate_critical_data(&populate_critical_data);
+	rc = fvp_populate_critical_data(&populate_critical_data);
 	if (rc == 0) {
 		rc = plat_mboot_measure_critical_data(CRITICAL_DATA_ID,
 						&populate_critical_data,
 						sizeof(populate_critical_data));
 	}
+#endif /* TRUSTED_BOARD_BOOT */
 
 	return rc;
 }

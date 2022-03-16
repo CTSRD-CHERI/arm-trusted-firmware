@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2015-2022, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -30,7 +30,22 @@
 #include <plat/common/platform.h>
 
 #include <platform_def.h>
+#include <stm32mp_common.h>
 #include <stm32mp1_dbgmcu.h>
+
+#if DEBUG
+static const char debug_msg[] = {
+	"***************************************************\n"
+	"** DEBUG ACCESS PORT IS OPEN!                    **\n"
+	"** This boot image is only for debugging purpose **\n"
+	"** and is unsafe for production use.             **\n"
+	"**                                               **\n"
+	"** If you see this message and you are not       **\n"
+	"** debugging report this immediately to your     **\n"
+	"** vendor!                                       **\n"
+	"***************************************************\n"
+};
+#endif
 
 static struct stm32mp_auth_ops stm32mp1_auth_ops;
 
@@ -124,6 +139,8 @@ void bl2_el3_early_platform_setup(u_register_t arg0,
 				  u_register_t arg2 __unused,
 				  u_register_t arg3 __unused)
 {
+	stm32mp_setup_early_console();
+
 	stm32mp_save_boot_ctx_address(arg0);
 }
 
@@ -154,6 +171,40 @@ void bl2_platform_setup(void)
 #endif /* STM32MP_USE_STM32IMAGE */
 }
 
+static void update_monotonic_counter(void)
+{
+	uint32_t version;
+	uint32_t otp;
+
+	CASSERT(STM32_TF_VERSION <= MAX_MONOTONIC_VALUE,
+		assert_stm32mp1_monotonic_counter_reach_max);
+
+	/* Check if monotonic counter needs to be incremented */
+	if (stm32_get_otp_index(MONOTONIC_OTP, &otp, NULL) != 0) {
+		panic();
+	}
+
+	if (stm32_get_otp_value_from_idx(otp, &version) != 0) {
+		panic();
+	}
+
+	if ((version + 1U) < BIT(STM32_TF_VERSION)) {
+		uint32_t result;
+
+		/* Need to increment the monotonic counter. */
+		version = BIT(STM32_TF_VERSION) - 1U;
+
+		result = bsec_program_otp(version, otp);
+		if (result != BSEC_OK) {
+			ERROR("BSEC: MONOTONIC_OTP program Error %u\n",
+			      result);
+			panic();
+		}
+		INFO("Monotonic counter has been incremented (value 0x%x)\n",
+		     version);
+	}
+}
+
 void bl2_el3_plat_arch_setup(void)
 {
 	const char *board_model;
@@ -161,6 +212,10 @@ void bl2_el3_plat_arch_setup(void)
 		(boot_api_context_t *)stm32mp_get_boot_ctx_address();
 	uintptr_t pwr_base;
 	uintptr_t rcc_base;
+
+	if (bsec_probe() != 0U) {
+		panic();
+	}
 
 	mmap_add_region(BL_CODE_BASE, BL_CODE_BASE,
 			BL_CODE_END - BL_CODE_BASE,
@@ -202,10 +257,6 @@ void bl2_el3_plat_arch_setup(void)
 
 	while ((mmio_read_32(pwr_base + PWR_CR1) & PWR_CR1_DBP) == 0U) {
 		;
-	}
-
-	if (bsec_probe() != 0) {
-		panic();
 	}
 
 	/* Reset backup domain on cold boot cases */
@@ -298,15 +349,32 @@ skip_console_init:
 
 	stm32_iwdg_refresh();
 
-	stm32mp1_auth_ops.check_key = boot_context->bootrom_ecdsa_check_key;
-	stm32mp1_auth_ops.verify_signature =
-		boot_context->bootrom_ecdsa_verify_signature;
+	if (bsec_read_debug_conf() != 0U) {
+		if (stm32mp_is_closed_device()) {
+#if DEBUG
+			WARN("\n%s", debug_msg);
+#else
+			ERROR("***Debug opened on closed chip***\n");
+#endif
+		}
+	}
 
-	stm32mp_init_auth(&stm32mp1_auth_ops);
+	if (stm32mp_is_auth_supported()) {
+		stm32mp1_auth_ops.check_key =
+			boot_context->bootrom_ecdsa_check_key;
+		stm32mp1_auth_ops.verify_signature =
+			boot_context->bootrom_ecdsa_verify_signature;
+
+		stm32mp_init_auth(&stm32mp1_auth_ops);
+	}
 
 	stm32mp1_arch_security_setup();
 
 	print_reset_reason();
+
+	update_monotonic_counter();
+
+	stm32mp1_syscfg_enable_io_compensation_finish();
 
 #if !STM32MP_USE_STM32IMAGE
 	fconf_populate("TB_FW", STM32MP_DTB_BASE);
@@ -450,6 +518,9 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 		bl32_mem_params = get_bl_mem_params_node(BL32_IMAGE_ID);
 		assert(bl32_mem_params != NULL);
 		bl32_mem_params->ep_info.lr_svc = bl_mem_params->ep_info.pc;
+#if !STM32MP_USE_STM32IMAGE && PSA_FWU_SUPPORT
+		stm32mp1_fwu_set_boot_idx();
+#endif /* !STM32MP_USE_STM32IMAGE && PSA_FWU_SUPPORT */
 		break;
 
 	default:
