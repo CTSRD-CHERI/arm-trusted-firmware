@@ -17,6 +17,9 @@
 #include <lib/xlat_tables/xlat_tables_compat.h>
 #include <platform_def.h>
 #include <services/arm_arch_svc.h>
+#if ENABLE_RME
+#include <services/rmm_core_manifest.h>
+#endif
 #if SPM_MM
 #include <services/spm_mm_partition.h>
 #endif
@@ -104,9 +107,10 @@ const mmap_region_t plat_arm_mmap[] = {
 #ifdef __aarch64__
 	ARM_MAP_DRAM2,
 #endif
-#if defined(SPD_spmd)
+	/*
+	 * Required to load HW_CONFIG, SPMC and SPs to trusted DRAM.
+	 */
 	ARM_MAP_TRUSTED_DRAM,
-#endif
 #if ENABLE_RME
 	ARM_MAP_RMM_DRAM,
 	ARM_MAP_GPT_L1_DRAM,
@@ -126,7 +130,7 @@ const mmap_region_t plat_arm_mmap[] = {
 	 */
 	ARM_MAP_BL1_RW,
 #endif /* CRYPTO_SUPPORT && !BL2_AT_EL3 */
-#if SPM_MM
+#if SPM_MM || SPMC_AT_EL3
 	ARM_SP_IMAGE_MMAP,
 #endif
 #if ARM_BL31_IN_DRAM
@@ -166,10 +170,9 @@ const mmap_region_t plat_arm_mmap[] = {
 #if SPM_MM
 	ARM_SPM_BUF_EL3_MMAP,
 #endif
-	/* Required by fconf APIs to read HW_CONFIG dtb loaded into DRAM */
-	ARM_DTB_DRAM_NS,
 #if ENABLE_RME
 	ARM_MAP_GPT_L1_DRAM,
+	ARM_MAP_EL3_RMM_SHARED_MEM,
 #endif
 	{0}
 };
@@ -197,8 +200,6 @@ const mmap_region_t plat_arm_mmap[] = {
 	V2M_MAP_IOFPGA,
 	MAP_DEVICE0,
 	MAP_DEVICE1,
-	/* Required by fconf APIs to read HW_CONFIG dtb loaded into DRAM */
-	ARM_DTB_DRAM_NS,
 	{0}
 };
 #endif
@@ -515,3 +516,29 @@ int32_t plat_get_soc_revision(void)
 	return (int32_t)(((sys_id >> V2M_SYS_ID_REV_SHIFT) &
 			  V2M_SYS_ID_REV_MASK) & SOC_ID_REV_MASK);
 }
+
+#if ENABLE_RME
+/*
+ * Get a pointer to the RMM-EL3 Shared buffer and return it
+ * through the pointer passed as parameter.
+ *
+ * This function returns the size of the shared buffer.
+ */
+size_t plat_rmmd_get_el3_rmm_shared_mem(uintptr_t *shared)
+{
+	*shared = (uintptr_t)RMM_SHARED_BASE;
+
+	return (size_t)RMM_SHARED_SIZE;
+}
+
+int plat_rmmd_load_manifest(rmm_manifest_t *manifest)
+{
+	assert(manifest != NULL);
+
+	manifest->version = RMMD_MANIFEST_VERSION;
+	manifest->plat_data = (uintptr_t)NULL;
+
+	return 0;
+}
+
+#endif

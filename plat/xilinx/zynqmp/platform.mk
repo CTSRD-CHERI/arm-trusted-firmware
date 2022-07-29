@@ -21,6 +21,10 @@ ENABLE_SVE_FOR_NS	:= 0
 
 WORKAROUND_CVE_2017_5715	:=	0
 
+ARM_XLAT_TABLES_LIB_V1         :=      1
+$(eval $(call assert_boolean,ARM_XLAT_TABLES_LIB_V1))
+$(eval $(call add_define,ARM_XLAT_TABLES_LIB_V1))
+
 ifdef ZYNQMP_ATF_MEM_BASE
     $(eval $(call add_define,ZYNQMP_ATF_MEM_BASE))
 
@@ -45,11 +49,11 @@ endif
 
 
 ifdef ZYNQMP_WDT_RESTART
-$(eval $(call add_define,ZYNQMP_WDT_RESTART))
+    $(eval $(call add_define,ZYNQMP_WDT_RESTART))
 endif
 
 ifdef ZYNQMP_IPI_CRC_CHECK
-  $(warning "ZYNQMP_IPI_CRC_CHECK macro is deprecated...instead please use IPI_CRC_CHECK.")
+    $(warning "ZYNQMP_IPI_CRC_CHECK macro is deprecated...instead please use IPI_CRC_CHECK.")
 endif
 
 ifdef IPI_CRC_CHECK

@@ -89,6 +89,8 @@ and caches disabled. Examples are given below.
 The following variables, functions and constants must be defined by the platform
 for the firmware to work correctly.
 
+.. _platform_def_mandatory:
+
 File : platform_def.h [mandatory]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1663,6 +1665,42 @@ element in the boot sequence. If there are no more boot sources then it
 must return 0, otherwise it must return 1. The default implementation
 of this always returns 0.
 
+Function : bl2_plat_mboot_init() [optional]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    Argument : void
+    Return   : void
+
+When the MEASURED_BOOT flag is enabled:
+
+-  This function is used to initialize the backend driver(s) of measured boot.
+-  On the Arm FVP port, this function is used to initialize the Event Log
+   backend driver with the Event Log buffer information (base address and
+   size) received from BL1. It results in panic on error.
+
+When the MEASURED_BOOT flag is disabled, this function doesn't do anything.
+
+Function : bl2_plat_mboot_finish() [optional]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    Argument : void
+    Return   : void
+
+When the MEASURED_BOOT flag is enabled:
+
+-  This function is used to finalize the measured boot backend driver(s),
+   and also, set the information for the next bootloader component to extend
+   the measurement if needed.
+-  On the Arm FVP port, this function is used to pass the Event Log buffer
+   information (base address and size) to non-secure(BL33) and trusted OS(BL32)
+   via nt_fw and tos_fw config respectively. It results in panic on error.
+
+When the MEASURED_BOOT flag is disabled, this function doesn't do anything.
+
 Boot Loader Stage 2 (BL2) at EL3
 --------------------------------
 
@@ -1819,42 +1857,6 @@ Application Processor (AP) for BL2U execution to continue.
 
 This function returns 0 on success, a negative error code otherwise.
 This function is included if SCP_BL2U_BASE is defined.
-
-Function : bl2_plat_mboot_init() [optional]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    Argument : void
-    Return   : void
-
-When the MEASURED_BOOT flag is enabled:
-
--  This function is used to initialize the backend driver(s) of measured boot.
--  On the Arm FVP port, this function is used to initialize the Event Log
-   backend driver with the Event Log buffer information (base address and
-   size) received from BL1. It results in panic on error.
-
-When the MEASURED_BOOT flag is disabled, this function doesn't do anything.
-
-Function : bl2_plat_mboot_finish() [optional]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    Argument : void
-    Return   : void
-
-When the MEASURED_BOOT flag is enabled:
-
--  This function is used to finalize the measured boot backend driver(s),
-   and also, set the information for the next bootloader component to extend
-   the measurement if needed.
--  On the Arm FVP port, this function is used to pass the Event Log buffer
-   information (base address and size) to non-secure(BL33) and trusted OS(BL32)
-   via nt_fw and tos_fw config respectively. It results in panic on error.
-
-When the MEASURED_BOOT flag is disabled, this function doesn't do anything.
 
 Boot Loader Stage 3-1 (BL31)
 ----------------------------
@@ -2017,6 +2019,83 @@ state. This function must return a pointer to the ``entry_point_info`` structure
 (that was copied during ``bl31_early_platform_setup()``) if the image exists. It
 should return NULL otherwise.
 
+Function : plat_rmmd_get_cca_attest_token() [mandatory when ENABLE_RME == 1]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    Argument : uintptr_t, size_t *, uintptr_t, size_t
+    Return   : int
+
+This function returns the Platform attestation token.
+
+The parameters of the function are:
+
+    arg0 - A pointer to the buffer where the Platform token should be copied by
+           this function. The buffer must be big enough to hold the Platform
+           token.
+
+    arg1 - Contains the size (in bytes) of the buffer passed in arg0. The
+           function returns the platform token length in this parameter.
+
+    arg2 - A pointer to the buffer where the challenge object is stored.
+
+    arg3 - The length of the challenge object in bytes. Possible values are 32,
+           48 and 64.
+
+The function returns 0 on success, -EINVAL on failure.
+
+Function : plat_rmmd_get_cca_realm_attest_key() [mandatory when ENABLE_RME == 1]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    Argument : uintptr_t, size_t *, unsigned int
+    Return   : int
+
+This function returns the delegated realm attestation key which will be used to
+sign Realm attestation token. The API currently only supports P-384 ECC curve
+key.
+
+The parameters of the function are:
+
+    arg0 - A pointer to the buffer where the attestation key should be copied
+           by this function. The buffer must be big enough to hold the
+           attestation key.
+
+    arg1 - Contains the size (in bytes) of the buffer passed in arg0. The
+           function returns the attestation key length in this parameter.
+
+    arg2 - The type of the elliptic curve to which the requested attestation key
+           belongs.
+
+The function returns 0 on success, -EINVAL on failure.
+
+Function : plat_rmmd_get_el3_rmm_shared_mem() [when ENABLE_RME == 1]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+   Argument : uintptr_t *
+   Return   : size_t
+
+This function returns the size of the shared area between EL3 and RMM (or 0 on
+failure). A pointer to the shared area (or a NULL pointer on failure) is stored
+in the pointer passed as argument.
+
+Function : plat_rmmd_load_manifest() [when ENABLE_RME == 1]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    Arguments : rmm_manifest_t *manifest
+    Return    : int
+
+When ENABLE_RME is enabled, this function populates a boot manifest for the
+RMM image and stores it in the area specified by manifest.
+
+When ENABLE_RME is disabled, this function is not used.
+
 Function : bl31_plat_enable_mmu [optional]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2065,21 +2144,6 @@ frequency for the CPU's generic timer. This value will be programmed into the
 ``CNTFRQ_EL0`` register. In Arm standard platforms, it returns the base frequency
 of the system counter, which is retrieved from the first entry in the frequency
 modes table.
-
-Function : plat_arm_set_twedel_scr_el3() [optional]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    Argument : void
-    Return   : uint32_t
-
-This function is used in v8.6+ systems to set the WFE trap delay value in
-SCR_EL3. If this function returns TWED_DISABLED or is left unimplemented, this
-feature is not enabled.  The only hook provided is to set the TWED fields in
-SCR_EL3, there are similar fields in HCR_EL2, SCTLR_EL2, and SCTLR_EL1 to adjust
-the WFE trap delays in lower ELs and these fields should be set by the
-appropriate EL2 or EL1 code depending on the platform configuration.
 
 #define : PLAT_PERCPU_BAKERY_LOCK_SIZE [optional]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3154,7 +3218,7 @@ amount of open resources per driver.
 
 --------------
 
-*Copyright (c) 2013-2021, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2013-2022, Arm Limited and Contributors. All rights reserved.*
 
 .. _PSCI: http://infocenter.arm.com/help/topic/com.arm.doc.den0022c/DEN0022C_Power_State_Coordination_Interface.pdf
 .. _Arm Generic Interrupt Controller version 2.0 (GICv2): http://infocenter.arm.com/help/topic/com.arm.doc.ihi0048b/index.html

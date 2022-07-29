@@ -1,8 +1,11 @@
 #
-# Copyright (c) 2019-2020, ARM Limited and Contributors. All rights reserved.
+# Copyright (c) 2019-2022, ARM Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
+#
+# Translation tables library
+include lib/xlat_tables_v2/xlat_tables.mk
 
 PLAT_INCLUDES		:=	-Iplat/imx/common/include		\
 				-Iplat/imx/imx8m/include		\
@@ -16,6 +19,12 @@ include drivers/arm/gic/v3/gicv3.mk
 
 include lib/libfdt/libfdt.mk
 
+IMX_DRAM_SOURCES	:=	plat/imx/imx8m/ddr/dram.c		\
+				plat/imx/imx8m/ddr/clock.c		\
+				plat/imx/imx8m/ddr/dram_retention.c	\
+				plat/imx/imx8m/ddr/ddr4_dvfs.c		\
+				plat/imx/imx8m/ddr/lpddr4_dvfs.c
+
 IMX_GIC_SOURCES		:=	${GICV3_SOURCES}			\
 				plat/common/plat_gicv3.c		\
 				plat/common/plat_psci_common.c		\
@@ -25,6 +34,7 @@ BL31_SOURCES		+=	plat/imx/common/imx8_helpers.S			\
 				plat/imx/imx8m/gpc_common.c			\
 				plat/imx/imx8m/imx_aipstz.c			\
 				plat/imx/imx8m/imx_rdc.c			\
+				plat/imx/imx8m/imx8m_csu.c			\
 				plat/imx/imx8m/imx8m_caam.c			\
 				plat/imx/imx8m/imx8m_psci_common.c		\
 				plat/imx/imx8m/imx8mm/imx8mm_bl31_setup.c	\
@@ -34,14 +44,12 @@ BL31_SOURCES		+=	plat/imx/common/imx8_helpers.S			\
 				plat/imx/common/imx_sip_handler.c		\
 				plat/imx/common/imx_sip_svc.c			\
 				plat/imx/common/imx_uart_console.S		\
-				plat/imx/common/imx_ehf.c                       \
-				plat/imx/common/imx_sdei.c                      \
-				lib/xlat_tables/aarch64/xlat_tables.c		\
-				lib/xlat_tables/xlat_tables_common.c		\
 				lib/cpus/aarch64/cortex_a53.S			\
 				drivers/arm/tzc/tzc380.c			\
 				drivers/delay_timer/delay_timer.c		\
 				drivers/delay_timer/generic_delay_timer.c	\
+				${XLAT_TABLES_LIB_SRCS}				\
+				${IMX_DRAM_SOURCES}				\
 				${IMX_GIC_SOURCES}
 
 ifeq (${NEED_BL2},yes)
@@ -150,16 +158,26 @@ $(eval $(call add_define,BL32_SIZE))
 IMX_BOOT_UART_BASE	?=	0x30890000
 $(eval $(call add_define,IMX_BOOT_UART_BASE))
 
-EL3_EXCEPTION_HANDLING := 1
-SDEI_SUPPORT := 1
+EL3_EXCEPTION_HANDLING := $(SDEI_SUPPORT)
+ifeq (${SDEI_SUPPORT}, 1)
+BL31_SOURCES 		+= 	plat/imx/common/imx_ehf.c	\
+				plat/imx/common/imx_sdei.c
+endif
 
 ifeq (${MEASURED_BOOT},1)
     MEASURED_BOOT_MK := drivers/measured_boot/event_log/event_log.mk
     $(info Including ${MEASURED_BOOT_MK})
     include ${MEASURED_BOOT_MK}
 
+ifneq (${MBOOT_EL_HASH_ALG}, sha256)
+    $(eval $(call add_define,TF_MBEDTLS_MBOOT_USE_SHA512))
+endif
+
 BL2_SOURCES		+=	plat/imx/imx8m/imx8m_measured_boot.c	\
 				plat/imx/imx8m/imx8m_dyn_cfg_helpers.c	\
 				${EVENT_LOG_SOURCES}
+endif
 
+ifeq (${SPD},trusty)
+	BL31_CFLAGS    +=      -DPLAT_XLAT_TABLES_DYNAMIC=1
 endif

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 NXP
+ * Copyright 2020-2022 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,6 +8,8 @@
 
 #include <lib/utils_def.h>
 #include <lib/xlat_tables/xlat_tables_v2.h>
+
+#include <lib/utils_def.h>
 
 #define PLATFORM_LINKER_FORMAT		"elf64-littleaarch64"
 #define PLATFORM_LINKER_ARCH		aarch64
@@ -45,6 +47,8 @@
 /* non-secure uboot base */
 #define PLAT_NS_IMAGE_OFFSET		U(0x40200000)
 
+#define BL32_FDT_OVERLAY_ADDR		(PLAT_NS_IMAGE_OFFSET + 0x3000000)
+
 /* GICv3 base address */
 #define PLAT_GICD_BASE			U(0x38800000)
 #define PLAT_GICR_BASE			U(0x38880000)
@@ -68,7 +72,7 @@
 #define IMX_AIPSTZ4			U(0x32df0000)
 
 #define IMX_AIPS_BASE			U(0x30000000)
-#define IMX_AIPS_SIZE			U(0xC00000)
+#define IMX_AIPS_SIZE			U(0x3000000)
 #define IMX_GPV_BASE			U(0x32000000)
 #define IMX_GPV_SIZE			U(0x800000)
 #define IMX_AIPS1_BASE			U(0x30200000)

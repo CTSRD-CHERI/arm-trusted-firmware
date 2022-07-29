@@ -9,6 +9,9 @@
 
 #define CORTEX_X2_MIDR						U(0x410FD480)
 
+/* Cortex-X2 loop count for CVE-2022-23960 mitigation */
+#define CORTEX_X2_BHB_LOOP_COUNT       				U(32)
+
 /*******************************************************************************
  * CPU Extended Control register specific definitions
  ******************************************************************************/
@@ -29,6 +32,18 @@
  ******************************************************************************/
 #define CORTEX_X2_CPUPWRCTLR_EL1				S3_0_C15_C2_7
 #define CORTEX_X2_CPUPWRCTLR_EL1_CORE_PWRDN_BIT			U(1)
+
+/*******************************************************************************
+ * CPU Auxiliary Control Register definitions
+ ******************************************************************************/
+#define CORTEX_X2_CPUACTLR_EL1					S3_0_C15_C1_0
+#define CORTEX_X2_CPUACTLR_EL1_BIT_22				(ULL(1) << 22)
+
+/*******************************************************************************
+ * CPU Auxiliary Control Register 2 definitions
+ ******************************************************************************/
+#define CORTEX_X2_CPUACTLR2_EL1					S3_0_C15_C1_1
+#define CORTEX_X2_CPUACTLR2_EL1_BIT_40				(ULL(1) << 40)
 
 /*******************************************************************************
  * CPU Auxiliary Control Register 5 definitions

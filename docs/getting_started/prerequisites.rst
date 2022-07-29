@@ -26,9 +26,9 @@ Toolchain
 |TF-A| can be built with any of the following *cross-compiler* toolchains that
 target the Armv7-A or Armv8-A architectures:
 
-- GCC >= 10.3-2021.07 (from the `Arm Developer website`_)
-- Clang >= 4.0
-- Arm Compiler >= 6.0
+- GCC >= 11.2-2022.02 (from the `Arm Developer website`_)
+- Clang >= 14.0.0
+- Arm Compiler >= 6.18
 
 In addition, a native compiler is required to build the supporting tools.
 
@@ -54,13 +54,20 @@ The following tools are required to obtain and build |TF-A|:
 The following libraries must be available to build one or more components or
 supporting tools:
 
-- OpenSSL >= 1.0.1
+- OpenSSL >= 3.0
 
    Required to build the cert_create tool.
 
-The following libraries are required for Trusted Board Boot support:
+   .. note::
 
-- mbed TLS == 2.26.0 (tag: ``mbedtls-2.26.0``)
+    OpenSSL 3.0 has to be built from source code, as it's not available in
+    the default package repositories in recent Ubuntu versions. Please refer
+    to the OpenSSL project documentation for more information.
+
+The following libraries are required for Trusted Board Boot and Measured Boot
+support:
+
+- mbed TLS == 2.28.0 (tag: ``mbedtls-2.28.0``)
 
 These tools are optional:
 
@@ -70,7 +77,7 @@ These tools are optional:
    source files (``.dts`` files). DTC is available for Linux through the package
    repositories of most distributions.
 
-- Arm `Development Studio 5 (DS-5)`_
+- Arm `Development Studio (Arm-DS)`_
 
    The standard software package used for debugging software on Arm development
    platforms and |FVP| models.
@@ -89,7 +96,7 @@ required packages with the following command:
 
 .. code:: shell
 
-    sudo apt install build-essential git libssl-dev
+    sudo apt install build-essential git
 
 The optional packages can be installed using:
 
@@ -159,11 +166,11 @@ documentation, available `here <https://git-scm.com/docs/githooks>`_.
 
 --------------
 
-*Copyright (c) 2021, Arm Limited. All rights reserved.*
+*Copyright (c) 2021-2022, Arm Limited. All rights reserved.*
 
-.. _Arm Developer website: https://developer.arm.com/open-source/gnu-toolchain/gnu-a/downloads
+.. _Arm Developer website: https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads
 .. _Gerrit Code Review: https://www.gerritcodereview.com/
 .. _Linaro Release Notes: https://community.arm.com/dev-platforms/w/docs/226/old-release-notes
 .. _Linaro instructions: https://community.arm.com/dev-platforms/w/docs/304/arm-reference-platforms-deliverables
-.. _Development Studio 5 (DS-5): https://developer.arm.com/products/software-development-tools/ds-5-development-studio
+.. _Development Studio (Arm-DS): https://developer.arm.com/Tools%20and%20Software/Arm%20Development%20Studio
 .. _Linaro Release 20.01: http://releases.linaro.org/members/arm/platforms/20.01

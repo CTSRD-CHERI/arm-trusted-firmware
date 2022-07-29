@@ -73,6 +73,14 @@ ARM_BL31_IN_DRAM		:=	0
 $(eval $(call assert_boolean,ARM_BL31_IN_DRAM))
 $(eval $(call add_define,ARM_BL31_IN_DRAM))
 
+# As per CCA security model, all root firmware must execute from on-chip secure
+# memory. This means we must not run BL31 from TZC-protected DRAM.
+ifeq (${ARM_BL31_IN_DRAM},1)
+  ifeq (${ENABLE_RME},1)
+    $(error "BL31 must not run from DRAM on RME-systems. Please set ARM_BL31_IN_DRAM to 0")
+  endif
+endif
+
 # Process ARM_PLAT_MT flag
 ARM_PLAT_MT			:=	0
 $(eval $(call assert_boolean,ARM_PLAT_MT))
@@ -373,6 +381,8 @@ ifneq (${TRUSTED_BOARD_BOOT},0)
         endif
     else ifeq (${COT},dualroot)
         AUTH_SOURCES	+=	drivers/auth/dualroot/cot.c
+    else ifeq (${COT},cca)
+        AUTH_SOURCES	+=	drivers/auth/cca/cot.c
     else
         $(error Unknown chain of trust ${COT})
     endif
@@ -400,6 +410,10 @@ ifeq (${MEASURED_BOOT},1)
     MEASURED_BOOT_MK := drivers/measured_boot/event_log/event_log.mk
     $(info Including ${MEASURED_BOOT_MK})
     include ${MEASURED_BOOT_MK}
+
+    ifneq (${MBOOT_EL_HASH_ALG}, sha256)
+        $(eval $(call add_define,TF_MBEDTLS_MBOOT_USE_SHA512))
+    endif
 
     BL1_SOURCES		+= 	${EVENT_LOG_SOURCES}
     BL2_SOURCES		+= 	${EVENT_LOG_SOURCES}

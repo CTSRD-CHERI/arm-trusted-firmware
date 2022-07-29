@@ -10,6 +10,7 @@
 #include <cortex_x2.h>
 #include <cpu_macros.S>
 #include <plat_macros.S>
+#include "wa_cve_2022_23960_bhb_vector.S"
 
 /* Hardware handled coherency */
 #if HW_ASSISTED_COHERENCY == 0
@@ -20,6 +21,10 @@
 #if CTX_INCLUDE_AARCH32_REGS == 1
 #error "Cortex X2 supports only AArch64. Compile with CTX_INCLUDE_AARCH32_REGS=0"
 #endif
+
+#if WORKAROUND_CVE_2022_23960
+	wa_cve_2022_23960_bhb_vector_table CORTEX_X2_BHB_LOOP_COUNT, cortex_x2
+#endif /* WORKAROUND_CVE_2022_23960 */
 
 	/* --------------------------------------------------
 	 * Errata Workaround for Cortex X2 Errata #2002765.
@@ -222,6 +227,74 @@ func check_errata_2216384
 	mov	x1, #0x20
 	b	cpu_rev_var_ls
 endfunc check_errata_2216384
+
+func check_errata_cve_2022_23960
+#if WORKAROUND_CVE_2022_23960
+	mov	x0, #ERRATA_APPLIES
+#else
+	mov	x0, #ERRATA_MISSING
+#endif
+	ret
+endfunc check_errata_cve_2022_23960
+
+	/* ---------------------------------------------------------
+	 * Errata Workaround for Cortex-X2 Errata 2147715.
+	 * This applies only to revisions r2p0 and is fixed in r2p1.
+	 * Inputs:
+	 * x0: variant[4:7] and revision[0:3] of current cpu.
+	 * Shall clobber: x0, x1, x17
+	 * ---------------------------------------------------------
+	 */
+func errata_x2_2147715_wa
+	/* Compare x0 against revision r2p0 */
+	mov     x17, x30
+	bl      check_errata_2147715
+	cbz     x0, 1f
+
+	/* Apply the workaround by setting bit 22 in CPUACTLR_EL1. */
+	mrs     x1, CORTEX_X2_CPUACTLR_EL1
+	orr     x1, x1, CORTEX_X2_CPUACTLR_EL1_BIT_22
+	msr     CORTEX_X2_CPUACTLR_EL1, x1
+
+1:
+	ret     x17
+endfunc errata_x2_2147715_wa
+
+func check_errata_2147715
+	/* Applies to r2p0 */
+	mov	x1, #0x20
+	mov	x2, #0x20
+	b	cpu_rev_var_range
+endfunc check_errata_2147715
+
+/* -------------------------------------------------------
+ * Errata Workaround for Cortex-X2 Erratum 2371105.
+ * This applies to revisions <= r2p0 and is fixed in r2p1.
+ * x0: variant[4:7] and revision[0:3] of current cpu.
+ * Shall clobber: x0-x17
+ * -------------------------------------------------------
+ */
+func errata_x2_2371105_wa
+	/* Check workaround compatibility. */
+	mov	x17, x30
+	bl	check_errata_2371105
+	cbz	x0, 1f
+
+	/* Set bit 40 in CPUACTLR2_EL1 */
+	mrs	x1, CORTEX_X2_CPUACTLR2_EL1
+	orr	x1, x1, #CORTEX_X2_CPUACTLR2_EL1_BIT_40
+	msr	CORTEX_X2_CPUACTLR2_EL1, x1
+	isb
+1:
+	ret	x17
+endfunc errata_x2_2371105_wa
+
+func check_errata_2371105
+	/* Applies to <= r2p0. */
+	mov	x1, #0x20
+	b	cpu_rev_var_ls
+endfunc check_errata_2371105
+
 	/* ----------------------------------------------------
 	 * HW will do the cache maintenance while powering down
 	 * ----------------------------------------------------
@@ -253,11 +326,15 @@ func cortex_x2_errata_report
 	 * checking functions of each errata.
 	 */
 	report_errata ERRATA_X2_2002765, cortex_x2, 2002765
-	report_errata ERRATA_X2_2058056, cortex_x2, 2058056
-	report_errata ERRATA_X2_2083908, cortex_x2, 2083908
 	report_errata ERRATA_X2_2017096, cortex_x2, 2017096
+	report_errata ERRATA_X2_2058056, cortex_x2, 2058056
 	report_errata ERRATA_X2_2081180, cortex_x2, 2081180
+	report_errata ERRATA_X2_2083908, cortex_x2, 2083908
+	report_errata ERRATA_X2_2147715, cortex_x2, 2147715
 	report_errata ERRATA_X2_2216384, cortex_x2, 2216384
+	report_errata ERRATA_X2_2371105, cortex_x2, 2371105
+	report_errata WORKAROUND_CVE_2022_23960, cortex_x2, cve_2022_23960
+	report_errata ERRATA_DSU_2313941, cortex_x2, dsu_2313941
 
 	ldp	x8, x30, [sp], #16
 	ret
@@ -269,11 +346,14 @@ func cortex_x2_reset_func
 
 	/* Disable speculative loads */
 	msr	SSBS, xzr
-	isb
 
 	/* Get the CPU revision and stash it in x18. */
 	bl	cpu_get_rev_var
 	mov	x18, x0
+
+#if ERRATA_DSU_2313941
+	bl	errata_dsu_2313941_wa
+#endif
 
 #if ERRATA_X2_2002765
 	mov	x0, x18
@@ -305,7 +385,27 @@ func cortex_x2_reset_func
 	bl	errata_x2_2216384_wa
 #endif
 
-	ret x19
+#if ERRATA_X2_2147715
+	mov	x0, x18
+	bl	errata_x2_2147715_wa
+#endif
+
+#if ERRATA_X2_2371105
+	mov	x0, x18
+	bl	errata_x2_2371105_wa
+#endif
+
+#if IMAGE_BL31 && WORKAROUND_CVE_2022_23960
+	/*
+	 * The Cortex-X2 generic vectors are overridden to apply errata
+         * mitigation on exception entry from lower ELs.
+         */
+	adr	x0, wa_cve_vbar_cortex_x2
+	msr	vbar_el3, x0
+#endif /* IMAGE_BL31 && WORKAROUND_CVE_2022_23960 */
+
+	isb
+	ret	x19
 endfunc cortex_x2_reset_func
 
 	/* ---------------------------------------------

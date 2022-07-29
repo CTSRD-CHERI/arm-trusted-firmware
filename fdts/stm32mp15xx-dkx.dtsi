@@ -33,11 +33,11 @@
 	st,digbypass;
 };
 
-&cpu0{
+&cpu0 {
 	cpu-supply = <&vddcore>;
 };
 
-&cpu1{
+&cpu1 {
 	cpu-supply = <&vddcore>;
 };
 
@@ -181,26 +181,6 @@
 	timeout-sec = <32>;
 	status = "okay";
 	secure-status = "okay";
-};
-
-&nvmem_layout {
-	nvmem-cells = <&cfg0_otp>,
-		      <&part_number_otp>,
-		      <&monotonic_otp>,
-		      <&nand_otp>,
-		      <&uid_otp>,
-		      <&package_otp>,
-		      <&hw2_otp>,
-		      <&board_id>;
-
-	nvmem-cell-names = "cfg0_otp",
-			   "part_number_otp",
-			   "monotonic_otp",
-			   "nand_otp",
-			   "uid_otp",
-			   "package_otp",
-			   "hw2_otp",
-			   "board_id";
 };
 
 &pwr_regulators {
