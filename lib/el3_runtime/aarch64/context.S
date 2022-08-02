@@ -69,6 +69,9 @@
 	.global	restore_gp_pmcr_pauth_regs
 	.global save_and_update_ptw_el1_sys_regs
 	.global	el3_exit
+#if ENABLE_MORELLO_CAP
+	.global save_ddc_el0
+#endif
 
 #if CTX_INCLUDE_EL2_REGS
 
@@ -1059,6 +1062,9 @@ func el3_exit
 	msr	scr_el3, x18
 	msr	spsr_el3, x16
 #if ENABLE_MORELLO_CAP
+	/* Restore the saved DDC_EL0 value. */
+	ldr	c24, [sp, #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	msr	ddc_el0, c24
 	cvtp	c17, x17
 	msr	celr_el3, c17
 #else
@@ -1125,3 +1131,12 @@ sve_not_enabled:
 	exception_return
 
 endfunc el3_exit
+
+#if ENABLE_MORELLO_CAP
+func save_ddc_el0
+	/* This function should be called only when SP is SP_EL0 */
+	mrs c1, ddc
+	str c1, [x0]
+	ret
+endfunc save_ddc_el0
+#endif
