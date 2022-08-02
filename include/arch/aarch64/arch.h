@@ -779,6 +779,14 @@
 #define TCR_EPD0_BIT		(ULL(1) << 7)
 #define TCR_EPD1_BIT		(ULL(1) << 23)
 
+#if ENABLE_MORELLO_CAP
+#define TCR_HPD_BIT		(ULL(1) << 24)
+#define TCR_HWU59_BIT		(ULL(1) << 25)	// CDBM
+#define TCR_HWU60_BIT		(ULL(1) << 26)	// SC
+#define TCR_HWU61_BIT		(ULL(1) << 27)	// LC[0]
+#define TCR_HWU62_BIT		(ULL(1) << 28)	// LC[1]
+#endif
+
 #define MODE_SP_SHIFT		U(0x0)
 #define MODE_SP_MASK		U(0x1)
 #define MODE_SP_EL0		U(0x0)

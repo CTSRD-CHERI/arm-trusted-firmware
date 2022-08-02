@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2017-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -179,5 +179,15 @@
 #define PXN_SHIFT			53
 #define XN_SHIFT			54
 #define UXN_SHIFT			XN_SHIFT
+
+#if ENABLE_MORELLO_CAP
+/* Track stores of valid capability tags */
+#define CDBM_BIT			(ULL(1) << 59)
+/* Store control for valid capabilities */
+#define SC_BIT				(ULL(1) << 60)
+/* Load control for valid capabilities */
+#define LC0_BIT				(ULL(1) << 61)
+#define LC1_BIT				(ULL(1) << 62)
+#endif
 
 #endif /* XLAT_TABLES_DEFS_H */

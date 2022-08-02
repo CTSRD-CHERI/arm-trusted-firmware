@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2017-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -608,7 +608,10 @@ static uintptr_t xlat_tables_map_region(xlat_ctx_t *ctx, mmap_region_t *mm,
 			table_base[table_idx] =
 				xlat_desc(ctx, (uint32_t)mm->attr, table_idx_pa,
 					  level);
-
+#if ENABLE_MORELLO_CAP
+			if (mm->attr & MT_CAP_LD_ST_TRACK)
+				table_base[table_idx] |= (SC_BIT | LC0_BIT);
+#endif
 		} else if (action == ACTION_CREATE_NEW_TABLE) {
 			uintptr_t end_va;
 
