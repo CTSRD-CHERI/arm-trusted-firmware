@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,6 +8,9 @@
 #define CORTEX_A710_H
 
 #define CORTEX_A710_MIDR					U(0x410FD470)
+
+/* Cortex-A710 loop count for CVE-2022-23960 mitigation */
+#define CORTEX_A710_BHB_LOOP_COUNT				U(32)
 
 /*******************************************************************************
  * CPU Extended Control register specific definitions
@@ -32,6 +35,7 @@
  * CPU Auxiliary Control register 2 specific definitions.
  ******************************************************************************/
 #define CORTEX_A710_CPUACTLR2_EL1				S3_0_C15_C1_1
+#define CORTEX_A710_CPUACTLR2_EL1_BIT_40			(ULL(1) << 40)
 
 /*******************************************************************************
  * CPU Auxiliary Control register 5 specific definitions.

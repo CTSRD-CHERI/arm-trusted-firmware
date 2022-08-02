@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2013-2022, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,6 +12,9 @@
 #include <lib/psci/psci.h>
 #if defined(SPD_spmd)
  #include <services/spm_core_manifest.h>
+#endif
+#if ENABLE_RME
+#include <services/rmm_core_manifest.h>
 #endif
 #if TRNG_SUPPORT
 #include "plat_trng.h"
@@ -303,6 +306,18 @@ plat_local_state_t plat_get_target_pwr_state(unsigned int lvl,
 			unsigned int ncpu);
 
 /*******************************************************************************
+ * Mandatory BL31 functions when ENABLE_RME=1
+ ******************************************************************************/
+#if ENABLE_RME
+int plat_rmmd_get_cca_attest_token(uintptr_t buf, size_t *len,
+				   uintptr_t hash, size_t hash_size);
+int plat_rmmd_get_cca_realm_attest_key(uintptr_t buf, size_t *len,
+				       unsigned int type);
+size_t plat_rmmd_get_el3_rmm_shared_mem(uintptr_t *shared);
+int plat_rmmd_load_manifest(rmm_manifest_t *manifest);
+#endif
+
+/*******************************************************************************
  * Optional BL31 functions (may be overridden)
  ******************************************************************************/
 void bl31_plat_enable_mmu(uint32_t flags);
@@ -339,6 +354,10 @@ int plat_spm_sp_get_next_address(void **sp_base, size_t *sp_size,
 int plat_spm_core_manifest_load(spmc_manifest_attribute_t *manifest,
 				const void *pm_addr);
 #endif
+#if defined(SPMC_AT_EL3)
+int plat_spmc_shmem_datastore_get(uint8_t **datastore, size_t *size);
+#endif
+
 /*******************************************************************************
  * Mandatory BL image load functions(may be overridden).
  ******************************************************************************/

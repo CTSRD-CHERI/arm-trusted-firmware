@@ -23,6 +23,8 @@ CSS_SGI_PLATFORM_VARIANT	:=	0
 # Do not enable SVE
 ENABLE_SVE_FOR_NS		:=	0
 
+CTX_INCLUDE_FPREGS		:=	1
+
 INTERCONNECT_SOURCES	:=	${CSS_ENT_BASE}/sgi_interconnect.c
 
 PLAT_INCLUDES		+=	-I${CSS_ENT_BASE}/include
@@ -42,7 +44,8 @@ PLAT_BL_COMMON_SOURCES	+=	${CSS_ENT_BASE}/aarch64/sgi_helper.S
 BL1_SOURCES		+=	${INTERCONNECT_SOURCES}			\
 				drivers/arm/sbsa/sbsa.c
 
-BL2_SOURCES		+=	${CSS_ENT_BASE}/sgi_image_load.c
+BL2_SOURCES		+=	${CSS_ENT_BASE}/sgi_image_load.c	\
+				drivers/arm/css/sds/sds.c
 
 BL31_SOURCES		+=	${INTERCONNECT_SOURCES}			\
 				${ENT_GIC_SOURCES}			\

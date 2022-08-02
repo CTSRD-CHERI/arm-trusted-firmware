@@ -193,6 +193,8 @@ endif
 
 ifeq (${ENABLE_RME},1)
 BL2_SOURCES		+=	plat/arm/board/fvp/aarch64/fvp_helpers.S
+BL31_SOURCES		+=	plat/arm/board/fvp/fvp_plat_attest_token.c	\
+				plat/arm/board/fvp/fvp_realm_attest_key.c
 endif
 
 ifeq (${BL2_AT_EL3},1)
@@ -308,14 +310,6 @@ ENABLE_AMU			:=	1
 # Enable dynamic mitigation support by default
 DYNAMIC_WORKAROUND_CVE_2018_3639	:=	1
 
-# Enable reclaiming of BL31 initialisation code for secondary cores
-# stacks for FVP. However, don't enable reclaiming for clang.
-ifneq (${RESET_TO_BL31},1)
-ifeq ($(findstring clang,$(notdir $(CC))),)
-RECLAIM_INIT_CODE	:=	1
-endif
-endif
-
 ifeq (${ENABLE_AMU},1)
 BL31_SOURCES		+=	lib/cpus/aarch64/cpuamu.c		\
 				lib/cpus/aarch64/cpuamu_helpers.S
@@ -339,15 +333,10 @@ ifeq (${ARCH},aarch32)
 endif
 
 # Enable the dynamic translation tables library.
-ifeq (${ARCH},aarch32)
-    ifeq (${RESET_TO_SP_MIN},1)
+ifeq ($(filter 1,${BL2_AT_EL3} ${ARM_XLAT_TABLES_LIB_V1}),)
+    ifeq (${ARCH},aarch32)
         BL32_CPPFLAGS	+=	-DPLAT_XLAT_TABLES_DYNAMIC
-    endif
-else # AArch64
-    ifeq (${RESET_TO_BL31},1)
-        BL31_CPPFLAGS	+=	-DPLAT_XLAT_TABLES_DYNAMIC
-    endif
-    ifeq (${SPD},trusty)
+    else # AArch64
         BL31_CPPFLAGS	+=	-DPLAT_XLAT_TABLES_DYNAMIC
     endif
 endif
@@ -374,14 +363,40 @@ ifneq (${BL2_AT_EL3}, 0)
     override BL1_SOURCES =
 endif
 
+# Include Measured Boot makefile before any Crypto library makefile.
+# Crypto library makefile may need default definitions of Measured Boot build
+# flags present in Measured Boot makefile.
+ifeq (${MEASURED_BOOT},1)
+    RSS_MEASURED_BOOT_MK := drivers/measured_boot/rss/rss_measured_boot.mk
+    $(info Including ${RSS_MEASURED_BOOT_MK})
+    include ${RSS_MEASURED_BOOT_MK}
+
+    ifneq (${MBOOT_RSS_HASH_ALG}, sha256)
+        $(eval $(call add_define,TF_MBEDTLS_MBOOT_USE_SHA512))
+    endif
+
+    BL1_SOURCES		+=	${MEASURED_BOOT_SOURCES}
+    BL2_SOURCES		+=	${MEASURED_BOOT_SOURCES}
+endif
+
 include plat/arm/board/common/board_common.mk
 include plat/arm/common/arm_common.mk
 
 ifeq (${MEASURED_BOOT},1)
 BL1_SOURCES		+=	plat/arm/board/fvp/fvp_common_measured_boot.c	\
-				plat/arm/board/fvp/fvp_bl1_measured_boot.c
+				plat/arm/board/fvp/fvp_bl1_measured_boot.c	\
+				lib/psa/measured_boot.c
+
 BL2_SOURCES		+=	plat/arm/board/fvp/fvp_common_measured_boot.c	\
-				plat/arm/board/fvp/fvp_bl2_measured_boot.c
+				plat/arm/board/fvp/fvp_bl2_measured_boot.c	\
+				lib/psa/measured_boot.c
+
+PLAT_INCLUDES		+=	-Iinclude/lib/psa
+
+# RSS is not supported on FVP right now. Thus, we use the mocked version
+# of PSA Measured Boot APIs. They return with success and hard-coded data.
+PLAT_RSS_NOT_SUPPORTED	:= 1
+
 endif
 
 ifeq (${TRUSTED_BOARD_BOOT}, 1)
@@ -396,8 +411,21 @@ endif
 # enable trace buffer control registers access to NS by default
 ENABLE_TRBE_FOR_NS		:= 1
 
+# enable branch record buffer control registers access in NS by default
+# only enable for aarch64
+# do not enable when ENABLE_RME=1
+ifeq (${ARCH}, aarch64)
+ifeq (${ENABLE_RME},0)
+	ENABLE_BRBE_FOR_NS		:= 1
+endif
+endif
+
 # enable trace system registers access to NS by default
 ENABLE_SYS_REG_TRACE_FOR_NS	:= 1
 
 # enable trace filter control registers access to NS by default
 ENABLE_TRF_FOR_NS		:= 1
+
+ifeq (${SPMC_AT_EL3}, 1)
+PLAT_BL_COMMON_SOURCES	+=	plat/arm/board/fvp/fvp_el3_spmc.c
+endif
