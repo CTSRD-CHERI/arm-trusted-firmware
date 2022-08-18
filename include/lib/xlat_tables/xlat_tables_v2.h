@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2017-2022, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -134,6 +134,11 @@
 #define MT_CODE			(MT_MEMORY | MT_RO | MT_EXECUTE)
 #define MT_RO_DATA		(MT_MEMORY | MT_RO | MT_EXECUTE_NEVER)
 #define MT_RW_DATA		(MT_MEMORY | MT_RW | MT_EXECUTE_NEVER)
+
+#if ENABLE_MORELLO_CAP
+/* Capbility load, store and track permission attribute */
+#define MT_CAP_LD_ST_TRACK	(U(1) << 31)
+#endif
 
 /*
  * Structure for specifying a single region of memory.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, Arm Limited and Contributors. All rights reserved.
+ * Copyright (c) 2017-2022, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -309,6 +309,12 @@ void setup_mmu_cfg(uint64_t *params, unsigned int flags,
 		assert(xlat_regime == EL3_REGIME);
 		tcr |= TCR_EL3_RES1 | (tcr_ps_bits << TCR_EL3_PS_SHIFT);
 	}
+
+#if ENABLE_MORELLO_CAP
+	/* Enable capability loads and stores */
+	tcr |= (TCR_HPD_BIT | TCR_HWU59_BIT | TCR_HWU60_BIT |
+		TCR_HWU61_BIT | TCR_HWU62_BIT);
+#endif
 
 	/* Set TTBR bits as well */
 	ttbr0 = (uint64_t) base_table;

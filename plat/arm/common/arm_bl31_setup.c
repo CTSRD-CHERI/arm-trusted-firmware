@@ -46,10 +46,18 @@ CASSERT(BL31_BASE >= ARM_FW_CONFIG_LIMIT, assert_bl31_base_overflows);
 #pragma weak bl31_plat_arch_setup
 #pragma weak bl31_plat_get_next_image_ep_info
 
-#define MAP_BL31_TOTAL		MAP_REGION_FLAT(			\
-					BL31_START,			\
-					BL31_END - BL31_START,		\
-					MT_MEMORY | MT_RW | EL3_PAS)
+#if ENABLE_MORELLO_CAP
+#define MAP_BL31_TOTAL	MAP_REGION_FLAT(			\
+				BL31_START,			\
+				BL31_END - BL31_START,		\
+				MT_MEMORY | MT_RW | EL3_PAS | MT_CAP_LD_ST_TRACK)
+#else
+#define MAP_BL31_TOTAL	MAP_REGION_FLAT(			\
+				BL31_START,			\
+				BL31_END - BL31_START,		\
+				MT_MEMORY | MT_RW | EL3_PAS)
+#endif
+
 #if RECLAIM_INIT_CODE
 IMPORT_SYM(unsigned long, __INIT_CODE_START__, BL_INIT_CODE_BASE);
 IMPORT_SYM(unsigned long, __INIT_CODE_END__, BL_CODE_END_UNALIGNED);

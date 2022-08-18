@@ -227,7 +227,28 @@ exp_from_EL3:
 	/* Switch to the runtime stack i.e. SP_EL0 */
 	ldr	x2, [sp, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 	mov	x20, sp
+
+#if ENABLE_MORELLO_CAP
+	/*
+	 * Save DDC_EL3 value to C24. This will be used to write to DDC_EL0
+	 * once SP is switched to SP_EL0
+	 */
+	mrs	c24, ddc
+#endif
+
 	msr	spsel, #MODE_SP_EL0
+
+#if ENABLE_MORELLO_CAP
+	/* Save the original DDC_EL0 which will be pushed to stack. */
+	mrs	c26, ddc
+
+	/* Write saved DDC_EL3 value into DDC_EL0. */
+	msr	ddc, c24
+
+	/* Write original DDC_EL0 value to stack. */
+	str	c26, [x20, #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+#endif
+
 	mov	sp, x2
 
 	/*
@@ -489,8 +510,27 @@ smc_handler64:
 	 */
 	ldr	x12, [x6, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 
+#if ENABLE_MORELLO_CAP
+	/*
+	 * Save DDC_EL3 value. This will be used to write to DDC_EL0 once SP is
+	 * switched to SP_EL0 and the original DDC_EL0 is saved to stack.
+	 */
+	mrs	c24, ddc
+#endif
+
 	/* Switch to SP_EL0 */
 	msr	spsel, #MODE_SP_EL0
+
+#if ENABLE_MORELLO_CAP
+	/* Save the original DDC_EL0 which will be pushed to stack. */
+	mrs	c26, ddc
+
+	/* Write saved DDC_EL3 value into DDC_EL0. */
+	msr	ddc, c24
+
+	/* Write original DDC_EL0 value to stack. */
+	str	c26, [x6, #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+#endif
 
 	/*
 	 * Save the SPSR_EL3, ELR_EL3, & SCR_EL3 in case there is a world

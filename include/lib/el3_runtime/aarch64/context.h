@@ -63,7 +63,12 @@
 #define CTX_IS_IN_EL3		U(0x30)
 #define CTX_CPTR_EL3		U(0x38)
 #define CTX_ZCR_EL3		U(0x40)
+#if ENABLE_MORELLO_CAP
+#define CTX_DDC_EL0		U(0x50)
+#define CTX_EL3STATE_END	U(0x60) /* Align to the next 16 byte boundary */
+#else
 #define CTX_EL3STATE_END	U(0x50) /* Align to the next 16 byte boundary */
+#endif
 
 /*******************************************************************************
  * Constants that allow assembler code to access members of and the
@@ -560,6 +565,10 @@ void el2_sysregs_context_restore_hcx(el2_sysregs_t *regs);
 #if CTX_INCLUDE_FPREGS
 void fpregs_context_save(fp_regs_t *regs);
 void fpregs_context_restore(fp_regs_t *regs);
+#endif
+
+#if ENABLE_MORELLO_CAP
+void save_ddc_el0(void *ctx_addr);
 #endif
 
 #endif /* __ASSEMBLER__ */

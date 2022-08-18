@@ -373,6 +373,10 @@ static void setup_context_common(cpu_context_t *ctx, const entry_point_info_t *e
 	write_ctx_reg(state, CTX_ELR_EL3, ep->pc);
 	write_ctx_reg(state, CTX_SPSR_EL3, ep->spsr);
 
+#if ENABLE_MORELLO_CAP
+	save_ddc_el0((char *)state + CTX_DDC_EL0);
+#endif
+
 	/*
 	 * Store the X0-X7 value from the entrypoint into the context
 	 * Use memcpy as we are in control of the layout of the structures
