@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2014-2020, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -135,7 +135,8 @@
 #define ARM_IRQ_SEC_SGI_6		14
 #define ARM_IRQ_SEC_SGI_7		15
 
-#define MAX_INTR_EL3			128
+/* number of interrupt handlers. increase as required */
+#define MAX_INTR_EL3			2
 
 /*******************************************************************************
  * UART related constants
@@ -352,7 +353,7 @@
 #define RESTART_SCOPE_SHIFT			(3)
 #define RESTART_SCOPE_MASK			(0x3U << RESTART_SCOPE_SHIFT)
 
-/*AFI registers */
+/* AFI registers */
 #define  AFIFM6_WRCTRL		U(13)
 #define  FABRIC_WIDTH		U(3)
 
