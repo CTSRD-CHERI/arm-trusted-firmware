@@ -1020,7 +1020,7 @@ ifeq ($(ENABLE_MORELLO_CAP),1)
         $(error ENABLE_MORELLO_CAP requires Clang toolchain)
     endif
     $(info Morello capability is an experimental feature)
-    ASFLAGS_aarch64 += -march=morello
+    ASFLAGS += -march=morello
     TF_LDFLAGS += -z notext
 endif
 ifeq ($(DRTM_SUPPORT),1)
