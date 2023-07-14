@@ -12,45 +12,12 @@
 #include <services/arm_arch_svc.h>
 
 #include "morello_def.h"
+#include "morello_private.h"
 #include <platform_def.h>
 
-#ifdef TARGET_PLATFORM_FVP
-/*
- * Platform information structure stored in SDS.
- * This structure holds information about platform's DDR
- * size
- *	- Local DDR size in bytes, DDR memory in main board
- */
-struct morello_plat_info {
-	uint64_t local_ddr_size;
-} __packed;
-#else
-/*
- * Platform information structure stored in SDS.
- * This structure holds information about platform's DDR
- * size which is an information about multichip setup
- *	- Local DDR size in bytes, DDR memory in main board
- *	- Remote DDR size in bytes, DDR memory in remote board
- *	- remote_chip_count
- *	- multichip mode
- *	- scc configuration
- *	- silicon revision
- */
-struct morello_plat_info {
-	uint64_t local_ddr_size;
-	uint64_t remote_ddr_size;
-	uint8_t remote_chip_count;
-	bool multichip_mode;
-	uint32_t scc_config;
-	uint32_t silicon_revision;
-} __packed;
-
+#ifdef TARGET_PLATFORM_SOC
 struct morello_plat_info plat_info;
 #endif
-
-/* Compile time assertion to ensure the size of structure is of the required bytes */
-CASSERT(sizeof(struct morello_plat_info) == MORELLO_SDS_PLATFORM_INFO_SIZE,
-		assert_invalid_plat_info_size);
 
 static scmi_channel_plat_info_t morello_scmi_plat_info = {
 	.scmi_mbx_mem = MORELLO_SCMI_PAYLOAD_BASE,
@@ -60,13 +27,14 @@ static scmi_channel_plat_info_t morello_scmi_plat_info = {
 	.ring_doorbell = &mhu_ring_doorbell
 };
 
-scmi_channel_plat_info_t *plat_css_get_scmi_info(int channel_id)
+scmi_channel_plat_info_t *plat_css_get_scmi_info(unsigned int channel_id)
 {
 	return &morello_scmi_plat_info;
 }
 
 const plat_psci_ops_t *plat_arm_psci_override_pm_ops(plat_psci_ops_t *ops)
 {
+	ops->pwr_domain_off = morello_pwr_domain_off;
 	return css_scmi_override_pm_ops(ops);
 }
 
