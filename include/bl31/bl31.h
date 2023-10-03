@@ -12,8 +12,8 @@
 /*******************************************************************************
  * Function prototypes
  ******************************************************************************/
-void bl31_setup(u_register_t arg0, u_register_t arg1, u_register_t arg2,
-		u_register_t arg3);
+void bl31_setup(uintptr_t arg0, uintptr_t arg1, uintptr_t arg2,
+		uintptr_t arg3);
 void bl31_next_el_arch_setup(uint32_t security_state);
 void bl31_set_next_image_type(uint32_t security_state);
 uint32_t bl31_get_next_image_type(void);

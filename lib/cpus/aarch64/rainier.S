@@ -96,7 +96,7 @@ rainier_regs:  /* The ascii list of register names to be reported */
 	.asciz	"cpuectlr_el1", ""
 
 func rainier_cpu_reg_dump
-	adr	x6, rainier_regs
+	adr	PTR(6), rainier_regs
 	mrs	x8, RAINIER_CPUECTLR_EL1
 	ret
 endfunc rainier_cpu_reg_dump
@@ -104,3 +104,7 @@ endfunc rainier_cpu_reg_dump
 declare_cpu_ops rainier, RAINIER_MIDR, \
 	rainier_reset_func, \
 	rainier_core_pwr_dwn
+
+/* A hack to load rainier_errata_list_end from GOT correctly. */
+.globl rainier_errata_list_start
+.globl rainier_errata_list_end

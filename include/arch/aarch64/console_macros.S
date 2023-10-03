@@ -23,31 +23,31 @@
 	 * corresponding callback entry in console_t is set to 0.
 	 */
 	.ifne \putc
-	  adrp	x1, console_\_driver\()_putc
-	  add	x1, x1, :lo12:console_\_driver\()_putc
-	  str	x1, [x0, #CONSOLE_T_PUTC]
+	  adrp	PTR(1), :got:console_\_driver\()_putc
+	  ldr	PTR(1), [PTR(1), :got_lo12:console_\_driver\()_putc]
+	  str	PTR(1), [PTR(0), #CONSOLE_T_PUTC]
 	.else
-	  str	xzr, [x0, #CONSOLE_T_PUTC]
+	  str	xzr, [PTR(0), #CONSOLE_T_PUTC]
 	.endif
 
 	.ifne \getc
-	  adrp	x1, console_\_driver\()_getc
-	  add	x1, x1, :lo12:console_\_driver\()_getc
-	  str	x1, [x0, #CONSOLE_T_GETC]
+	  adrp	PTR(1), :got:console_\_driver\()_getc
+	  ldr	PTR(1), [PTR(1), :got_lo12:console_\_driver\()_getc]
+	  str	PTR(1), [PTR(0), #CONSOLE_T_GETC]
 	.else
 	  str	xzr, [x0, #CONSOLE_T_GETC]
 	.endif
 
 	.ifne \flush
-	  adrp	x1, console_\_driver\()_flush
-	  add	x1, x1, :lo12:console_\_driver\()_flush
-	  str	x1, [x0, #CONSOLE_T_FLUSH]
+	  adrp	PTR(1), :got:console_\_driver\()_flush
+	  ldr	PTR(1), [PTR(1), :got_lo12:console_\_driver\()_flush]
+	  str	PTR(1), [PTR(0), #CONSOLE_T_FLUSH]
 	.else
-	  str	xzr, [x0, #CONSOLE_T_FLUSH]
+	  str	xzr, [PTR(0), #CONSOLE_T_FLUSH]
 	.endif
 
 	mov	x1, #(CONSOLE_FLAG_BOOT | CONSOLE_FLAG_CRASH)
-	str	x1, [x0, #CONSOLE_T_FLAGS]
+	str	x1, [PTR(0), #CONSOLE_T_FLAGS]
 	b	console_register
 	.endm
 

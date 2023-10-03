@@ -11,6 +11,56 @@
 	.globl	setjmp
 	.globl	longjmp
 
+#ifdef __CHERI_PURE_CAPABILITY__
+/*
+ * int setjmp(jmp_buf env);
+ */
+func setjmp
+	mov	c7, csp
+
+	stp	c19, c20, [c0, #JMP_CTX_X19]
+	stp	c21, c22, [c0, #JMP_CTX_X21]
+	stp	c23, c24, [c0, #JMP_CTX_X23]
+	stp	c25, c26, [c0, #JMP_CTX_X25]
+	stp	c27, c28, [c0, #JMP_CTX_X27]
+	stp	c29, c30, [c0, #JMP_CTX_X29]
+	stp	c7, czr, [c0, #JMP_CTX_SP]
+
+	mov	x0, #0
+	ret
+endfunc setjmp
+
+
+/*
+ * void longjmp(jmp_buf env, int val);
+ */
+func longjmp
+	ldp	c7, czr, [c0, #JMP_CTX_SP]
+
+#if ENABLE_ASSERTIONS
+	/*
+	 * Since we're unwinding the stack, assert that the stack being reset to
+	 * is shallower.
+	 */
+	mov	c19, csp
+	cmp	x7, x19
+	ASM_ASSERT(ge)
+#endif
+
+	ldp	c19, c20, [c0, #JMP_CTX_X19]
+	ldp	c21, c22, [c0, #JMP_CTX_X21]
+	ldp	c23, c24, [c0, #JMP_CTX_X23]
+	ldp	c25, c26, [c0, #JMP_CTX_X25]
+	ldp	c27, c28, [c0, #JMP_CTX_X27]
+	ldp	c29, c30, [c0, #JMP_CTX_X29]
+
+	mov	csp, c7
+
+	ands	x0, x1, x1 /* Move val to x0 and set flags */
+	cinc	x0, x0, eq /* If val is 0, return 1 */
+	ret
+endfunc longjmp
+#else
 /*
  * int setjmp(jmp_buf env);
  */
@@ -59,3 +109,5 @@ func longjmp
 	cinc	x0, x0, eq /* If val is 0, return 1 */
 	ret
 endfunc longjmp
+
+#endif

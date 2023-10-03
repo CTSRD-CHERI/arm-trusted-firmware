@@ -302,7 +302,7 @@ void plat_arm_pwrc_setup(void);
 void plat_arm_interconnect_init(void);
 void plat_arm_interconnect_enter_coherency(void);
 void plat_arm_interconnect_exit_coherency(void);
-void plat_arm_program_trusted_mailbox(uintptr_t address);
+void plat_arm_program_trusted_mailbox(uint64_t address);
 bool plat_arm_bl1_fwu_needed(void);
 __dead2 void plat_arm_error_handler(int err);
 __dead2 void plat_arm_system_reset(void);

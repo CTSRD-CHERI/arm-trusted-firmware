@@ -10,7 +10,7 @@
 #include <platform_def.h>
 
 #ifdef __aarch64__
-#define STRUCT_ALIGN	8
+#define STRUCT_ALIGN	16
 #define BSS_ALIGN	16
 #else
 #define STRUCT_ALIGN	4

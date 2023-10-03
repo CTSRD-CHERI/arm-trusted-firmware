@@ -249,8 +249,8 @@ void __init arm_bl31_early_platform_setup(void *from_bl2, uintptr_t soc_fw_confi
 # endif
 }
 
-void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
-		u_register_t arg2, u_register_t arg3)
+void bl31_early_platform_setup2(uintptr_t arg0, uintptr_t arg1,
+		uintptr_t arg2, uintptr_t arg3)
 {
 	arm_bl31_early_platform_setup((void *)arg0, arg1, arg2, (void *)arg3);
 
@@ -294,7 +294,7 @@ void arm_bl31_platform_setup(void)
 #endif /* RESET_TO_BL31 */
 
 	/* Enable and initialize the System level generic timer */
-	mmio_write_32(ARM_SYS_CNTCTL_BASE + CNTCR_OFF,
+	mmio_write_32(make_cap(ARM_SYS_CNTCTL_BASE + CNTCR_OFF),
 			CNTCR_FCREQ(0U) | CNTCR_EN);
 
 	/* Allow access to the System counter timer module */

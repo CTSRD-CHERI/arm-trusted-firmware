@@ -19,11 +19,11 @@
 
 #define ERRATUM_WA_FUNC		0
 #define ERRATUM_CHECK_FUNC	ERRATUM_WA_FUNC + ERRATUM_WA_FUNC_SIZE
-#define ERRATUM_ID		ERRATUM_CHECK_FUNC + ERRATUM_CHECK_FUNC_SIZE
+#define ERRATUM_ID		ERRATUM_CHECK_FUNC + ERRATUM_CHECK_FUNC_SIZE + 0
 #define ERRATUM_CVE		ERRATUM_ID + ERRATUM_ID_SIZE
 #define ERRATUM_CHOSEN		ERRATUM_CVE + ERRATUM_CVE_SIZE
 #define ERRATUM_MITIGATED	ERRATUM_CHOSEN + ERRATUM_CHOSEN_SIZE
-#define ERRATUM_ENTRY_SIZE	ERRATUM_MITIGATED + ERRATUM_MITIGATED_SIZE
+#define ERRATUM_ENTRY_SIZE	ERRATUM_MITIGATED + ERRATUM_MITIGATED_SIZE + 8
 
 #ifndef __ASSEMBLER__
 #include <lib/cassert.h>
@@ -45,10 +45,12 @@ struct erratum_entry {
 	uint8_t chosen;
 	/* TODO(errata ABI): placeholder for the mitigated field */
 	uint8_t _mitigated;
-} __packed;
+	uint64_t resv;
+} __aligned(16);
 
 CASSERT(sizeof(struct erratum_entry) == ERRATUM_ENTRY_SIZE,
 	assert_erratum_entry_asm_c_different_sizes);
+
 #else
 
 /*

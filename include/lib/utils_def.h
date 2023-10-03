@@ -126,10 +126,16 @@
 	((_u32) > (UINT32_MAX - (_inc)))
 
 /* Register size of the current architecture. */
+#ifdef __CHERI_PURE_CAPABILITY__
+#define	REGSZ		U(16)
+#else
+
 #ifdef __aarch64__
 #define REGSZ		U(8)
 #else
 #define REGSZ		U(4)
+#endif
+
 #endif
 
 /*

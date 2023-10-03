@@ -30,9 +30,9 @@
 func spin_lock
 	mov	w2, #1
 1:	mov	w1, wzr
-2:	casa	w1, w2, [x0]
+2:	casa	w1, w2, [PTR(0)]
 	cbz	w1, 3f
-	ldxr	w1, [x0]
+	ldxr	w1, [PTR(0)]
 	cbz	w1, 2b
 	wfe
 	b	1b
@@ -51,9 +51,9 @@ func spin_lock
 	mov	w2, #1
 	sevl
 l1:	wfe
-l2:	ldaxr	w1, [x0]
+l2:	ldaxr	w1, [PTR(0)]
 	cbnz	w1, l1
-	stxr	w1, w2, [x0]
+	stxr	w1, w2, [PTR(0)]
 	cbnz	w1, l2
 	ret
 endfunc spin_lock
@@ -70,6 +70,6 @@ endfunc spin_lock
  * void spin_unlock(spinlock_t *lock);
  */
 func spin_unlock
-	stlr	wzr, [x0]
+	stlr	wzr, [PTR(0)]
 	ret
 endfunc spin_unlock

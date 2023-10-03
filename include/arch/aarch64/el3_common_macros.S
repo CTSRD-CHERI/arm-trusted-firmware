@@ -368,12 +368,15 @@
 	/*
 	 * Disable PCC/DCC base offset
 	 */
-	msr	cctlr_el3, xzr
+
+	/* don't clear cctlr_el3
+	 * msr	cctlr_el3, xzr
+	 */
 
 	/*
 	 * Set capability vector base address register
 	 */
-	adr	x0, \_exception_vectors
+	adr	PTR(0), \_exception_vectors
 	cvtp	c1, x0
 	msr	cvbar_el3, c1
 	isb
@@ -433,63 +436,63 @@
 		 */
 #if ENABLE_PIE
 #if SEPARATE_CODE_AND_RODATA
-		adrp	x0, __TEXT_START__
-		add	x0, x0, :lo12:__TEXT_START__
+		adrp	PTR(0), :got:__TEXT_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__TEXT_START__]
 #else
-		adrp	x0, __RO_START__
-		add	x0, x0, :lo12:__RO_START__
+		adrp	PTR(0), :got:__RO_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__RO_START__]
 #endif /* SEPARATE_CODE_AND_RODATA */
 #else
-		adrp	x0, __RW_START__
-		add	x0, x0, :lo12:__RW_START__
+		adrp	PTR(0), :got:__RW_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__RW_START__]
 #endif /* ENABLE_PIE */
-		adrp	x1, __RW_END__
-		add	x1, x1, :lo12:__RW_END__
+		adrp	PTR(1), :got:__RW_END__
+		ldr	PTR(1), [PTR(1), :got_lo12:__RW_END__]
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #if defined(IMAGE_BL31) && SEPARATE_NOBITS_REGION
-		adrp	x0, __NOBITS_START__
-		add	x0, x0, :lo12:__NOBITS_START__
-		adrp	x1, __NOBITS_END__
-		add	x1, x1, :lo12:__NOBITS_END__
+		adrp	PTR(0), :got:__NOBITS_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__NOBITS_START__]
+		adrp	PTR(1), :got:__NOBITS_END__
+		ldr	PTR(1), [PTR(1), :got_lo12:__NOBITS_END__]
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #endif
 #if defined(IMAGE_BL2) && SEPARATE_BL2_NOLOAD_REGION
-		adrp	x0, __BL2_NOLOAD_START__
-		add	x0, x0, :lo12:__BL2_NOLOAD_START__
-		adrp	x1, __BL2_NOLOAD_END__
-		add	x1, x1, :lo12:__BL2_NOLOAD_END__
+		adrp	PTR(0), :got:__BL2_NOLOAD_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__BL2_NOLOAD_START__]
+		adrp	PTR(1), :got:__BL2_NOLOAD_END__
+		ldr	PTR(1), [PTR(1), :got_lo12:__BL2_NOLOAD_END__]
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #endif
 #endif
-		adrp	x0, __BSS_START__
-		add	x0, x0, :lo12:__BSS_START__
+		adrp	PTR(0), :got:__BSS_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__BSS_START__]
 
-		adrp	x1, __BSS_END__
-		add	x1, x1, :lo12:__BSS_END__
+		adrp	PTR(1), :got:__BSS_END__
+		ldr	PTR(1), [PTR(1), :got_lo12:__BSS_END__]
 		sub	x1, x1, x0
 		bl	zeromem
 
 #if USE_COHERENT_MEM
-		adrp	x0, __COHERENT_RAM_START__
-		add	x0, x0, :lo12:__COHERENT_RAM_START__
-		adrp	x1, __COHERENT_RAM_END_UNALIGNED__
-		add	x1, x1, :lo12: __COHERENT_RAM_END_UNALIGNED__
+		adrp	PTR(0), :got:__COHERENT_RAM_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__COHERENT_RAM_START__]
+		adrp	PTR(1), :got:__COHERENT_RAM_END_UNALIGNED__
+		ldr	PTR(1), [PTR(1), :got_lo12:__COHERENT_RAM_END_UNALIGNED__]
 		sub	x1, x1, x0
 		bl	zeromem
 #endif
 
 #if defined(IMAGE_BL1) ||	\
 	(defined(IMAGE_BL2) && RESET_TO_BL2 && BL2_IN_XIP_MEM)
-		adrp	x0, __DATA_RAM_START__
-		add	x0, x0, :lo12:__DATA_RAM_START__
-		adrp	x1, __DATA_ROM_START__
-		add	x1, x1, :lo12:__DATA_ROM_START__
-		adrp	x2, __DATA_RAM_END__
-		add	x2, x2, :lo12:__DATA_RAM_END__
-		sub	x2, x2, x0
+		adrp	PTR(0), :got:__DATA_RAM_START__
+		ldr	PTR(0), [PTR(0), :got_lo12:__DATA_RAM_START__]
+		adrp	PTR(1), :got:__DATA_ROM_START__
+		ldr	PTR(1), [PTR(1), :got_lo12:__DATA_ROM_START__]
+		adrp	PTR(2), :got:__DATA_RAM_END__
+		ldr	PTR(2), [PTR(2), :got_lo12:__DATA_RAM_END__]
+		sub	PTR(2), PTR(2), x0
 		bl	memcpy16
 #endif
 	.endif /* _init_c_runtime */

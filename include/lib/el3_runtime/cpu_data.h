@@ -23,20 +23,40 @@
 /* Size of cpu_context array */
 #define CPU_DATA_CONTEXT_NUM		3
 /* Offset of cpu_ops_ptr, size 8 bytes */
+#ifdef __CHERI_PURE_CAPABILITY__
+#define CPU_DATA_CPU_OPS_PTR		48
+#else
 #define CPU_DATA_CPU_OPS_PTR		0x18
+#endif
 #else /* ENABLE_RME */
 #define CPU_DATA_CONTEXT_NUM		2
+#ifdef __CHERI_PURE_CAPABILITY__
+#define CPU_DATA_CPU_OPS_PTR		32
+#else
 #define CPU_DATA_CPU_OPS_PTR		0x10
+#endif
 #endif /* ENABLE_RME */
 
 #if ENABLE_PAUTH
 /* 8-bytes aligned offset of apiakey[2], size 16 bytes */
 #define	CPU_DATA_APIAKEY_OFFSET		(0x8 + PSCI_CPU_DATA_SIZE_ALIGNED \
 					     + CPU_DATA_CPU_OPS_PTR)
+#ifdef __CHERI_PURE_CAPABILITY__
 #define CPU_DATA_CRASH_BUF_OFFSET	(0x10 + CPU_DATA_APIAKEY_OFFSET)
+#else
+#define CPU_DATA_CRASH_BUF_OFFSET	(0x10 + CPU_DATA_APIAKEY_OFFSET)
+#endif
+
 #else /* ENABLE_PAUTH */
+
+#ifdef __CHERI_PURE_CAPABILITY__
+#define CPU_DATA_CRASH_BUF_OFFSET	(0x10 + PSCI_CPU_DATA_SIZE_ALIGNED \
+					     + CPU_DATA_CPU_OPS_PTR)
+#else
 #define CPU_DATA_CRASH_BUF_OFFSET	(0x8 + PSCI_CPU_DATA_SIZE_ALIGNED \
 					     + CPU_DATA_CPU_OPS_PTR)
+#endif
+
 #endif /* ENABLE_PAUTH */
 
 /* need enough space in crash buffer to save 8 registers */
@@ -60,10 +80,17 @@
 #endif
 
 /* cpu_data size is the data size rounded up to the platform cache line size */
+#ifdef __CHERI_PURE_CAPABILITY__
 #define CPU_DATA_SIZE			(((CPU_DATA_CRASH_BUF_END + \
 					CACHE_WRITEBACK_GRANULE - 1) / \
 						CACHE_WRITEBACK_GRANULE) * \
 							CACHE_WRITEBACK_GRANULE)
+#else
+#define CPU_DATA_SIZE			(((CPU_DATA_CRASH_BUF_END + \
+					CACHE_WRITEBACK_GRANULE - 1) / \
+						CACHE_WRITEBACK_GRANULE) * \
+							CACHE_WRITEBACK_GRANULE)
+#endif
 
 #if ENABLE_RUNTIME_INSTRUMENTATION
 /* Temporary space to store PMF timestamps from assembly code */
@@ -178,7 +205,11 @@ struct cpu_data *_cpu_data_by_index(uint32_t cpu_index);
 /* Return the cpu_data structure for the current CPU. */
 static inline struct cpu_data *_cpu_data(void)
 {
+#ifdef __CHERI_PURE_CAPABILITY__
 	return (cpu_data_t *)read_tpidr_el3();
+#else
+	return (cpu_data_t *)read_tpidr_el3();
+#endif
 }
 #else
 struct cpu_data *_cpu_data(void);

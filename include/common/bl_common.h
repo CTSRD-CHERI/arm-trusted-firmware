@@ -161,6 +161,7 @@ IMPORT_SYM(uintptr_t, __COHERENT_RAM_END__,	BL_COHERENT_RAM_END);
 typedef struct meminfo {
 	uintptr_t total_base;
 	size_t total_size;
+	size_t resv;
 } meminfo_t;
 
 /*******************************************************************************

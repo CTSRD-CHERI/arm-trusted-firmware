@@ -295,14 +295,15 @@ MAKE_DEP = -Wp,-MD,$(DEP) -MT $$@ -MP
 #   $(1) = output directory
 #   $(2) = source file (%.c)
 #   $(3) = library name
+#   $(4) = optional "purecap"
 define MAKE_C_LIB
 $(eval OBJ := $(1)/$(patsubst %.c,%.o,$(notdir $(2))))
 $(eval DEP := $(patsubst %.o,%.d,$(OBJ)))
 $(eval LIB := $(call uppercase, $(notdir $(1))))
 
-$(OBJ): $(2) $(filter-out %.d,$(MAKEFILE_LIST)) | lib$(3)_dirs
-	$$(ECHO) "  CC      $$<"
-	$$(Q)$$(CC) $$($(LIB)_CFLAGS) $$(TF_CFLAGS) $$(CFLAGS) $(MAKE_DEP) -c $$< -o $$@
+$(OBJ): $(2) $(filter-out %.d,$(MAKEFILE_LIST)) | lib$(3)$(4)_dirs
+	$$(ECHO) "  CC $(LIB)    $$<"
+	$$(CC) $$($(LIB)_CFLAGS) $$(TF_CFLAGS) $$(CFLAGS) $(MAKE_DEP) -c $$< -o $$@
 
 -include $(DEP)
 
@@ -312,13 +313,14 @@ endef
 #   $(1) = output directory
 #   $(2) = source file (%.S)
 #   $(3) = library name
+#   $(4) = optional "purecap"
 define MAKE_S_LIB
 $(eval OBJ := $(1)/$(patsubst %.S,%.o,$(notdir $(2))))
 $(eval DEP := $(patsubst %.o,%.d,$(OBJ)))
 
-$(OBJ): $(2) $(filter-out %.d,$(MAKEFILE_LIST)) | lib$(3)_dirs
+$(OBJ): $(2) $(filter-out %.d,$(MAKEFILE_LIST)) | lib$(3)$(4)_dirs
 	$$(ECHO) "  AS      $$<"
-	$$(Q)$$(AS) $$(ASFLAGS) $(MAKE_DEP) -c $$< -o $$@
+	$$(AS) $$($(LIB)_ASFLAGS) $$(ASFLAGS) $(MAKE_DEP) -c $$< -o $$@
 
 -include $(DEP)
 
@@ -341,7 +343,7 @@ $(eval BL_CFLAGS := $($(call uppercase,$(3))_CFLAGS))
 
 $(OBJ): $(2) $(filter-out %.d,$(MAKEFILE_LIST)) | $(3)_dirs
 	$$(ECHO) "  CC      $$<"
-	$$(Q)$$(CC) $$(LTO_CFLAGS) $$(TF_CFLAGS) $$(CFLAGS) $(BL_CPPFLAGS) $(BL_CFLAGS) $(MAKE_DEP) -c $$< -o $$@
+	$$(CC) $$(LTO_CFLAGS) $$(TF_CFLAGS) $$(CFLAGS) $(BL_CPPFLAGS) $(BL_CFLAGS) $(MAKE_DEP) -c $$< -o $$@
 
 -include $(DEP)
 
@@ -364,7 +366,7 @@ $(eval BL_ASFLAGS := $($(call uppercase,$(3))_ASFLAGS))
 
 $(OBJ): $(2) $(filter-out %.d,$(MAKEFILE_LIST)) | $(3)_dirs
 	$$(ECHO) "  AS      $$<"
-	$$(Q)$$(AS) $$(ASFLAGS) $(BL_CPPFLAGS) $(BL_ASFLAGS) $(MAKE_DEP) -c $$< -o $$@
+	$$(AS) $$(ASFLAGS) $(BL_CPPFLAGS) $(BL_ASFLAGS) $(MAKE_DEP) -c $$< -o $$@
 
 -include $(DEP)
 
@@ -395,14 +397,15 @@ endef
 #   $(1) = output directory
 #   $(2) = list of source files
 #   $(3) = name of the library
+#   $(4) = optional "purecap"
 define MAKE_LIB_OBJS
         $(eval C_OBJS := $(filter %.c,$(2)))
         $(eval REMAIN := $(filter-out %.c,$(2)))
-        $(eval $(foreach obj,$(C_OBJS),$(call MAKE_C_LIB,$(1),$(obj),$(3))))
+        $(eval $(foreach obj,$(C_OBJS),$(call MAKE_C_LIB,$(1),$(obj),$(3),$(4))))
 
         $(eval S_OBJS := $(filter %.S,$(REMAIN)))
         $(eval REMAIN := $(filter-out %.S,$(REMAIN)))
-        $(eval $(foreach obj,$(S_OBJS),$(call MAKE_S_LIB,$(1),$(obj),$(3))))
+        $(eval $(foreach obj,$(S_OBJS),$(call MAKE_S_LIB,$(1),$(obj),$(3),$(4))))
 
         $(and $(REMAIN),$(error Unexpected source files present: $(REMAIN)))
 endef
@@ -454,34 +457,35 @@ endef
 # MAKE_LIB macro defines the targets and options to build each BL image.
 # Arguments:
 #   $(1) = Library name
+#   $(2) = optional "purecap"
 define MAKE_LIB
-        $(eval BUILD_DIR  := ${BUILD_PLAT}/lib$(1))
+        $(eval BUILD_DIR  := ${BUILD_PLAT}/lib$(1)$(2))
         $(eval LIB_DIR    := ${BUILD_PLAT}/lib)
         $(eval ROMLIB_DIR    := ${BUILD_PLAT}/romlib)
         $(eval SOURCES    := $(LIB$(call uppercase,$(1))_SRCS))
         $(eval OBJS       := $(addprefix $(BUILD_DIR)/,$(call SOURCES_TO_OBJS,$(SOURCES))))
 
 $(eval $(call MAKE_PREREQ_DIR,${BUILD_DIR},${BUILD_PLAT}))
-$(eval $(call MAKE_LIB_OBJS,$(BUILD_DIR),$(SOURCES),$(1)))
+$(eval $(call MAKE_LIB_OBJS,$(BUILD_DIR),$(SOURCES),$(1),$(2)))
 
-.PHONY : lib${1}_dirs
-lib${1}_dirs: | ${BUILD_DIR} ${LIB_DIR}  ${ROMLIB_DIR} ${LIBWRAPPER_DIR}
-libraries: ${LIB_DIR}/lib$(1).a
+.PHONY : lib${1}{2}_dirs
+lib${1}${2}_dirs: | ${BUILD_DIR} ${LIB_DIR}  ${ROMLIB_DIR} ${LIBWRAPPER_DIR}
+libraries: ${LIB_DIR}/lib$(1)$(2).a
 ifneq ($(findstring armlink,$(notdir $(LD))),)
 LDPATHS = --userlibpath=${LIB_DIR}
-LDLIBS += --library=$(1)
+#### LDLIBS += --library=$(1)$(2)
 else
 LDPATHS = -L${LIB_DIR}
-LDLIBS += -l$(1)
+#### LDLIBS += -l$(1)$(2)
 endif
 
 ifeq ($(USE_ROMLIB),1)
 LIBWRAPPER = -lwrappers
 endif
 
-all: ${LIB_DIR}/lib$(1).a
+all: ${LIB_DIR}/lib$(1)$(2).a
 
-${LIB_DIR}/lib$(1).a: $(OBJS)
+${LIB_DIR}/lib$(1)$(2).a: $(OBJS)
 	$$(ECHO) "  AR      $$@"
 	$$(Q)$$(AR) cr $$@ $$?
 endef
@@ -512,6 +516,7 @@ define MAKE_BL
         $(eval BIN        := $(call IMG_BIN,$(1)))
         $(eval ENC_BIN    := $(call IMG_ENC_BIN,$(1)))
         $(eval BL_LIBS    := $($(call uppercase,$(1))_LIBS))
+        $(eval BL_CFLAGS  := $($(call uppercase,$(1))_CFLAGS))
 
         $(eval DEFAULT_LINKER_SCRIPT_SOURCE := $($(call uppercase,$(1))_DEFAULT_LINKER_SCRIPT_SOURCE))
         $(eval DEFAULT_LINKER_SCRIPT := $(call linker_script_path,$(DEFAULT_LINKER_SCRIPT_SOURCE)))
@@ -555,15 +560,17 @@ endif
 # object file path, and prebuilt object file path.
 $(eval OBJS += $(MODULE_OBJS))
 
-$(ELF): $(OBJS) $(DEFAULT_LINKER_SCRIPT) $(LINKER_SCRIPTS) | $(1)_dirs libraries $(BL_LIBS)
+$(ELF): $(OBJS) $(DEFAULT_LINKER_SCRIPT) $(LINKER_SCRIPTS) | $(1)_dirs libraries
 	$$(ECHO) "  LD      $$@"
 ifdef MAKE_BUILD_STRINGS
 	$(call MAKE_BUILD_STRINGS, $(BUILD_DIR)/build_message.o)
 else
+	echo 'BL_CFLAGS: $1 $(BL_CFLAGS)'
+	echo 'BL_LIBS : $1 $(BL_LIBS)'
 	@echo 'const char build_message[] = "Built : "$(BUILD_MESSAGE_TIMESTAMP); \
 	       const char version_string[] = "${VERSION_STRING}"; \
 	       const char version[] = "${VERSION}";' | \
-		$$(CC) $$(TF_CFLAGS) $$(CFLAGS) -xc -c - -o $(BUILD_DIR)/build_message.o
+		$$(CC) $$(TF_CFLAGS) $$(CFLAGS) $(BL_CFLAGS) -xc -c - -o $(BUILD_DIR)/build_message.o
 endif
 ifneq ($(findstring armlink,$(notdir $(LD))),)
 	$$(Q)$$(LD) -o $$@ $$(TF_LDFLAGS) $$(LDFLAGS) $(BL_LDFLAGS) --entry=${1}_entrypoint \
@@ -599,6 +606,7 @@ $(BIN): $(ELF)
 	@${ECHO_BLANK_LINE}
 	@echo "Built $$@ successfully"
 	@${ECHO_BLANK_LINE}
+	echo BL_LIBS "$(BL_LIBS)"
 
 .PHONY: $(1)
 ifeq ($(DISABLE_BIN_GENERATION),1)

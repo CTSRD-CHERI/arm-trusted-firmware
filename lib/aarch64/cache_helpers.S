@@ -28,7 +28,10 @@
 	sub	x3, x2, #1
 	bic	x0, x0, x3
 loop_\op:
-	dc	\op, x0
+#ifdef __CHERI_PURE_CAPABILITY__
+	cvtd	PTR(0), x0
+#endif
+	dc	\op, PTR(0)
 	add	x0, x0, x2
 	cmp	x0, x1
 	b.lo	loop_\op
@@ -138,7 +141,7 @@ func do_dcsw_op
 	cbz	x3, exit
 	mrs	x12, ID_AA64MMFR2_EL1	// stash FEAT_CCIDX identifier in x12
 	ubfx	x12, x12, #ID_AA64MMFR2_EL1_CCIDX_SHIFT, #ID_AA64MMFR2_EL1_CCIDX_LENGTH
-	adr	x14, dcsw_loop_table	// compute inner loop address
+	adr	PTR(14), dcsw_loop_table	// compute inner loop address
 	add	x14, x14, x0, lsl #5	// inner loop is 8x32-bit instructions
 #if ENABLE_BTI
 	add	x14, x14, x0, lsl #2	// inner loop is + "bti j" instruction

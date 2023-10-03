@@ -72,16 +72,29 @@ static inline void cm_set_next_context(void *context)
 	 * Check that this function is called with SP_EL0 as the stack
 	 * pointer
 	 */
+#ifdef __CHERI_PURE_CAPABILITY__
 	__asm__ volatile("mrs	%0, SPSel\n"
 			 : "=r" (sp_mode));
+#else
+	__asm__ volatile("mrs	%0, SPSel\n"
+			 : "=r" (sp_mode));
+#endif
 
 	assert(sp_mode == MODE_SP_EL0);
 #endif /* ENABLE_ASSERTIONS */
 
+#ifdef __CHERI_PURE_CAPABILITY__
+	__asm__ volatile("msr	spsel, #1\n"
+			 "mov	csp, %0\n"
+			 "msr	spsel, #0\n"
+			 : : "C" (context));
+#else
 	__asm__ volatile("msr	spsel, #1\n"
 			 "mov	sp, %0\n"
 			 "msr	spsel, #0\n"
 			 : : "r" (context));
+
+#endif
 }
 
 #else

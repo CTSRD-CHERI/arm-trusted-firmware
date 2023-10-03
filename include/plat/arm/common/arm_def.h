@@ -32,7 +32,11 @@
 
 #define ARM_SYSTEM_COUNT		U(1)
 
+#ifdef __CHERI_PURE_CAPABILITY__
+#define ARM_CACHE_WRITEBACK_SHIFT	7
+#else
 #define ARM_CACHE_WRITEBACK_SHIFT	6
+#endif
 
 /*
  * Macros mapping the MPIDR Affinity levels to ARM Platform Power levels. The

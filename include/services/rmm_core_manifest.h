@@ -43,8 +43,13 @@ struct ns_dram_bank {
 
 CASSERT(offsetof(struct ns_dram_bank, base) == 0UL,
 			rmm_manifest_base_unaligned);
+#ifdef __CHERI_PURE_CAPABILITY__
+CASSERT(offsetof(struct ns_dram_bank, size) == 16UL,
+			rmm_manifest_size_unaligned);
+#else
 CASSERT(offsetof(struct ns_dram_bank, size) == 8UL,
 			rmm_manifest_size_unaligned);
+#endif
 
 /* NS DRAM layout info structure */
 struct ns_dram_info {
@@ -55,10 +60,17 @@ struct ns_dram_info {
 
 CASSERT(offsetof(struct ns_dram_info, num_banks) == 0UL,
 			rmm_manifest_num_banks_unaligned);
+#ifdef __CHERI_PURE_CAPABILITY__
+CASSERT(offsetof(struct ns_dram_info, banks) == 16UL,
+			rmm_manifest_dram_data_unaligned);
+CASSERT(offsetof(struct ns_dram_info, checksum) == 32UL,
+			rmm_manifest_checksum_unaligned);
+#else
 CASSERT(offsetof(struct ns_dram_info, banks) == 8UL,
 			rmm_manifest_dram_data_unaligned);
 CASSERT(offsetof(struct ns_dram_info, checksum) == 16UL,
 			rmm_manifest_checksum_unaligned);
+#endif
 
 /* Boot manifest core structure as per v0.2 */
 struct rmm_manifest {
@@ -70,9 +82,16 @@ struct rmm_manifest {
 
 CASSERT(offsetof(struct rmm_manifest, version) == 0UL,
 			rmm_manifest_version_unaligned);
+#ifdef __CHERI_PURE_CAPABILITY__
+CASSERT(offsetof(struct rmm_manifest, plat_data) == 16UL,
+			rmm_manifest_plat_data_unaligned);
+CASSERT(offsetof(struct rmm_manifest, plat_dram) == 32UL,
+			rmm_manifest_plat_dram_unaligned);
+#else
 CASSERT(offsetof(struct rmm_manifest, plat_data) == 8UL,
 			rmm_manifest_plat_data_unaligned);
 CASSERT(offsetof(struct rmm_manifest, plat_dram) == 16UL,
 			rmm_manifest_plat_dram_unaligned);
+#endif
 
 #endif /* RMM_CORE_MANIFEST_H */

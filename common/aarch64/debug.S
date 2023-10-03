@@ -73,11 +73,11 @@ func asm_assert
 	cbz	x0, _assert_loop
 
 	/* The console is initialized */
-	adr	x4, assert_msg1
+	adr	PTR(4), assert_msg1
 	bl	asm_print_str
 	mov	x4, x5
 	bl	asm_print_str
-	adr	x4, assert_msg2
+	adr	PTR(4), assert_msg2
 	bl	asm_print_str
 
 	/* Check if line number higher than max permitted */
@@ -100,7 +100,7 @@ endfunc asm_assert
 func asm_print_str
 	mov	x3, x30
 1:
-	ldrb	w0, [x4], #0x1
+	ldrb	w0, [PTR(4)], #0x1
 	cbz	x0, 2f
 	bl	plat_crash_console_putc
 	b	1b
@@ -157,7 +157,8 @@ func elx_panic
 	b	report_elx_panic
 #endif /* CRASH_REPORTING && IMAGE_BL31 */
 
-	b	panic_common
+	adr PTR(0),	panic_common
+	br PTR(0)
 endfunc elx_panic
 
 /* ---------------------------------------------------------------------------
@@ -173,16 +174,16 @@ func el3_panic
 #endif /* CRASH_REPORTING && IMAGE_BL31 */
 
 panic_common:
-	mov	x6, x30
+	mov	PTR(6), PTR(30)
 	bl	plat_crash_console_init
 
 	/* Check if the console is initialized */
 	cbz	x0, _panic_handler
 
 	/* The console is initialized */
-	adr	x4, panic_msg
+	adr	PTR(4), panic_msg
 	bl	asm_print_str
-	mov	x4, x6
+	mov	PTR(4), PTR(6)
 
 	/* The panic location is lr -4 */
 	sub	x4, x4, #4
@@ -196,7 +197,7 @@ panic_common:
 _panic_handler:
 	/* Pass to plat_panic_handler the address from where el3_panic was
 	 * called, not the address of the call from el3_panic. */
-	mov	x30, x6
+	mov	PTR(30), PTR(6)
 	b	plat_panic_handler
 
 endfunc el3_panic

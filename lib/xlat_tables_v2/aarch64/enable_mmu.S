@@ -45,19 +45,19 @@
 		tlbi_invalidate_all \el
 
 		mov	x7, x0
-		adrp	x0, mmu_cfg_params
-		add	x0, x0, :lo12:mmu_cfg_params
+		adrp	PTR(0), :got:mmu_cfg_params
+		ldr	PTR(0), [PTR(0), :got_lo12:mmu_cfg_params]
 
 		/* MAIR */
-		ldr	x1, [x0, #(MMU_CFG_MAIR << 3)]
+		ldr	x1, [PTR(0), #(MMU_CFG_MAIR << 3)]
 		_msr	mair, \el, x1
 
 		/* TCR */
-		ldr	x2, [x0, #(MMU_CFG_TCR << 3)]
+		ldr	x2, [PTR(0), #(MMU_CFG_TCR << 3)]
 		_msr	tcr, \el, x2
 
 		/* TTBR */
-		ldr	x3, [x0, #(MMU_CFG_TTBR0 << 3)]
+		ldr	x3, [PTR(0), #(MMU_CFG_TTBR0 << 3)]
 		_msr	ttbr0, \el, x3
 
 		/*

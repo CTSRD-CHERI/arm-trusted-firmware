@@ -28,8 +28,8 @@
  * -----------------------------------------------------------------------
  */
 func psci_do_pwrdown_cache_maintenance
-	stp     x29, x30, [sp,#-16]!
-	stp     x19, x20, [sp,#-16]!
+	stp     PTR(29), PTR(30), [PTRN(sp),#-32]!
+	stp     PTR(19), PTR(20), [PTRN(sp),#-32]!
 
 	/* ---------------------------------------------
 	 * Invoke CPU-specific power down operations for
@@ -63,12 +63,13 @@ func psci_do_pwrdown_cache_maintenance
 	 * stack base address in x0.
 	 * ---------------------------------------------
 	 */
-	sub	x0, x19, #PLATFORM_STACK_SIZE
+	mov	x0, #PLATFORM_STACK_SIZE
+	sub	x0, x19, x0
 	sub	x1, sp, x0
 	bl	inv_dcache_range
 
-	ldp	x19, x20, [sp], #16
-	ldp	x29, x30, [sp], #16
+	ldp	PTR(19), PTR(20), [PTRN(sp)], #32
+	ldp	PTR(29), PTR(30), [PTRN(sp)], #32
 	ret
 endfunc psci_do_pwrdown_cache_maintenance
 
@@ -82,7 +83,7 @@ endfunc psci_do_pwrdown_cache_maintenance
  * -----------------------------------------------------------------------
  */
 func psci_do_pwrup_cache_maintenance
-	stp	x29, x30, [sp,#-16]!
+	stp	PTR(29), PTR(30), [PTRN(sp),#-32]!
 
 	/* ---------------------------------------------
 	 * Ensure any inflight stack writes have made it
@@ -112,7 +113,7 @@ func psci_do_pwrup_cache_maintenance
 	msr	sctlr_el3, x0
 	isb
 
-	ldp	x29, x30, [sp], #16
+	ldp	PTR(29), PTR(30), [PTRN(sp)], #32
 	ret
 endfunc psci_do_pwrup_cache_maintenance
 

@@ -30,7 +30,7 @@
 static uintptr_t rdistif_base_addrs[PLATFORM_CORE_COUNT];
 
 /* Default GICR base address to be used for GICR probe. */
-static const uintptr_t gicr_base_addrs[2] = {
+static uintptr_t gicr_base_addrs[2] = {
 	PLAT_ARM_GICR_BASE,	/* GICR Base address of the primary CPU */
 	0U			/* Zero Termination */
 };
@@ -75,7 +75,7 @@ static unsigned int arm_gicv3_mpidr_hash(u_register_t mpidr)
 	return plat_arm_calc_core_pos(mpidr);
 }
 
-static const gicv3_driver_data_t arm_gic_data __unused = {
+static gicv3_driver_data_t arm_gic_data __unused = {
 	.gicd_base = PLAT_ARM_GICD_BASE,
 	.gicr_base = 0U,
 	.interrupt_props = arm_interrupt_props,
@@ -107,6 +107,8 @@ void __init plat_arm_gic_driver_init(void)
 	 */
 #if (!defined(__aarch64__) && defined(IMAGE_BL32)) || \
 	(defined(__aarch64__) && defined(IMAGE_BL31))
+	arm_gic_data.gicd_base = make_cap(arm_gic_data.gicd_base);
+	gicr_base_addrs[0] = make_cap(gicr_base_addrs[0]);
 	gicv3_driver_init(&arm_gic_data);
 
 	if (gicv3_rdistif_probe(gicr_base_addrs[0]) == -1) {

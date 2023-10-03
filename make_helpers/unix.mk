@@ -48,6 +48,7 @@ ifndef UNIX_MK
         ifneq (${1},${2})
 
 ${1} : ${2}
+	echo MAKE_PREREQ_DIR $(1) $(2)
 	${Q}mkdir -p  "${1}"
 
         endif

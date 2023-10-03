@@ -188,11 +188,11 @@ void arm_system_pwr_domain_resume(void)
  * from reset. This function assumes that the Trusted mail box base is within
  * the ARM_SHARED_RAM region
  ******************************************************************************/
-void plat_arm_program_trusted_mailbox(uintptr_t address)
+void plat_arm_program_trusted_mailbox(uint64_t address)
 {
-	uintptr_t *mailbox = (void *) PLAT_ARM_TRUSTED_MAILBOX_BASE;
+	uint64_t *mailbox = (void *)make_cap(PLAT_ARM_TRUSTED_MAILBOX_BASE - 8);
 
-	*mailbox = address;
+	*(mailbox + 1) = address & ~0x1;
 
 	/*
 	 * Ensure that the PLAT_ARM_TRUSTED_MAILBOX_BASE is within

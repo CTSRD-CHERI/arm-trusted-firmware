@@ -36,6 +36,8 @@ endif
 include lib/psci/psci_lib.mk
 
 BL31_SOURCES		+=	bl31/bl31_main.c				\
+				bl31/crt_init_globals.c				\
+				bl31/init_cap.c					\
 				bl31/interrupt_mgmt.c				\
 				bl31/aarch64/bl31_entrypoint.S			\
 				bl31/aarch64/crash_reporting.S			\

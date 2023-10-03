@@ -84,8 +84,8 @@ void __init bl31_lib_init(void)
 /*******************************************************************************
  * Setup function for BL31.
  ******************************************************************************/
-void bl31_setup(u_register_t arg0, u_register_t arg1, u_register_t arg2,
-		u_register_t arg3)
+void bl31_setup(uintptr_t arg0, uintptr_t arg1, uintptr_t arg2,
+		uintptr_t arg3)
 {
 	/* Perform early platform-specific setup */
 	bl31_early_platform_setup2(arg0, arg1, arg2, arg3);

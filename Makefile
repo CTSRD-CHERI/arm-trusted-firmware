@@ -305,7 +305,7 @@ endif #(clang)
 $(eval $(call add_define,DEBUG))
 ifneq (${DEBUG}, 0)
 	BUILD_TYPE	:=	debug
-	TF_CFLAGS	+=	-g -gdwarf-4
+	TF_CFLAGS	+=	-g -gdwarf-4 -Werror -Wall
 	ASFLAGS		+=	-g -Wa,-gdwarf-4
 
 	# Use LOG_LEVEL_INFO by default for debug builds
@@ -724,6 +724,24 @@ endif #(ENABLE_PIE)
 BL1_CPPFLAGS  += -DREPORT_ERRATA=${DEBUG}
 BL31_CPPFLAGS += -DREPORT_ERRATA=${DEBUG}
 BL32_CPPFLAGS += -DREPORT_ERRATA=${DEBUG}
+
+BL1_CFLAGS += -march=morello
+BL1_ASFLAGS += -march=morello
+BL1_LIBS += -lc -lfdt -lmbedtls
+
+BL2_CFLAGS += -march=morello
+BL2_ASFLAGS += -march=morello
+BL2_LIBS += -lc -lfdt -lmbedtls
+
+BL31_CFLAGS += -march=morello -mabi=purecap
+BL31_ASFLAGS += -march=morello -mabi=purecap
+BL31_LIBS += -lcpurecap
+BL31_LDFLAGS += --local-caprelocs=legacy
+
+LIBC_CFLAGS += -march=morello
+LIBC_ASFLAGS += -march=morello
+LIBCPURECAP_CFLAGS += -march=morello -mabi=purecap
+LIBCPURECAP_ASFLAGS += -march=morello -mabi=purecap
 
 BL1_CPPFLAGS += -DIMAGE_AT_EL3
 ifeq ($(RESET_TO_BL2),1)
@@ -1469,6 +1487,7 @@ endif #(!ERROR_DEPRECATED)
 
 $(eval $(call MAKE_LIB_DIRS))
 $(eval $(call MAKE_LIB,c))
+$(eval $(call MAKE_LIB,c,purecap))
 
 # Expand build macros for the different images
 ifeq (${NEED_BL1},yes)

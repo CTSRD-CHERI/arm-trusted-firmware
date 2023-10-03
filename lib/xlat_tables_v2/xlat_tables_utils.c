@@ -300,7 +300,7 @@ static uint64_t *find_xlat_table_entry(uintptr_t virtual_addr,
 		idx = XLAT_TABLE_IDX(virtual_addr, level);
 		if (idx >= entries) {
 			WARN("Missing xlat table entry at address 0x%lx\n",
-			     virtual_addr);
+			    (uint64_t)virtual_addr);
 			return NULL;
 		}
 
@@ -369,7 +369,7 @@ static int xlat_get_mem_attributes_internal(const xlat_ctx_t *ctx,
 				virt_addr_space_size,
 				&level);
 	if (entry == NULL) {
-		WARN("Address 0x%lx is not mapped.\n", base_va);
+		WARN("Address 0x%lx is not mapped.\n", (uint64_t)base_va);
 		return -EINVAL;
 	}
 
@@ -458,7 +458,7 @@ int xlat_change_mem_attributes_ctx(const xlat_ctx_t *ctx, uintptr_t base_va,
 
 	if (!IS_PAGE_ALIGNED(base_va)) {
 		WARN("%s: Address 0x%lx is not aligned on a page boundary.\n",
-		     __func__, base_va);
+		     __func__, (uint64_t)base_va);
 		return -EINVAL;
 	}
 
@@ -482,7 +482,7 @@ int xlat_change_mem_attributes_ctx(const xlat_ctx_t *ctx, uintptr_t base_va,
 	size_t pages_count = size / PAGE_SIZE;
 
 	VERBOSE("Changing memory attributes of %zu pages starting from address 0x%lx...\n",
-		pages_count, base_va);
+		pages_count, (uint64_t)base_va);
 
 	uintptr_t base_va_original = base_va;
 
@@ -500,7 +500,7 @@ int xlat_change_mem_attributes_ctx(const xlat_ctx_t *ctx, uintptr_t base_va,
 					      virt_addr_space_size,
 					      &level);
 		if (entry == NULL) {
-			WARN("Address 0x%lx is not mapped.\n", base_va);
+			WARN("Address 0x%lx is not mapped.\n", (uint64_t)base_va);
 			return -EINVAL;
 		}
 
@@ -513,7 +513,7 @@ int xlat_change_mem_attributes_ctx(const xlat_ctx_t *ctx, uintptr_t base_va,
 		if (((desc & DESC_MASK) != PAGE_DESC) ||
 			(level != XLAT_TABLE_LEVEL_MAX)) {
 			WARN("Address 0x%lx is not mapped at the right granularity.\n",
-			     base_va);
+			     (uint64_t)base_va);
 			WARN("Granularity is 0x%lx, should be 0x%lx.\n",
 			     XLAT_BLOCK_SIZE(level), PAGE_SIZE);
 			return -EINVAL;
@@ -526,7 +526,7 @@ int xlat_change_mem_attributes_ctx(const xlat_ctx_t *ctx, uintptr_t base_va,
 		if (attr_index == ATTR_DEVICE_INDEX) {
 			if ((attr & MT_EXECUTE_NEVER) == 0U) {
 				WARN("Setting device memory as executable at address 0x%lx.",
-				     base_va);
+				     (uint64_t)base_va);
 				return -EINVAL;
 			}
 		}

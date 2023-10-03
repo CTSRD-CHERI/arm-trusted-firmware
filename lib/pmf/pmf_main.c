@@ -195,12 +195,14 @@ static inline uintptr_t calc_ts_addr(uintptr_t base_addr,
 {
 	assert(cpuid < PLATFORM_CORE_COUNT);
 	assert(base_addr >= PMF_TIMESTAMP_ARRAY_START);
-	assert(base_addr < ((PMF_TIMESTAMP_ARRAY_START +
+	assert(base_addr < (uint64_t)(((uint64_t)PMF_TIMESTAMP_ARRAY_START +
 		PMF_PERCPU_TIMESTAMP_SIZE) - ((tid & PMF_TID_MASK) *
 		sizeof(unsigned long long))));
 
 	base_addr += ((cpuid * PMF_PERCPU_TIMESTAMP_SIZE) +
 		((tid & PMF_TID_MASK) * sizeof(unsigned long long)));
+
+	base_addr = make_cap(base_addr);
 
 	return base_addr;
 }

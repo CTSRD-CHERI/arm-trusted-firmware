@@ -16,12 +16,30 @@
  * Constants that allow assembler code to access members of and the
  * 'entry_point_info' structure at their correct offsets.
  ******************************************************************************/
+#ifdef __CHERI_PURE_CAPABILITY__
+#define ENTRY_POINT_INFO_PC_OFFSET	U(0x10)
+#else
 #define ENTRY_POINT_INFO_PC_OFFSET	U(0x08)
+#endif
+
+#ifdef __CHERI_PURE_CAPABILITY__
+
+#ifdef __aarch64__
+#define ENTRY_POINT_INFO_ARGS_OFFSET	U(40)
+#else
+#define ENTRY_POINT_INFO_LR_SVC_OFFSET	U(0x10 + 8)
+#define ENTRY_POINT_INFO_ARGS_OFFSET	U(0x14 + 8)
+#endif
+
+#else
+
 #ifdef __aarch64__
 #define ENTRY_POINT_INFO_ARGS_OFFSET	U(0x18)
 #else
 #define ENTRY_POINT_INFO_LR_SVC_OFFSET	U(0x10)
 #define ENTRY_POINT_INFO_ARGS_OFFSET	U(0x14)
+#endif
+
 #endif
 
 /*
@@ -113,6 +131,18 @@ typedef struct entry_point_info {
 	aapcs32_params_t args;
 #endif
 } entry_point_info_t;
+
+typedef struct entry_point_info64 {
+	param_header_t h;
+	uint64_t pc;
+	uint32_t spsr;
+#ifdef __aarch64__
+	aapcs64_params_t args;
+#else
+	uint64_t lr_svc;
+	aapcs32_params_t args;
+#endif
+} entry_point_info64_t;
 
 #endif /*__ASSEMBLER__*/
 

@@ -19,13 +19,13 @@ func enable_mpu_direct_el2
 	ASM_ASSERT(eq)
 #endif
 	mov	x7, x0
-	adrp	x0, mmu_cfg_params
-	add	x0, x0, :lo12:mmu_cfg_params
+	adrp	PTR(0), :got:mmu_cfg_params
+	ldr	PTR(0), [PTR(0), :got_lo12:mmu_cfg_params]
 
 	/* (MAIRs are already set up) */
 
 	/* TCR */
-	ldr	x2, [x0, #(MMU_CFG_TCR << 3)]
+	ldr	x2, [PTR(0), #(MMU_CFG_TCR << 3)]
 	msr	tcr_el2, x2
 
 	/*

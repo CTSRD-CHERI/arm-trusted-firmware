@@ -30,7 +30,7 @@
 	    .ifb \_this
 	      .error "Nothing to fill"
 	    .endif
-	    .quad \_this
+	    .chericap2 \_this
 
 	    /* Invoke recursively for remaining expressions */
 	    .ifnb \_rest
@@ -77,16 +77,16 @@
 	.macro declare_cpu_ops_base _name:req, _midr:req, _resetfunc:req, \
 		_extra1:req, _extra2:req, _extra3:req, _e_handler:req, _power_down_ops:vararg
 	.section .cpu_ops, "a"
-	.align 3
+	.align 4
 	.type cpu_ops_\_name, %object
 	.quad \_midr
 #if defined(IMAGE_AT_EL3)
-	.quad \_resetfunc
+	.chericap2 \_resetfunc
 #endif
-	.quad \_extra1
-	.quad \_extra2
-	.quad \_extra3
-	.quad \_e_handler
+	.chericap2 \_extra1
+	.chericap2 \_extra2
+	.chericap2 \_extra3
+	.chericap2 \_e_handler
 #ifdef IMAGE_BL31
 	/* Insert list of functions */
 	fill_constants CPU_MAX_PWR_DWN_OPS, \_power_down_ops
@@ -110,8 +110,8 @@
 	.popsection
 
 	/* and now put them in cpu_ops */
-	.quad \_name\()_errata_list_start
-	.quad \_name\()_errata_list_end
+	.chericap2 \_name\()_errata_list_start
+	.chericap2 \_name\()_errata_list_end
 
 #if REPORT_ERRATA
 	.ifndef \_name\()_cpu_str
@@ -137,18 +137,18 @@
 	 * Mandatory errata status printing function for CPUs of
 	 * this class.
 	 */
-	.quad \_name\()_errata_report
-	.quad \_name\()_cpu_str
+	.chericap2 \_name\()_errata_report
+	.chericap2 \_name\()_cpu_str
 
 #ifdef IMAGE_BL31
 	/* Pointers to errata lock and reported flag */
-	.quad \_name\()_errata_lock
-	.quad \_name\()_errata_reported
+	.chericap2 \_name\()_errata_lock
+	.chericap2 \_name\()_errata_reported
 #endif /* IMAGE_BL31 */
 #endif /* REPORT_ERRATA */
 
 #if defined(IMAGE_BL31) && CRASH_REPORTING
-	.quad \_name\()_cpu_reg_dump
+	.chericap2 \_name\()_cpu_reg_dump
 #endif
 	.endm
 
@@ -208,8 +208,8 @@
 	mov	x0, #ERRATA_MISSING
 	.endif
 900:
-	adr	x1, \_cpu\()_cpu_str
-	adr	x2, \_cpu\()_errata_\_id\()_str
+	adr	PTR(1), \_cpu\()_cpu_str
+	adr	PTR(2), \_cpu\()_errata_\_id\()_str
 	bl	errata_print_msg
 	.endm
 #endif
@@ -277,21 +277,22 @@
  */
 .macro add_erratum_entry _cpu:req, _cve:req, _id:req, _chosen:req, _apply_at_reset:req
 	.pushsection .rodata.errata_entries
-		.align	3
+		.align	4
 		.ifndef \_cpu\()_errata_list_start
 		\_cpu\()_errata_list_start:
 		.endif
 
 		/* check if unused and compile out if no references */
 		.if \_apply_at_reset && \_chosen
-			.quad	erratum_\_cpu\()_\_id\()_wa
+			.chericap2	erratum_\_cpu\()_\_id\()_wa
 		.else
+			.quad	0
 			.quad	0
 		.endif
 		/* TODO(errata ABI): this prevents all checker functions from
 		 * being optimised away. Can be done away with unless the ABI
 		 * needs them */
-		.quad	check_erratum_\_cpu\()_\_id
+		.chericap2	check_erratum_\_cpu\()_\_id
 		/* Will fit CVEs with up to 10 character in the ID field */
 		.word	\_id
 		.hword	\_cve
@@ -299,6 +300,7 @@
 		/* TODO(errata ABI): mitigated field for known but unmitigated
 		 * errata */
 		.byte	0x1
+		.quad	0 /* align */
 	.popsection
 .endm
 
@@ -306,7 +308,7 @@
 	add_erratum_entry \_cpu, \_cve, \_id, \_chosen, \_apply_at_reset
 
 	func erratum_\_cpu\()_\_id\()_wa
-		mov	x8, x30
+		mov	PTR(8), PTR(30)
 
 		/* save rev_var for workarounds that might need it but don't
 		 * restore to x0 because few will care */
@@ -317,7 +319,7 @@
 
 .macro _workaround_end _cpu:req, _id:req
 	erratum_\_cpu\()_\_id\()_skip:
-		ret	x8
+		ret	PTR(8)
 	endfunc erratum_\_cpu\()_\_id\()_wa
 .endm
 
@@ -551,25 +553,25 @@
  */
 .macro cpu_reset_func_start _cpu:req
 	func \_cpu\()_reset_func
-		mov	x15, x30
+		mov	PTR(15), PTR(30)
 		bl	cpu_get_rev_var
 		mov	x14, x0
 
 		/* short circuit the location to avoid searching the list */
-		adrp	x12, \_cpu\()_errata_list_start
-		add	x12, x12, :lo12:\_cpu\()_errata_list_start
-		adrp	x13, \_cpu\()_errata_list_end
-		add	x13, x13, :lo12:\_cpu\()_errata_list_end
+		adrp	PTR(12), :got:\_cpu\()_errata_list_start
+		ldr	PTR(12), [PTR(12), :got_lo12:\_cpu\()_errata_list_start]
+		adrp	PTR(13), :got:\_cpu\()_errata_list_end
+		ldr	PTR(13), [PTR(13), :got_lo12:\_cpu\()_errata_list_end]
 
 	errata_begin:
 		/* if head catches up with end of list, exit */
 		cmp	x12, x13
 		b.eq	errata_end
 
-		ldr	x10, [x12, #ERRATUM_WA_FUNC]
+		ldr	PTR(10), [PTR(12), #ERRATUM_WA_FUNC]
 		/* TODO(errata ABI): check mitigated and checker function fields
 		 * for 0 */
-		ldrb	w11, [x12, #ERRATUM_CHOSEN]
+		ldrb	w11, [PTR(12), #ERRATUM_CHOSEN]
 
 		/* skip if not chosen */
 		cbz	x11, 1f
@@ -578,16 +580,16 @@
 
 		/* put cpu revision in x0 and call workaround */
 		mov	x0, x14
-		blr	x10
+		blr	PTR(10)
 	1:
-		add	x12, x12, #ERRATUM_ENTRY_SIZE
+		add	PTR(12), PTR(12), #ERRATUM_ENTRY_SIZE
 		b	errata_begin
 	errata_end:
 .endm
 
 .macro cpu_reset_func_end _cpu:req
 		isb
-		ret	x15
+		ret	PTR(15)
 	endfunc \_cpu\()_reset_func
 .endm
 
@@ -600,12 +602,12 @@
 	#if REPORT_ERRATA
 	func \_cpu\()_errata_report
 		/* normal stack frame for pretty debugging */
-		stp	x29, x30, [sp, #-16]!
-		mov	x29, sp
+		stp	PTR(29), PTR(30), [PTRN(sp), #-32]!
+		mov	PTR(29), PTRN(sp)
 
 		bl	generic_errata_report
 
-		ldp	x29, x30, [sp], #16
+		ldp	PTR(29), PTR(30), [PTRN(sp)], #32
 		ret
 	endfunc \_cpu\()_errata_report
 	#endif

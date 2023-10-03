@@ -37,30 +37,30 @@
 	/* GICv3.1 */
 #define	GICD_OFFSET_8(REG, id)				\
 	(((id) <= MAX_SPI_ID) ?				\
-	GICD_##REG##R + (uintptr_t)(id) :		\
-	GICD_##REG##RE + (uintptr_t)(id) - MIN_ESPI_ID)
+	GICD_##REG##R + (uint64_t)(id) :		\
+	GICD_##REG##RE + (uint64_t)(id) - MIN_ESPI_ID)
 
 #define	GICD_OFFSET(REG, id)						\
 	(((id) <= MAX_SPI_ID) ?						\
-	GICD_##REG##R + (((uintptr_t)(id) >> REG##R_SHIFT) << 2) :	\
-	GICD_##REG##RE + ((((uintptr_t)(id) - MIN_ESPI_ID) >>		\
+	GICD_##REG##R + (((uint64_t)(id) >> REG##R_SHIFT) << 2) :	\
+	GICD_##REG##RE + ((((uint64_t)(id) - MIN_ESPI_ID) >>		\
 					REG##R_SHIFT) << 2))
 
 #define	GICD_OFFSET_64(REG, id)						\
 	(((id) <= MAX_SPI_ID) ?						\
-	GICD_##REG##R + (((uintptr_t)(id) >> REG##R_SHIFT) << 3) :	\
-	GICD_##REG##RE + ((((uintptr_t)(id) - MIN_ESPI_ID) >>		\
+	GICD_##REG##R + (((uint64_t)(id) >> REG##R_SHIFT) << 3) :	\
+	GICD_##REG##RE + ((((uint64_t)(id) - MIN_ESPI_ID) >>		\
 					REG##R_SHIFT) << 3))
 
 #else	/* GICv3 */
 #define	GICD_OFFSET_8(REG, id)	\
-	(GICD_##REG##R + (uintptr_t)(id))
+	(GICD_##REG##R + (uint64_t)(id))
 
 #define	GICD_OFFSET(REG, id)	\
-	(GICD_##REG##R + (((uintptr_t)(id) >> REG##R_SHIFT) << 2))
+	(GICD_##REG##R + (((uint64_t)(id) >> REG##R_SHIFT) << 2))
 
 #define	GICD_OFFSET_64(REG, id)	\
-	(GICD_##REG##R + (((uintptr_t)(id) >> REG##R_SHIFT) << 3))
+	(GICD_##REG##R + (((uint64_t)(id) >> REG##R_SHIFT) << 3))
 #endif	/* GIC_EXT_INTID */
 
 /*
@@ -114,20 +114,20 @@
 	/* GICv3.1 */
 #define	GICR_OFFSET_8(REG, id)				\
 	(((id) <= MAX_PPI_ID) ?				\
-	GICR_##REG##R + (uintptr_t)(id) :		\
-	GICR_##REG##R + (uintptr_t)(id) - (MIN_EPPI_ID - MIN_SPI_ID))
+	GICR_##REG##R + (uint64_t)(id) :		\
+	GICR_##REG##R + (uint64_t)(id) - (MIN_EPPI_ID - MIN_SPI_ID))
 
 #define GICR_OFFSET(REG, id)						\
 	(((id) <= MAX_PPI_ID) ?						\
-	GICR_##REG##R + (((uintptr_t)(id) >> REG##R_SHIFT) << 2) :	\
-	GICR_##REG##R + ((((uintptr_t)(id) - (MIN_EPPI_ID - MIN_SPI_ID))\
+	GICR_##REG##R + (((uint64_t)(id) >> REG##R_SHIFT) << 2) :	\
+	GICR_##REG##R + ((((uint64_t)(id) - (MIN_EPPI_ID - MIN_SPI_ID))\
 						>> REG##R_SHIFT) << 2))
 #else	/* GICv3 */
 #define	GICR_OFFSET_8(REG, id)	\
-	(GICR_##REG##R + (uintptr_t)(id))
+	(GICR_##REG##R + (uint64_t)(id))
 
 #define GICR_OFFSET(REG, id)	\
-	(GICR_##REG##R + (((uintptr_t)(id) >> REG##R_SHIFT) << 2))
+	(GICR_##REG##R + (((uint64_t)(id) >> REG##R_SHIFT) << 2))
 #endif /* GIC_EXT_INTID */
 
 /* Read/Write GIC Redistributor register corresponding to its interrupt ID */

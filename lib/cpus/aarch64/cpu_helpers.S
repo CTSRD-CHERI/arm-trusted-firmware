@@ -25,7 +25,7 @@
 	 */
 	.globl	reset_handler
 func reset_handler
-	mov	x19, x30
+	mov	PTR(19), PTR(30)
 
 	/* The plat_reset_handler can clobber x0 - x18, x30 */
 	bl	plat_reset_handler
@@ -34,12 +34,12 @@ func reset_handler
 	bl	get_cpu_ops_ptr
 
 	/* Get the cpu_ops reset handler */
-	ldr	x2, [x0, #CPU_RESET_FUNC]
-	mov	x30, x19
+	ldr	PTR(2), [PTR(0), #CPU_RESET_FUNC]
+	mov	PTR(30), PTR(19)
 	cbz	x2, 1f
 
 	/* The cpu_ops reset handler can clobber x0 - x19, x30 */
-	br	x2
+	br	PTR(2)
 1:
 	ret
 endfunc reset_handler
@@ -65,8 +65,8 @@ func prepare_cpu_pwr_dwn
 	cmp	x0, x2
 	csel	x2, x2, x0, hi
 
-	mrs	x1, tpidr_el3
-	ldr	x0, [x1, #CPU_DATA_CPU_OPS_PTR]
+	mrs	PTR(1), REGN(tpidr_el3)
+	ldr	PTR(0), [PTR(1), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
@@ -75,12 +75,12 @@ func prepare_cpu_pwr_dwn
 	/* Get the appropriate power down handler */
 	mov	x1, #CPU_PWR_DWN_OPS
 	add	x1, x1, x2, lsl #3
-	ldr	x1, [x0, x1]
+	ldr	PTR(1), [PTR(0), x1]
 #if ENABLE_ASSERTIONS
 	cmp	x1, #0
 	ASM_ASSERT(ne)
 #endif
-	br	x1
+	br	PTR(1)
 endfunc prepare_cpu_pwr_dwn
 
 
@@ -92,13 +92,13 @@ endfunc prepare_cpu_pwr_dwn
 	 */
 	.globl	init_cpu_ops
 func init_cpu_ops
-	mrs	x6, tpidr_el3
-	ldr	x0, [x6, #CPU_DATA_CPU_OPS_PTR]
+	mrs	PTR(6), REGN(tpidr_el3)
+	ldr	PTR(0), [PTR(6), #CPU_DATA_CPU_OPS_PTR]
 	cbnz	x0, 1f
-	mov	x10, x30
+	mov	PTR(10), PTR(30)
 	bl	get_cpu_ops_ptr
-	str	x0, [x6, #CPU_DATA_CPU_OPS_PTR]!
-	mov x30, x10
+	str	PTR(0), [PTR(6), #CPU_DATA_CPU_OPS_PTR]!
+	mov PTR(30), PTR(10)
 1:
 	ret
 endfunc init_cpu_ops
@@ -156,13 +156,13 @@ func get_cpu_ops_ptr
 	and	w2, w2, w3
 
 	/* Get the cpu_ops end location */
-	adr	x5, (__CPU_OPS_END__ + CPU_MIDR)
+	adr	PTR(5), (__CPU_OPS_END__ + CPU_MIDR)
 
 	/* Initialize the return parameter */
 	mov	x0, #0
 1:
 	/* Get the cpu_ops start location */
-	adr	x4, (__CPU_OPS_START__ + CPU_MIDR)
+	adr	PTR(4), (__CPU_OPS_START__ + CPU_MIDR)
 
 2:
 	/* Check if we have reached end of list */
@@ -170,7 +170,7 @@ func get_cpu_ops_ptr
 	b.eq	search_def_ptr
 
 	/* load the midr from the cpu_ops */
-	ldr	x1, [x4], #CPU_OPS_SIZE
+	ldr	x1, [PTR(4)], #CPU_OPS_SIZE
 	and	w1, w1, w3
 
 	/* Check if midr matches to midr of this core */
@@ -178,7 +178,7 @@ func get_cpu_ops_ptr
 	b.ne	2b
 
 	/* Subtract the increment and offset to get the cpu-ops pointer */
-	sub	x0, x4, #(CPU_OPS_SIZE + CPU_MIDR)
+	sub	PTR(0), PTR(4), #(CPU_OPS_SIZE + CPU_MIDR)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
@@ -186,9 +186,9 @@ func get_cpu_ops_ptr
 #ifdef SUPPORT_UNKNOWN_MPID
 	cbnz	x2, exit_mpid_found
 	/* Mark the unsupported MPID flag */
-	adrp	x1, unsupported_mpid_flag
-	add	x1, x1, :lo12:unsupported_mpid_flag
-	str	w2, [x1]
+	adrp	PTR(1), :got:unsupported_mpid_flag
+	ldr	PTR(1), [PTR(1), :got_lo12:unsupported_mpid_flag]
+	str	w2, [PTR(1)]
 exit_mpid_found:
 #endif
 	ret
@@ -294,24 +294,24 @@ endfunc cpu_rev_var_range
  */
 	.globl	check_wa_cve_2017_5715
 func check_wa_cve_2017_5715
-	mrs	x0, tpidr_el3
+	mrs	PTR(0), REGN(tpidr_el3)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	x0, [x0, #CPU_DATA_CPU_OPS_PTR]
+	ldr	PTR(0), [PTR(0), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	x0, [x0, #CPU_EXTRA1_FUNC]
+	ldr	PTR(0), [PTR(0), #CPU_EXTRA1_FUNC]
 	/*
 	 * If the reserved function pointer is NULL, this CPU
 	 * is unaffected by CVE-2017-5715 so bail out.
 	 */
 	cmp	x0, #CPU_NO_EXTRA1_FUNC
 	beq	1f
-	br	x0
+	br	PTR(0)
 1:
 	mov	x0, #ERRATA_NOT_APPLIES
 	ret
@@ -331,17 +331,17 @@ endfunc check_wa_cve_2017_5715
  */
 	.globl	wa_cve_2018_3639_get_disable_ptr
 func wa_cve_2018_3639_get_disable_ptr
-	mrs	x0, tpidr_el3
+	mrs	PTR(0), REGN(tpidr_el3)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	x0, [x0, #CPU_DATA_CPU_OPS_PTR]
+	ldr	PTR(0), [PTR(0), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	x0, [x0, #CPU_EXTRA2_FUNC]
+	ldr	PTR(0), [PTR(0), #CPU_EXTRA2_FUNC]
 	ret
 endfunc wa_cve_2018_3639_get_disable_ptr
 
@@ -360,24 +360,24 @@ endfunc wa_cve_2018_3639_get_disable_ptr
  */
 	.globl	check_smccc_arch_wa3_applies
 func check_smccc_arch_wa3_applies
-	mrs	x0, tpidr_el3
+	mrs	PTR(0), REGN(tpidr_el3)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	x0, [x0, #CPU_DATA_CPU_OPS_PTR]
+	ldr	PTR(0), [PTR(0), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	x0, [x0, #CPU_EXTRA3_FUNC]
+	ldr	PTR(0), [PTR(0), #CPU_EXTRA3_FUNC]
 	/*
 	 * If the reserved function pointer is NULL, this CPU
 	 * is unaffected by CVE-2022-23960 so bail out.
 	 */
 	cmp	x0, #CPU_NO_EXTRA3_FUNC
 	beq	1f
-	br	x0
+	br	PTR(0)
 1:
 	mov	x0, #ERRATA_NOT_APPLIES
 	ret

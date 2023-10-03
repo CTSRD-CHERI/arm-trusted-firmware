@@ -250,7 +250,7 @@ void setup_mmu_cfg(uint64_t *params, unsigned int flags,
 		   uintptr_t max_va, int xlat_regime)
 {
 	uint64_t mair, ttbr0, tcr;
-	uintptr_t virtual_addr_space_size;
+	uint64_t virtual_addr_space_size;
 
 	/* Set attributes in the right indices of the MAIR. */
 	mair = MAIR_ATTR_SET(ATTR_DEVICE, ATTR_DEVICE_INDEX);

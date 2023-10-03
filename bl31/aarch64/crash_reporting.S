@@ -75,7 +75,7 @@ excpt_msg_el:
 	 */
 func size_controlled_print
 	/* Save the lr */
-	mov	sp, x30
+	mov	PTRN(sp), PTR(30)
 	/* load the crash buf address */
 	mrs	x7, tpidr_el3
 test_size_list:
@@ -85,7 +85,7 @@ test_size_list:
 	/* Test whether we have reached end of crash buf */
 	cmp	x7, x5
 	b.eq	exit_size_print
-	ldrb	w4, [x6]
+	ldrb	w4, [PTR(6)]
 	/* Test whether we are at end of list */
 	cbz	w4, exit_size_print
 	mov	x4, x6
@@ -96,12 +96,12 @@ test_size_list:
 	/* update x6 with the updated list pointer */
 	mov	x6, x4
 	bl	print_alignment
-	ldr	x4, [x7], #REGSZ
+	ldr	x4, [PTR(7)], #REGSZ
 	bl	asm_print_hex
 	bl	asm_print_newline
 	b	test_size_list
 exit_size_print:
-	mov	x30, sp
+	mov	PTR(30), PTRN(sp)
 	ret
 endfunc size_controlled_print
 
@@ -114,7 +114,7 @@ endfunc size_controlled_print
  	 */
 func print_alignment
 	/* The minimum ascii length is 3, e.g. for "x0" */
-	adr	x4, print_spacer - 3
+	adr	c4, print_spacer - 3
 	add	x4, x4, x0
 	b	asm_print_str
 endfunc print_alignment
@@ -131,10 +131,10 @@ endfunc print_alignment
 func str_in_crash_buf_print
 	/* restore the crash buf address in x0 */
 	mrs	x0, tpidr_el3
-	stp	x8, x9, [x0]
-	stp	x10, x11, [x0, #REGSZ * 2]
-	stp	x12, x13, [x0, #REGSZ * 4]
-	stp	x14, x15, [x0, #REGSZ * 6]
+	stp	x8, x9, [c0]
+	stp	x10, x11, [c0, #REGSZ * 2]
+	stp	x12, x13, [c0, #REGSZ * 4]
+	stp	x14, x15, [c0, #REGSZ * 6]
 	b	size_controlled_print
 endfunc str_in_crash_buf_print
 
@@ -147,16 +147,16 @@ endfunc str_in_crash_buf_print
 	 */
 	.macro prepare_crash_buf_save_x0_x1
 	/* we can corrupt this reg to free up x0 */
-	mov	sp, x0
+	mov	PTRN(sp), PTR(0)
 	/* tpidr_el3 contains the address to cpu_data structure */
 	mrs	x0, tpidr_el3
 	/* Calculate the Crash buffer offset in cpu_data */
 	add	x0, x0, #CPU_DATA_CRASH_BUF_OFFSET
 	/* Store crash buffer address in tpidr_el3 */
 	msr	tpidr_el3, x0
-	str	x1, [x0, #REGSZ]
-	mov	x1, sp
-	str	x1, [x0]
+	str	x1, [PTR(0), #REGSZ]
+	mov	PTR(1), PTRN(sp)
+	str	x1, [PTR(0)]
 	.endm
 
 	/* -----------------------------------------------------
@@ -169,8 +169,8 @@ endfunc str_in_crash_buf_print
 	 */
 func report_unhandled_exception
 	prepare_crash_buf_save_x0_x1
-	adr	x0, excpt_msg
-	mov	sp, x0
+	adr	PTR(0), excpt_msg
+	mov	PTRN(sp), PTR(0)
 	/* This call will not return */
 	b	do_crash_reporting
 endfunc report_unhandled_exception
@@ -185,8 +185,8 @@ endfunc report_unhandled_exception
 	 */
 func report_unhandled_interrupt
 	prepare_crash_buf_save_x0_x1
-	adr	x0, intr_excpt_msg
-	mov	sp, x0
+	adr	PTR(0), intr_excpt_msg
+	mov	PTRN(sp), PTR(0)
 	/* This call will not return */
 	b	do_crash_reporting
 endfunc report_unhandled_interrupt
@@ -205,16 +205,16 @@ func report_elx_panic
 	msr	spsel, #MODE_SP_ELX
 
 	/* Print the crash message */
-	adr	x4, excpt_msg_el
+	adr	c4, excpt_msg_el
 	bl	asm_print_str
 
 	/* Report x0 - x29 values stored in 'gpregs_ctx' structure */
 	/* Store the ascii list pointer in x6 */
-	adr	x6, gp_regs
-	add	x7, sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0
+	adr	PTR(6), gp_regs
+	add	PTR(7), PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0
 
 print_next:
-	ldrb	w4, [x6]
+	ldrb	w4, [PTR(6)]
 	/* Test whether we are at end of list */
 	cbz	w4, print_x30
 	mov	x4, x6
@@ -225,13 +225,13 @@ print_next:
 	/* Update x6 with the updated list pointer */
 	mov	x6, x4
 	bl	print_alignment
-	ldr	x4, [x7], #REGSZ
+	ldr	x4, [PTR(7)], #REGSZ
 	bl	asm_print_hex
 	bl	asm_print_newline
 	b	print_next
 
 print_x30:
-	adr	x4, x30_msg
+	adr	c4, x30_msg
 	bl	asm_print_str
 
 	/* Print spaces to align "x30" string */
@@ -239,7 +239,7 @@ print_x30:
 	bl	print_alignment
 
 	/* Report x30 */
-	ldr	x4, [x7]
+	ldr	x4, [PTR(7)]
 
 	/* ----------------------------------------------------------------
 	 * Different virtual address space size can be defined for each EL.
@@ -300,8 +300,8 @@ endfunc	report_elx_panic
 func report_el3_panic
 	msr	spsel, #MODE_SP_ELX
 	prepare_crash_buf_save_x0_x1
-	adr	x0, panic_msg
-	mov	sp, x0
+	adr	PTR(0), panic_msg
+	mov	PTRN(sp), PTR(0)
 	/* Fall through to 'do_crash_reporting' */
 
 	/* ------------------------------------------------------------
@@ -327,15 +327,15 @@ do_crash_reporting:
 	/* Retrieve the crash buf from tpidr_el3 */
 	mrs	x0, tpidr_el3
 	/* Store x2 - x6, x30 in the crash buffer */
-	stp	x2, x3, [x0, #REGSZ * 2]
-	stp	x4, x5, [x0, #REGSZ * 4]
-	stp	x6, x30, [x0, #REGSZ * 6]
+	stp	x2, x3, [PTR(0), #REGSZ * 2]
+	stp	x4, x5, [PTR(0), #REGSZ * 4]
+	stp	x6, x30, [PTR(0), #REGSZ * 6]
 	/* Initialize the crash console */
 	bl	plat_crash_console_init
 	/* Verify the console is initialized */
 	cbz	x0, crash_panic
 	/* Print the crash message. sp points to the crash message */
-	mov	x4, sp
+	mov	PTR(4), PTRN(sp)
 	bl	asm_print_str
 	/* Print spaces to align "x30" string */
 	mov	x0, #4
@@ -343,7 +343,7 @@ do_crash_reporting:
 	/* Load the crash buf address */
 	mrs	x0, tpidr_el3
 	/* Report x30 first from the crash buf */
-	ldr	x4, [x0, #REGSZ * 7]
+	ldr	x4, [PTR(0), #REGSZ * 7]
 
 #if ENABLE_PAUTH
 	/* Demangle address */
@@ -354,11 +354,11 @@ do_crash_reporting:
 	/* Load the crash buf address */
 	mrs	x0, tpidr_el3
 	/* Now mov x7 into crash buf */
-	str	x7, [x0, #REGSZ * 7]
+	str	x7, [PTR(0), #REGSZ * 7]
 
 	/* Report x0 - x29 values stored in crash buf */
 	/* Store the ascii list pointer in x6 */
-	adr	x6, gp_regs
+	adr	PTR(6), gp_regs
 	/* Print x0 to x7 from the crash buf */
 	bl	size_controlled_print
 	/* Store x8 - x15 in crash buf and print */
@@ -366,21 +366,21 @@ do_crash_reporting:
 	/* Load the crash buf address */
 	mrs	x0, tpidr_el3
 	/* Store the rest of gp regs and print */
-	stp	x16, x17, [x0]
-	stp	x18, x19, [x0, #REGSZ * 2]
-	stp	x20, x21, [x0, #REGSZ * 4]
-	stp	x22, x23, [x0, #REGSZ * 6]
+	stp	x16, x17, [PTR(0)]
+	stp	x18, x19, [PTR(0), #REGSZ * 2]
+	stp	x20, x21, [PTR(0), #REGSZ * 4]
+	stp	x22, x23, [PTR(0), #REGSZ * 6]
 	bl	size_controlled_print
 	/* Load the crash buf address */
 	mrs	x0, tpidr_el3
-	stp	x24, x25, [x0]
-	stp	x26, x27, [x0, #REGSZ * 2]
-	stp	x28, x29, [x0, #REGSZ * 4]
+	stp	x24, x25, [PTR(0)]
+	stp	x26, x27, [PTR(0), #REGSZ * 2]
+	stp	x28, x29, [PTR(0), #REGSZ * 4]
 	bl	size_controlled_print
 
 	/* Print the el3 sys registers */
 print_el3_sys_regs:
-	adr	x6, el3_sys_regs
+	adr	PTR(6), el3_sys_regs
 	mrs	x8, scr_el3
 	mrs	x9, sctlr_el3
 	mrs	x10, cptr_el3
@@ -396,7 +396,7 @@ print_el3_sys_regs:
 	bl	str_in_crash_buf_print
 
 	/* Print the non el3 sys registers */
-	adr	x6, non_el3_sys_regs
+	adr	PTR(6), non_el3_sys_regs
 	mrs	x8, spsr_el1
 	mrs	x9, elr_el1
 	mrs	x10, spsr_abt
@@ -438,7 +438,7 @@ print_el3_sys_regs:
 
 #if CTX_INCLUDE_AARCH32_REGS
 	/* Print the AArch32 registers */
-	adr	x6, aarch32_regs
+	adr	PTR(6), aarch32_regs
 	mrs	x8, dacr32_el2
 	mrs	x9, ifsr32_el2
 	bl	str_in_crash_buf_print

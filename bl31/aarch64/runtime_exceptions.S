@@ -44,7 +44,7 @@
 	 * need a free register
 	 */
 	.macro save_x30
-	str	x30, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	str	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	.endm
 
 	/*
@@ -110,7 +110,7 @@
 
 	/* Refer Note 1. */
 	mov 	x30, #1
-	str	x30, [sp, #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
+	str	x30, [csp, #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
 	dmb	sy
 #endif
 	.endm
@@ -128,10 +128,10 @@
 	 * saved to the PMF timestamp region.
 	 */
 	mrs	x30, cntpct_el0
-	str	x29, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	str	x29, [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 	mrs	x29, tpidr_el3
 	str	x30, [x29, #CPU_DATA_PMF_TS0_OFFSET]
-	ldr	x29, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	ldr	x29, [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 #endif
 
 	mrs	x30, esr_el3
@@ -148,7 +148,7 @@
 	b.eq	sync_handler64
 
 	/* Synchronous exceptions other than the above are assumed to be EA */
-	ldr	x30, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	b	handle_lower_el_sync_ea
 	.endm
 
@@ -174,11 +174,12 @@
 	/* Save the EL3 system registers needed to return from this exception */
 	mrs	x0, spsr_el3
 	mrs	x1, elr_el3
-	stp	x0, x1, [sp, #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	x0, [csp, #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	x1, [csp, #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/* Switch to the runtime stack i.e. SP_EL0 */
-	ldr	x2, [sp, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
-	mov	x20, sp
+	ldr	PTR(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	mov	PTR(20), PTRN(sp)
 
 #if ENABLE_MORELLO_CAP
 	/*
@@ -198,10 +199,10 @@
 	msr	ddc, c24
 
 	/* Write original DDC_EL0 value to stack. */
-	str	c26, [x20, #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	str	PTR(26), [PTR(20), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
 #endif
 
-	mov	sp, x2
+	mov	PTRN(sp), PTR(2)
 
 	/*
 	 * Find out whether this is a valid interrupt type.
@@ -267,7 +268,7 @@ vector_base runtime_exceptions
 	 */
 vector_entry sync_exception_sp_el0
 #ifdef MONITOR_TRAPS
-	stp x29, x30, [sp, #-16]!
+	stp x29, x30, [csp, #-16]!
 
 	mrs	x30, esr_el3
 	ubfx	x30, x30, #ESR_EC_SHIFT, #ESR_EC_LENGTH
@@ -276,7 +277,7 @@ vector_entry sync_exception_sp_el0
 	cmp	x30, #EC_BRK
 	b.eq	brk_handler
 
-	ldp x29, x30, [sp], #16
+	ldp x29, x30, [csp], #16
 #endif /* MONITOR_TRAPS */
 
 	/* We don't expect any synchronous exceptions from EL3 */
@@ -288,12 +289,15 @@ vector_entry irq_sp_el0
 	 * EL3 code is non-reentrant. Any asynchronous exception is a serious
 	 * error. Loop infinitely.
 	 */
-	b	report_unhandled_interrupt
+	adr	c0, report_unhandled_interrupt
+	br	c0
+
 end_vector_entry irq_sp_el0
 
 
 vector_entry fiq_sp_el0
-	b	report_unhandled_interrupt
+	adr	c0, report_unhandled_interrupt
+	br	c0
 end_vector_entry fiq_sp_el0
 
 
@@ -316,11 +320,13 @@ vector_entry sync_exception_sp_elx
 end_vector_entry sync_exception_sp_elx
 
 vector_entry irq_sp_elx
-	b	report_unhandled_interrupt
+	adr c0,	report_unhandled_interrupt
+	br c0
 end_vector_entry irq_sp_elx
 
 vector_entry fiq_sp_elx
-	b	report_unhandled_interrupt
+	adr c0,	report_unhandled_interrupt
+	br c0
 end_vector_entry fiq_sp_elx
 
 vector_entry serror_sp_elx
@@ -332,7 +338,7 @@ vector_entry serror_sp_elx
 	 */
 	/* Assumes SP_EL3 on entry */
 	save_x30
-	ldr	x30, [sp, #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
+	ldr	x30, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
 	cbnz	x30, 1f
 
 	/* Handle asynchronous external abort from lower EL */
@@ -473,14 +479,14 @@ sync_handler64:
 	 * contain flags we need to pass to the handler.
 	 */
 	mov	x5, xzr
-	mov	x6, sp
+	mov	PTR(6), PTRN(sp)
 
 	/*
 	 * Restore the saved C runtime stack value which will become the new
 	 * SP_EL0 i.e. EL3 runtime stack. It was saved in the 'cpu_context'
 	 * structure prior to the last ERET from EL3.
 	 */
-	ldr	x12, [x6, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	ldr	PTR(12), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 
 #if ENABLE_MORELLO_CAP
 	/*
@@ -501,7 +507,7 @@ sync_handler64:
 	msr	ddc, c24
 
 	/* Write original DDC_EL0 value to stack. */
-	str	c26, [x6, #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	str	PTR(26), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
 #endif
 
 	/*
@@ -510,8 +516,9 @@ sync_handler64:
 	 * TODO: Revisit if all system registers can be saved later.
 	 */
 	mrs	x16, spsr_el3
-	mrs	x17, elr_el3
-	stp	x16, x17, [x6, #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	x16, [PTR(6), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	mrs	PTR(17), PTRN(elr_el3)
+	str	PTR(17), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/* Load SCR_EL3 */
 	mrs	x18, scr_el3
@@ -540,7 +547,7 @@ sync_handler64:
 	/* Copy SCR_EL3.NS bit to the flag to indicate caller's security */
 	bfi	x7, x18, #0, #1
 
-	mov	sp, x12
+	mov	PTRN(sp), PTR(12)
 
 	/*
 	 * Per SMCCC documentation, bits [23:17] must be zero for Fast
@@ -569,9 +576,9 @@ sync_handler64:
 	orr	x16, x16, x15, lsl #FUNCID_OEN_WIDTH
 
 	/* Load descriptor index from array of indices */
-	adrp	x14, rt_svc_descs_indices
-	add	x14, x14, :lo12:rt_svc_descs_indices
-	ldrb	w15, [x14, x16]
+	adrp	PTR(14), :got:rt_svc_descs_indices
+	ldr	PTR(14), [PTR(14), :got_lo12:rt_svc_descs_indices]
+	ldrb	w15, [PTR(14), x16]
 
 	/* Any index greater than 127 is invalid. Check bit 7. */
 	tbnz	w15, 7, smc_unknown
@@ -582,9 +589,9 @@ sync_handler64:
 	 *
 	 * handler = (base + off) + (index << log2(size))
 	 */
-	adr	x11, (__RT_SVC_DESCS_START__ + RT_SVC_DESC_HANDLE)
+	adr	PTR(11), (__RT_SVC_DESCS_START__ + RT_SVC_DESC_HANDLE)
 	lsl	w10, w15, #RT_SVC_SIZE_LOG2
-	ldr	x15, [x11, w10, uxtw]
+	ldr	PTR(15), [PTR(11), w10, uxtw]
 
 	/*
 	 * Call the Secure Monitor Call handler and then drop directly into
@@ -594,7 +601,7 @@ sync_handler64:
 #if DEBUG
 	cbz	x15, rt_svc_fw_critical_error
 #endif
-	blr	x15
+	blr	PTR(15)
 
 	b	el3_exit
 
@@ -632,13 +639,13 @@ smc_unknown:
 	 * to the desired lower EL.
 	 */
 	mov	x0, #SMC_UNK
-	str	x0, [x6, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	str	x0, [PTR(6), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
 	b	el3_exit
 
 smc_prohibited:
 	restore_ptw_el1_sys_regs
-	ldp	x28, x29, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
-	ldr	x30, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldp	PTR(28), PTR(29), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
+	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	mov	x0, #SMC_UNK
 	exception_return
 

@@ -106,8 +106,18 @@ typedef unsigned int uint8_fast_t;
 typedef unsigned int uint16_fast_t;
 typedef unsigned int uint32_fast_t;
 
+typedef uint32_t u_int32_t;
+
+#ifdef __CHERI_PURE_CAPABILITY__
+typedef	__intcap_t	__intptr_t;
+typedef	__uintcap_t	__uintptr_t;
+typedef	__intptr_t	intptr_t;
+typedef	__uintptr_t	uintptr_t;
+typedef	__uintcap_t	uintcap_t;
+#else
 typedef long intptr_t;
 typedef unsigned long uintptr_t;
+#endif
 
 /*
 * Conceptually, these are supposed to be the largest integers representable in C,
@@ -116,7 +126,7 @@ typedef unsigned long uintptr_t;
 typedef long long intmax_t;
 typedef unsigned long long uintmax_t;
 
-typedef long register_t;
-typedef unsigned long u_register_t;
+typedef int64_t register_t;
+typedef uint64_t u_register_t;
 
 #endif /* STDINT_H */

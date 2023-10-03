@@ -135,6 +135,11 @@ SECTIONS {
     DATA_SECTION >RAM
     RELA_SECTION >RAM
 
+    .note.cheri . : {
+       __NOTE_CHERI_START__ = .;
+       __NOTE_CHERI_END__ = .;
+    } > RAM
+
 #ifdef BL31_PROGBITS_LIMIT
     ASSERT(
         . <= BL31_PROGBITS_LIMIT,

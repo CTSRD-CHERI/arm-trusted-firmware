@@ -81,5 +81,6 @@ endif # provided-march supported
 endif # not clang
 
 march-directive := -march=${provided-march}
+march-directive =
 
 endif # MARCH_DIRECTIVE

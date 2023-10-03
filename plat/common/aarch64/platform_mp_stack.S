@@ -32,9 +32,9 @@
 	 * -----------------------------------------------------
 	 */
 func plat_get_my_stack
-	mov	x10, x30
+	mov	PTR(10), PTR(30)
 	get_my_mp_stack platform_normal_stacks, PLATFORM_STACK_SIZE
-	ret	x10
+	ret	PTR(10)
 endfunc plat_get_my_stack
 
 	/* -----------------------------------------------------
@@ -45,10 +45,15 @@ endfunc plat_get_my_stack
 	 * -----------------------------------------------------
 	 */
 func plat_set_my_stack
-	mov	x9, x30
+	mov	PTR(9), PTR(30)
 	bl 	plat_get_my_stack
-	mov	sp, x0
-	ret	x9
+#ifdef __CHERI_PURE_CAPABILITY__
+	cvtd	PTR(0), x0
+	mov	csp, PTR(0)
+#else
+	mov	sp, PTR(0)
+#endif
+	ret	PTR(9)
 endfunc plat_set_my_stack
 
 	/* -----------------------------------------------------

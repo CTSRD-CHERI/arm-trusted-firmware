@@ -87,7 +87,7 @@ static inline u_register_t load_addr_## _name(void)			\
 }
 
 /* Helper to invoke the function defined by DEFINE_LOAD_SYM_ADDR() */
-#define LOAD_ADDR_OF(_name)	(typeof(_name) *) load_addr_## _name()
+#define LOAD_ADDR_OF(_name)	make_cap((uint64_t) load_addr_## _name())
 
 #endif /* !(defined(__LINKER__) || defined(__ASSEMBLER__)) */
 

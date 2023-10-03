@@ -178,7 +178,7 @@ unsigned int plat_get_syscnt_freq2(void)
 	unsigned int counter_base_frequency;
 
 	/* Read the frequency from Frequency modes table */
-	counter_base_frequency = mmio_read_32(ARM_SYS_CNTCTL_BASE + CNTFID_OFF);
+	counter_base_frequency = mmio_read_32(make_cap(ARM_SYS_CNTCTL_BASE + CNTFID_OFF));
 
 	/* The first entry of the frequency modes table must not be 0 */
 	if (counter_base_frequency == 0U)

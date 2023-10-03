@@ -17,7 +17,7 @@
 vector_base wa_cve_2017_5715_mmu_vbar
 
 	.macro	apply_cve_2017_5715_wa _is_sync_exception _esr_el3_val
-	stp	x0, x1, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	stp	x0, x1, [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
 	mrs	x1, sctlr_el3
 	/* Disable MMU */
 	bic	x1, x1, #SCTLR_M_BIT
@@ -60,7 +60,7 @@ vector_base wa_cve_2017_5715_mmu_vbar
 	 * to ensure the load pair below reads the data stored earlier.
 	 */
 	isb
-	ldp	x0, x1, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	x0, x1, [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
 	.endm
 
 	/* ---------------------------------------------------------------------

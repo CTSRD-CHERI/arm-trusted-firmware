@@ -19,8 +19,8 @@
 
 static const struct dyn_cfg_dtb_info_t *hw_config_info __unused;
 
-void __init bl31_early_platform_setup2(u_register_t arg0,
-		u_register_t arg1, u_register_t arg2, u_register_t arg3)
+void __init bl31_early_platform_setup2(uintptr_t arg0,
+		uintptr_t arg1, uintptr_t arg2, uintptr_t arg3)
 {
 	/* Initialize the console to provide early debug support */
 	arm_console_boot_init();

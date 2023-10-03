@@ -17,7 +17,7 @@
 /* In client mode, a part of the DDR memory is reserved for Tag bits.
  * Calculate the usable memory size after subtracting the Tag memory.
  */
-static inline uint64_t get_mem_client_mode(uint64_t size)
+static inline __unused uint64_t get_mem_client_mode(uint64_t size)
 {
 	return (size - (size / 128ULL));
 }
@@ -130,7 +130,7 @@ static int plat_morello_append_config_node(struct morello_plat_info *plat_info,
 	err = fdt_setprop_u32(fdt, nodeoffset_fw, "scp-fw-version",
 			fw_version->scp_fw_ver);
 	if (err < 0) {
-		ERROR("NT_FW_CONFIG: Failed to set scp-fw-version %d\n");
+		ERROR("NT_FW_CONFIG: Failed to set scp-fw-version\n");
 		return -1;
 	}
 

@@ -61,6 +61,27 @@ typedef struct bl_params {
 	bl_params_node_t *head;
 } bl_params_t;
 
+#if 1
+typedef struct image_info64 {
+	param_header_t h;
+	uint64_t image_base;	/* physical address of base of image */
+	uint32_t image_size;	/* bytes read from image file */
+	uint32_t image_max_size;
+} image_info64_t;
+
+typedef struct bl_params_node64 {
+	unsigned int image_id;
+	uint64_t image_info;
+	uint64_t ep_info;
+	uint64_t next_params_info;
+} bl_params_node64_t;
+
+typedef struct bl_params64 {
+	param_header_t h;
+	uint64_t head;
+} bl_params64_t;
+#endif
+
 /*****************************************************************************
  * The image descriptor struct definition.
  *****************************************************************************/

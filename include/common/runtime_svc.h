@@ -21,9 +21,9 @@
  * descriptor
  */
 #ifdef __aarch64__
-#define RT_SVC_SIZE_LOG2	U(5)
-#define RT_SVC_DESC_INIT	U(16)
-#define RT_SVC_DESC_HANDLE	U(24)
+#define RT_SVC_SIZE_LOG2	U(6)
+#define RT_SVC_DESC_INIT	U(32)
+#define RT_SVC_DESC_HANDLE	U(48)
 #else
 #define RT_SVC_SIZE_LOG2	U(4)
 #define RT_SVC_DESC_INIT	U(8)

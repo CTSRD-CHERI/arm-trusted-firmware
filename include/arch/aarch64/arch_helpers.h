@@ -27,6 +27,24 @@ static inline u_register_t read_ ## _name(void)			\
 	return v;						\
 }
 
+#ifdef __CHERI_PURE_CAPABILITY__
+#define _DEFINE_SYSREG_READ_FUNC_C(_name, _reg_name)		\
+static inline uintptr_t read_ ## _name(void)			\
+{								\
+	uintptr_t v;						\
+	__asm__ volatile ("mrs %0, " #_reg_name : "=C" (v));	\
+	return v;						\
+}
+#else
+#define _DEFINE_SYSREG_READ_FUNC_C(_name, _reg_name)		\
+static inline u_register_t read_ ## _name(void)			\
+{								\
+	u_register_t v;						\
+	__asm__ volatile ("mrs %0, " #_reg_name : "=r" (v));	\
+	return v;						\
+}
+#endif
+
 #define _DEFINE_SYSREG_READ_FUNC_NV(_name, _reg_name)		\
 static inline u_register_t read_ ## _name(void)			\
 {								\
@@ -41,6 +59,20 @@ static inline void write_ ## _name(u_register_t v)			\
 	__asm__ volatile ("msr " #_reg_name ", %0" : : "r" (v));	\
 }
 
+#ifdef __CHERI_PURE_CAPABILITY__
+#define _DEFINE_SYSREG_WRITE_FUNC_C(_name, _reg_name)		\
+static inline void write_ ## _name(uintptr_t v)			\
+{								\
+	__asm__ volatile ("msr " #_reg_name ", %0" : : "C" (v));\
+}
+#else
+#define _DEFINE_SYSREG_WRITE_FUNC_C(_name, _reg_name)			\
+static inline void write_ ## _name(u_register_t v)			\
+{									\
+	__asm__ volatile ("msr " #_reg_name ", %0" : : "r" (v));	\
+}
+#endif
+
 #define SYSREG_WRITE_CONST(reg_name, v)				\
 	__asm__ volatile ("msr " #reg_name ", %0" : : "i" (v))
 
@@ -52,6 +84,10 @@ static inline void write_ ## _name(u_register_t v)			\
 #define DEFINE_SYSREG_RW_FUNCS(_name)			\
 	_DEFINE_SYSREG_READ_FUNC(_name, _name)		\
 	_DEFINE_SYSREG_WRITE_FUNC(_name, _name)
+
+#define DEFINE_SYSREG_RW_FUNCS_C(_name)			\
+	_DEFINE_SYSREG_READ_FUNC_C(_name, c ## _name)		\
+	_DEFINE_SYSREG_WRITE_FUNC_C(_name, c ## _name)
 
 /* Define read & write function for renamed system register */
 #define DEFINE_RENAME_SYSREG_RW_FUNCS(_name, _reg_name)	\
@@ -100,6 +136,20 @@ static inline void _op ## _type(void)			\
 }
 
 /* Define function for system instruction with register parameter */
+#ifdef __CHERI_PURE_CAPABILITY__
+#define DEFINE_SYSOP_TYPE_PARAM_FUNC_C(_op, _type)	\
+static inline void _op ## _type(uintptr_t v)		\
+{							\
+	 __asm__ (#_op " " #_type ", %0" : : "C" (v));	\
+}
+#else
+#define DEFINE_SYSOP_TYPE_PARAM_FUNC_C(_op, _type)	\
+static inline void _op ## _type(uint64_t v)		\
+{							\
+	 __asm__ (#_op " " #_type ", %0" : : "r" (v));	\
+}
+#endif
+
 #define DEFINE_SYSOP_TYPE_PARAM_FUNC(_op, _type)	\
 static inline void _op ## _type(uint64_t v)		\
 {							\
@@ -212,10 +262,10 @@ DEFINE_SYSOP_TYPE_PARAM_FUNC(dc, csw)
 #if ERRATA_A53_819472 || ERRATA_A53_824069 || ERRATA_A53_827319
 DEFINE_DCOP_ERRATA_A53_TYPE_PARAM_FUNC(cvac, civac)
 #else
-DEFINE_SYSOP_TYPE_PARAM_FUNC(dc, cvac)
+DEFINE_SYSOP_TYPE_PARAM_FUNC_C(dc, cvac)
 #endif
-DEFINE_SYSOP_TYPE_PARAM_FUNC(dc, ivac)
-DEFINE_SYSOP_TYPE_PARAM_FUNC(dc, civac)
+DEFINE_SYSOP_TYPE_PARAM_FUNC_C(dc, ivac)
+DEFINE_SYSOP_TYPE_PARAM_FUNC_C(dc, civac)
 #if ERRATA_A53_819472 || ERRATA_A53_824069 || ERRATA_A53_827319
 DEFINE_DCOP_ERRATA_A53_TYPE_PARAM_FUNC(cvau, civac)
 #else
@@ -479,7 +529,7 @@ DEFINE_SYSREG_RW_FUNCS(vtcr_el2)
 #define clr_cntp_ctl_enable(x)  ((x) &= ~(U(1) << CNTP_CTL_ENABLE_SHIFT))
 #define clr_cntp_ctl_imask(x)   ((x) &= ~(U(1) << CNTP_CTL_IMASK_SHIFT))
 
-DEFINE_SYSREG_RW_FUNCS(tpidr_el3)
+DEFINE_SYSREG_RW_FUNCS_C(tpidr_el3)
 
 DEFINE_SYSREG_RW_FUNCS(cntvoff_el2)
 
@@ -735,6 +785,12 @@ void gpt_tlbi_by_pa_ll(uint64_t pa, size_t size);
 }
 #else
 #define AT(_at_inst, _va)	_at_inst(_va)
+#endif
+
+#ifdef __CHERI_PURE_CAPABILITY__
+uintptr_t make_cap(uint64_t addr);
+#else
+#define	make_cap(x)	(x)
 #endif
 
 #endif /* ARCH_HELPERS_H */

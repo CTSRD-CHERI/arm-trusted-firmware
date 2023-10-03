@@ -22,11 +22,11 @@
  * -----------------------------------------------------------------
  */
 func init_cpu_data_ptr
-	mov	x10, x30
+	mov	PTR(10), PTR(30)
 	bl	plat_my_core_pos
 	bl	_cpu_data_by_index
-	msr	tpidr_el3, x0
-	ret	x10
+	msr	REGN(tpidr_el3), PTR(0)
+	ret	PTR(10)
 endfunc init_cpu_data_ptr
 
 /* -----------------------------------------------------------------
@@ -41,8 +41,8 @@ endfunc init_cpu_data_ptr
 func _cpu_data_by_index
 	mov_imm	x1, CPU_DATA_SIZE
 	mul	x0, x0, x1
-	adrp	x1, percpu_data
-	add	x1, x1, :lo12:percpu_data
-	add	x0, x0, x1
+	adrp	PTR(1), :got:percpu_data
+	ldr	PTR(1), [PTR(1), :got_lo12:percpu_data]
+	add	PTR(0), PTR(1), x0
 	ret
 endfunc _cpu_data_by_index

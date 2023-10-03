@@ -10,7 +10,11 @@
 #include <lib/smccc.h>
 
 /* Definitions to help the assembler access the SMC/ERET args structure */
+#ifdef __CHERI_PURE_CAPABILITY__
+#define SMC_ARGS_SIZE		0x80
+#else
 #define SMC_ARGS_SIZE		0x40
+#endif
 #define SMC_ARG0		0x0
 #define SMC_ARG1		0x8
 #define SMC_ARG2		0x10

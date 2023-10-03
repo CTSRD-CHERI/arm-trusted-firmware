@@ -611,6 +611,10 @@ static uintptr_t xlat_tables_map_region(xlat_ctx_t *ctx, mmap_region_t *mm,
 #if ENABLE_MORELLO_CAP
 			if (mm->attr & MT_CAP_LD_ST_TRACK)
 				table_base[table_idx] |= (SC_BIT | LC0_BIT);
+#if 1
+			else
+				table_base[table_idx] |= (SC_BIT | LC0_BIT);
+#endif
 #endif
 		} else if (action == ACTION_CREATE_NEW_TABLE) {
 			uintptr_t end_va;
@@ -640,7 +644,7 @@ static uintptr_t xlat_tables_map_region(xlat_ctx_t *ctx, mmap_region_t *mm,
 		} else if (action == ACTION_RECURSE_INTO_TABLE) {
 			uintptr_t end_va;
 
-			subtable = (uint64_t *)(uintptr_t)(desc & TABLE_ADDR_MASK);
+			subtable = (uint64_t *)(uintptr_t)make_cap(desc & TABLE_ADDR_MASK);
 			/* Recurse to write into subtable */
 			end_va = xlat_tables_map_region(ctx, mm, table_idx_va,
 					       subtable, XLAT_TABLE_ENTRIES,
@@ -1202,7 +1206,7 @@ void __init init_xlat_tables_ctx(xlat_ctx_t *ctx)
 	assert(ctx->va_max_address >=
 		(xlat_get_min_virt_addr_space_size() - 1U));
 	assert(ctx->va_max_address <= (MAX_VIRT_ADDR_SPACE_SIZE - 1U));
-	assert(IS_POWER_OF_TWO(ctx->va_max_address + 1U));
+	assert(IS_POWER_OF_TWO((uint64_t)ctx->va_max_address + 1U));
 
 	xlat_mmap_print(mm);
 
@@ -1229,11 +1233,10 @@ void __init init_xlat_tables_ctx(xlat_ctx_t *ctx)
 #endif
 		if (end_va != (mm->base_va + mm->size - 1U)) {
 			ERROR("Not enough memory to map region:\n"
-			      " VA:0x%lx  PA:0x%llx  size:0x%zx  attr:0x%x\n",
-			      mm->base_va, mm->base_pa, mm->size, mm->attr);
+			      " VA:0x%lx  PA:0x%lx  size:0x%zx  attr:0x%x\n",
+			      (uint64_t)mm->base_va, (uint64_t)mm->base_pa, mm->size, mm->attr);
 			panic();
 		}
-
 		mm++;
 	}
 

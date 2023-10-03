@@ -98,7 +98,7 @@ static int load_image(unsigned int image_id, image_info_t *image_data)
 		return io_result;
 	}
 
-	INFO("Loading image id=%u at address 0x%lx\n", image_id, image_base);
+	INFO("Loading image id=%u at address 0x%lx\n", image_id, (uint64_t)image_base);
 
 	/* Find the size of the image */
 	io_result = io_size(image_handle, &image_size);
@@ -129,8 +129,8 @@ static int load_image(unsigned int image_id, image_info_t *image_data)
 		goto exit;
 	}
 
-	INFO("Image id=%u loaded: 0x%lx - 0x%lx\n", image_id, image_base,
-	     (uintptr_t)(image_base + image_size));
+	INFO("Image id=%u loaded: 0x%lx - 0x%lx\n", image_id, (uint64_t)image_base,
+	     (uint64_t)(image_base + image_size));
 
 exit:
 	(void)io_close(image_handle);
@@ -250,7 +250,7 @@ int load_auth_image(unsigned int image_id, image_info_t *image_data)
  ******************************************************************************/
 void print_entry_point_info(const entry_point_info_t *ep_info)
 {
-	INFO("Entry point address = 0x%lx\n", ep_info->pc);
+	INFO("Entry point address = 0x%lx\n", (uint64_t)ep_info->pc);
 	INFO("SPSR = 0x%x\n", ep_info->spsr);
 
 #define PRINT_IMAGE_ARG(n)					\

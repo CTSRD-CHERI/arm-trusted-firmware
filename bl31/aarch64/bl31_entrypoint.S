@@ -13,6 +13,8 @@
 #include <lib/runtime_instr.h>
 #include <lib/xlat_tables/xlat_mmu_helpers.h>
 
+#include "cherireg.h"
+
 	.globl	bl31_entrypoint
 	.globl	bl31_warm_entrypoint
 
@@ -23,14 +25,49 @@
 	 */
 
 func bl31_entrypoint
+	/* Enable Morello instructions at EL3 */
+	mrs	x2, cptr_el3
+	orr	x2, x2, (1 << 9)
+	msr	cptr_el3, x2
+	isb
+
+	mrs	x2, cctlr_el3
+	bic	x2, x2, (1 << 2) /* DDCBO */
+	bic	x2, x2, (1 << 3) /* PCCBO */
+	bic	x2, x2, (1 << 4) /* ADRDPB */
+	orr	x2, x2, (1 << 5) /* C64E */
+	orr	x2, x2, (1 << 6) /* PERMVCT */
+	orr	x2, x2, (1 << 7) /* SBL */
+	msr	cctlr_el3, x2
+
+	bx	#4
+	.arch_extension c64
+
 	/* ---------------------------------------------------------------
 	 * Stash the previous bootloader arguments x0 - x3 for later use.
 	 * ---------------------------------------------------------------
 	 */
-	mov	x20, x0
-	mov	x21, x1
-	mov	x22, x2
-	mov	x23, x3
+	cvtd	c20, x0
+	cvtd	c21, x1
+	cvtd	c22, x2
+	cvtd	c23, x3
+
+#if __has_feature(capabilities)
+#ifdef __CHERI_PURE_CAPABILITY__
+	ldr	x0, =~CHERI_PERMS_KERNEL_DATA
+	mrs	c1, ddc
+	clrperm	c1, c1, x0
+	ldr	x0, =~CHERI_PERMS_KERNEL_CODE
+	adr	c2, #0
+	clrperm	c2, c2, x0
+	bl	crt_init_globals
+#endif
+
+	/* Initialize capabilities. */
+	mrs	c0, ddc
+	bl	cheri_init_capabilities
+#endif
+
 
 #if !RESET_TO_BL31
 	/* ---------------------------------------------------------------------
@@ -72,10 +109,11 @@ func bl31_entrypoint
 	 * Perform BL31 setup
 	 * --------------------------------------------------------------------
 	 */
-	mov	x0, x20
-	mov	x1, x21
-	mov	x2, x22
-	mov	x3, x23
+	mov	PTR(0), PTR(20)
+	bl	cheri_convert_params
+	mov	PTR(1), PTR(21)
+	mov	PTR(2), PTR(22)
+	mov	PTR(3), PTR(23)
 	bl	bl31_setup
 
 #if ENABLE_PAUTH
@@ -99,17 +137,17 @@ func bl31_entrypoint
 	 * caches and participate in coherency.
 	 * --------------------------------------------------------------------
 	 */
-	adrp	x0, __DATA_START__
-	add	x0, x0, :lo12:__DATA_START__
-	adrp	x1, __DATA_END__
-	add	x1, x1, :lo12:__DATA_END__
+	adrp	PTR(0), :got:__DATA_START__
+	ldr	PTR(0), [PTR(0), :got_lo12:__DATA_START__]
+	adrp	PTR(1), :got:__DATA_END__
+	ldr	PTR(1), [PTR(1), :got_lo12:__DATA_END__]
 	sub	x1, x1, x0
 	bl	clean_dcache_range
 
-	adrp	x0, __BSS_START__
-	add	x0, x0, :lo12:__BSS_START__
-	adrp	x1, __BSS_END__
-	add	x1, x1, :lo12:__BSS_END__
+	adrp	PTR(0), :got:__BSS_START__
+	ldr	PTR(0), [PTR(0), :got_lo12:__BSS_START__]
+	adrp	PTR(1), :got:__BSS_END__
+	ldr	PTR(1), [PTR(1), :got_lo12:__BSS_END__]
 	sub	x1, x1, x0
 	bl	clean_dcache_range
 
@@ -123,6 +161,25 @@ endfunc bl31_entrypoint
 	 * --------------------------------------------------------------------
 	 */
 func bl31_warm_entrypoint
+
+	/* Enable Morello instructions at EL3 */
+	mrs	x2, cptr_el3
+	orr	x2, x2, (1 << 9)
+	msr	cptr_el3, x2
+	isb
+
+	mrs	x2, cctlr_el3
+	bic	x2, x2, (1 << 2) /* DDCBO */
+	bic	x2, x2, (1 << 3) /* PCCBO */
+	bic	x2, x2, (1 << 4) /* ADRDPB */
+	orr	x2, x2, (1 << 5) /* C64E */
+	orr	x2, x2, (1 << 6) /* PERMVCT */
+	orr	x2, x2, (1 << 7) /* SBL */
+	msr	cctlr_el3, x2
+
+	bx	#4
+	.arch_extension c64
+
 #if ENABLE_RUNTIME_INSTRUMENTATION
 
 	/*
@@ -223,7 +280,7 @@ func bl31_warm_entrypoint
 	mov	x30, x20
 
 	mrs	x0, cntpct_el0
-	str	x0, [x19]
+	str	x0, [PTR(19)]
 #endif
 	b	el3_exit
 endfunc bl31_warm_entrypoint

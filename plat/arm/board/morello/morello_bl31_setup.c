@@ -29,6 +29,12 @@ static scmi_channel_plat_info_t morello_scmi_plat_info = {
 
 scmi_channel_plat_info_t *plat_css_get_scmi_info(unsigned int channel_id)
 {
+
+	morello_scmi_plat_info.scmi_mbx_mem = \
+	    make_cap(morello_scmi_plat_info.scmi_mbx_mem);
+	morello_scmi_plat_info.db_reg_addr = \
+	    make_cap(morello_scmi_plat_info.db_reg_addr);
+
 	return &morello_scmi_plat_info;
 }
 

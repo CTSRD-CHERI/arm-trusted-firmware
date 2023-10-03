@@ -13,11 +13,17 @@
 				(MIDR_PN_MASK << MIDR_PN_SHIFT)
 
 /* Hardcode to keep compatible with assembly. sizeof(uintptr_t) */
+#ifdef __CHERI_PURE_CAPABILITY__
+#define CPU_WORD_SIZE			16
+#else
+
 #if __aarch64__
 #define CPU_WORD_SIZE			8
 #else
 #define CPU_WORD_SIZE			4
 #endif /* __aarch64__ */
+
+#endif
 
 /* The number of CPU operations allowed */
 #define CPU_MAX_PWR_DWN_OPS		2
@@ -36,7 +42,11 @@
  * Aarch so keep these definitions the same and each can include whatever it
  * needs.
  */
+#ifdef __CHERI_PURE_CAPABILITY__
 #define CPU_MIDR_SIZE		CPU_WORD_SIZE
+#else
+#define CPU_MIDR_SIZE		CPU_WORD_SIZE
+#endif
 #ifdef IMAGE_AT_EL3
 #define CPU_RESET_FUNC_SIZE	CPU_WORD_SIZE
 #else
@@ -140,7 +150,7 @@ struct cpu_ops {
 #if defined(IMAGE_BL31) && CRASH_REPORTING
 	void (*reg_dump)(void);
 #endif /* defined(IMAGE_BL31) && CRASH_REPORTING */
-} __packed;
+} __aligned(16); //__packed;
 
 CASSERT(sizeof(struct cpu_ops) == CPU_OPS_SIZE,
 	assert_cpu_ops_asm_c_different_sizes);

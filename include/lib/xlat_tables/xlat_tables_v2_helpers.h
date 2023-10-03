@@ -150,7 +150,7 @@ struct xlat_ctx {
 	static uint64_t _ctx_name##_base_xlat_table			\
 		[GET_NUM_BASE_LEVEL_ENTRIES(_virt_addr_space_size)]	\
 		__aligned(GET_NUM_BASE_LEVEL_ENTRIES(_virt_addr_space_size)\
-			* sizeof(uint64_t))				\
+			* sizeof(uintptr_t))				\
 		__section(_base_table_section);				\
 									\
 	XLAT_ALLOC_DYNMAP_STRUCT(_ctx_name, _xlat_tables_count)		\
