@@ -231,7 +231,7 @@ int sds_struct_write(uint32_t structure_id, unsigned int fld_off,
  */
 int sds_init(void)
 {
-	sds_mem_base = (uintptr_t)PLAT_ARM_SDS_MEM_BASE;
+	sds_mem_base = (uintptr_t)make_cap(PLAT_ARM_SDS_MEM_BASE);
 
 	if (!IS_SDS_REGION_VALID(sds_mem_base)) {
 		WARN("SDS: No valid SDS Memory Region found\n");
