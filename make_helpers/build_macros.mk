@@ -567,8 +567,12 @@ ifdef MAKE_BUILD_STRINGS
 else
 	echo 'BL_CFLAGS: $1 $(BL_CFLAGS)'
 	echo 'BL_LIBS : $1 $(BL_LIBS)'
-	@echo 'const char build_message[] = "Built : "$(BUILD_MESSAGE_TIMESTAMP); \
-	       const char version_string[] = "${VERSION_STRING}"; \
+	@echo 'const char build_message[] = "Built : "$(BUILD_MESSAGE_TIMESTAMP); \n \
+#ifdef __CHERI_PURE_CAPABILITY__ \n \
+	       const char version_string[] = "${VERSION_STRING} purecap"; \n \
+#else \n \
+	       const char version_string[] = "${VERSION_STRING}"; \n \
+#endif \n \
 	       const char version[] = "${VERSION}";' | \
 		$$(CC) $$(TF_CFLAGS) $$(CFLAGS) $(BL_CFLAGS) -xc -c - -o $(BUILD_DIR)/build_message.o
 endif
