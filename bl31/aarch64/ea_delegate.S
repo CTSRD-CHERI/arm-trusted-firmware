@@ -159,19 +159,19 @@ func handle_lower_el_async_ea
 	 * switched to SP_EL0 and the original DDC_EL0 is saved to stack.
 	 */
 	mrs	c24, ddc
-	mov	x6, sp
+	mov	PTR(6), PTRN(sp)
 #endif
 	/* el3_exit assumes SP_EL0 on entry */
 	msr	spsel, #MODE_SP_EL0
 #if ENABLE_MORELLO_CAP
 	/* Save the original DDC_EL0 which will be pushed to stack. */
-	mrs	c26, ddc
+	mrs	PTR(26), ddc
 
 	/* Write saved DDC_EL3 value into DDC_EL0. */
-	msr	ddc, c24
+	msr	ddc, PTR(24)
 
 	/* Write original DDC_EL0 value to stack. */
-	str	c26, [x6, #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	str	PTR(26), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
 #endif
 	b	el3_exit
 endfunc handle_lower_el_async_ea

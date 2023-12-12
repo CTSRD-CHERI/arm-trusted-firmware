@@ -113,18 +113,18 @@ endfunc init_cpu_ops
 	 */
 	.globl	do_cpu_reg_dump
 func do_cpu_reg_dump
-	mov	x16, x30
+	mov	PTR(16), PTR(30)
 
 	/* Get the matching cpu_ops pointer */
 	bl	get_cpu_ops_ptr
 	cbz	x0, 1f
 
 	/* Get the cpu_ops cpu_reg_dump */
-	ldr	x2, [x0, #CPU_REG_DUMP]
+	ldr	PTR(2), [PTR(0), #CPU_REG_DUMP]
 	cbz	x2, 1f
-	blr	x2
+	blr	PTR(2)
 1:
-	mov	x30, x16
+	mov	PTR(30), PTR(16)
 	ret
 endfunc do_cpu_reg_dump
 #endif
