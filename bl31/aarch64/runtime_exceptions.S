@@ -606,9 +606,9 @@ sync_handler64:
 	b	el3_exit
 
 sysreg_handler64:
-	mov	x0, x16		/* ESR_EL3, containing syndrome information */
-	mov	x1, x6		/* lower EL's context */
-	mov	x19, x6		/* save context pointer for after the call */
+	mov	PTR(0), PTR(16)	/* ESR_EL3, containing syndrome information */
+	mov	PTR(1), PTR(6)	/* lower EL's context */
+	mov	PTR(19), PTR(6)	/* save context pointer for after the call */
 	mov	sp, x12		/* EL3 runtime stack, as loaded above */
 
 	/* int handle_sysreg_trap(uint64_t esr_el3, cpu_context_t *ctx); */
@@ -625,9 +625,9 @@ sysreg_handler64:
 	b.eq	1f		/* zero: do not change ELR_EL3 */
 
 	/* advance the PC to continue after the instruction */
-	ldr	x1, [x19, #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
-	add	x1, x1, #4
-	str	x1, [x19, #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	ldr	PTR(1), [PTR(19), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	add	PTR(1), PTR(1), #4
+	str	PTR(1), [PTR(19), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 1:
 	b	el3_exit
 

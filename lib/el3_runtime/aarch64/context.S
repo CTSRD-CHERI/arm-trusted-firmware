@@ -845,7 +845,7 @@ endfunc el3_exit
 func save_ddc_el0
 	/* This function should be called only when SP is SP_EL0 */
 	mrs c1, ddc
-	str c1, [x0]
+	str c1, [c0]
 	ret
 endfunc save_ddc_el0
 #endif
