@@ -32,7 +32,7 @@ static inline u_register_t read_ ## _name(void)			\
 static inline uintptr_t read_ ## _name(void)			\
 {								\
 	uintptr_t v;						\
-	__asm__ volatile ("mrs %0, " #_reg_name : "=C" (v));	\
+	__asm__ volatile ("mrs %0, c" #_reg_name : "=C" (v));	\
 	return v;						\
 }
 #else
@@ -63,7 +63,7 @@ static inline void write_ ## _name(u_register_t v)			\
 #define _DEFINE_SYSREG_WRITE_FUNC_C(_name, _reg_name)		\
 static inline void write_ ## _name(uintptr_t v)			\
 {								\
-	__asm__ volatile ("msr " #_reg_name ", %0" : : "C" (v));\
+	__asm__ volatile ("msr c" #_reg_name ", %0" : : "C" (v));\
 }
 #else
 #define _DEFINE_SYSREG_WRITE_FUNC_C(_name, _reg_name)			\
@@ -86,8 +86,8 @@ static inline void write_ ## _name(u_register_t v)			\
 	_DEFINE_SYSREG_WRITE_FUNC(_name, _name)
 
 #define DEFINE_SYSREG_RW_FUNCS_C(_name)			\
-	_DEFINE_SYSREG_READ_FUNC_C(_name, c ## _name)		\
-	_DEFINE_SYSREG_WRITE_FUNC_C(_name, c ## _name)
+	_DEFINE_SYSREG_READ_FUNC_C(_name, _name)		\
+	_DEFINE_SYSREG_WRITE_FUNC_C(_name, _name)
 
 /* Define read & write function for renamed system register */
 #define DEFINE_RENAME_SYSREG_RW_FUNCS(_name, _reg_name)	\

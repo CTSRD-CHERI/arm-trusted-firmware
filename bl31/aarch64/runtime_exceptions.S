@@ -110,7 +110,7 @@
 
 	/* Refer Note 1. */
 	mov 	x30, #1
-	str	x30, [csp, #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
+	str	x30, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
 	dmb	sy
 #endif
 	.endm
@@ -128,10 +128,10 @@
 	 * saved to the PMF timestamp region.
 	 */
 	mrs	x30, cntpct_el0
-	str	x29, [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	str	x29, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 	mrs	x29, tpidr_el3
 	str	x30, [x29, #CPU_DATA_PMF_TS0_OFFSET]
-	ldr	x29, [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	ldr	x29, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 #endif
 
 	mrs	x30, esr_el3
@@ -174,8 +174,8 @@
 	/* Save the EL3 system registers needed to return from this exception */
 	mrs	x0, spsr_el3
 	mrs	x1, elr_el3
-	str	x0, [csp, #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	str	x1, [csp, #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	str	x0, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	x1, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/* Switch to the runtime stack i.e. SP_EL0 */
 	ldr	PTR(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
@@ -268,7 +268,7 @@ vector_base runtime_exceptions
 	 */
 vector_entry sync_exception_sp_el0
 #ifdef MONITOR_TRAPS
-	stp x29, x30, [csp, #-16]!
+	stp x29, x30, [PTRN(sp), #-16]!
 
 	mrs	x30, esr_el3
 	ubfx	x30, x30, #ESR_EC_SHIFT, #ESR_EC_LENGTH
@@ -277,7 +277,7 @@ vector_entry sync_exception_sp_el0
 	cmp	x30, #EC_BRK
 	b.eq	brk_handler
 
-	ldp x29, x30, [csp], #16
+	ldp x29, x30, [PTRN(sp)], #16
 #endif /* MONITOR_TRAPS */
 
 	/* We don't expect any synchronous exceptions from EL3 */
@@ -289,15 +289,15 @@ vector_entry irq_sp_el0
 	 * EL3 code is non-reentrant. Any asynchronous exception is a serious
 	 * error. Loop infinitely.
 	 */
-	adr	c0, report_unhandled_interrupt
-	br	c0
+	adr	PTR(0), report_unhandled_interrupt
+	br	PTR(0)
 
 end_vector_entry irq_sp_el0
 
 
 vector_entry fiq_sp_el0
-	adr	c0, report_unhandled_interrupt
-	br	c0
+	adr	PTR(0), report_unhandled_interrupt
+	br	PTR(0)
 end_vector_entry fiq_sp_el0
 
 
@@ -320,13 +320,13 @@ vector_entry sync_exception_sp_elx
 end_vector_entry sync_exception_sp_elx
 
 vector_entry irq_sp_elx
-	adr c0,	report_unhandled_interrupt
-	br c0
+	adr PTR(0),	report_unhandled_interrupt
+	br PTR(0)
 end_vector_entry irq_sp_elx
 
 vector_entry fiq_sp_elx
-	adr c0,	report_unhandled_interrupt
-	br c0
+	adr PTR(0),	report_unhandled_interrupt
+	br PTR(0)
 end_vector_entry fiq_sp_elx
 
 vector_entry serror_sp_elx
@@ -644,7 +644,7 @@ smc_unknown:
 
 smc_prohibited:
 	restore_ptw_el1_sys_regs
-	ldp	PTR(28), PTR(29), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
+	ldp	PTR(28), PTR(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
 	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	mov	x0, #SMC_UNK
 	exception_return

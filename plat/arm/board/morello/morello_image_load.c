@@ -190,7 +190,9 @@ bl_params_t *plat_get_next_bl_params(void)
 				SDS_ACCESS_MODE_NON_CACHED);
 	if (ret != SDS_OK) {
 		ERROR("Error getting firmware version from SDS. ret:%d\n", ret);
+#if 0
 		panic();
+#endif
 	}
 
 	/* Validate plat_info SDS */

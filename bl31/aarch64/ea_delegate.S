@@ -58,9 +58,9 @@ func handle_lower_el_sync_ea
 	b.eq	1f
 
 	/* Save GP registers */
-	stp	PTR(0), PTR(1), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	stp	PTR(2), PTR(3), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	stp	PTR(4), PTR(5), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	stp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	stp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	stp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
 
 	/* Get the cpu_ops pointer */
 	bl	get_cpu_ops_ptr
@@ -100,8 +100,8 @@ func handle_lower_el_sync_ea
 	 * Save DDC_EL3 value. This will be used to write to DDC_EL0 once SP is
 	 * switched to SP_EL0 and the original DDC_EL0 is saved to stack.
 	 */
-	mrs	PTR(24), ddc
-	mov	PTR(6), PTRN(sp)
+	mrs	c24, ddc
+	mov	c6, csp
 #endif
 	/* el3_exit assumes SP_EL0 on entry */
 	msr	spsel, #MODE_SP_EL0
@@ -117,9 +117,9 @@ func handle_lower_el_sync_ea
 #endif
 	b	el3_exit
 2:
-	ldp	PTR(0), PTR(1), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	ldp	PTR(2), PTR(3), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	ldp	PTR(4), PTR(5), [csp, #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	ldp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
 
 	/* Synchronous exceptions other than the above are assumed to be EA */
 	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]

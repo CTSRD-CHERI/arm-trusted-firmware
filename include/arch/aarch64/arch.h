@@ -1417,6 +1417,8 @@
 /* alternative system register encoding for the "sb" speculation barrier */
 #define SYSREG_SB			S0_3_C3_C0_7
 
+/* TODO: move these to asm.h ? */
+
 #define	INT_WIDTH	8
 #define	INTN(n)		n
 #define	INT(n)		x ## n
@@ -1447,6 +1449,16 @@
 #define	chericap2	quad
 /* Alias for link register x30 */
 #define	lr		x30
+#endif
+
+#ifdef __CHERI_PURE_CAPABILITY__
+#define	LDR_LABEL(reg, label)			\
+	adrp	reg, :got:##label;		\
+	ldr	reg, [reg, :got_lo12:##label];
+#else
+#define	LDR_LABEL(reg, label)			\
+	adrp	reg, ##label;			\
+	add	reg, reg, :lo12:##label
 #endif
 
 #endif /* ARCH_H */

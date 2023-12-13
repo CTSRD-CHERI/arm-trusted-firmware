@@ -137,10 +137,15 @@ func bl31_entrypoint
 	 * caches and participate in coherency.
 	 * --------------------------------------------------------------------
 	 */
+	LDR_LABEL(PTR(0), __DATA_START__);
+	LDR_LABEL(PTR(1), __DATA_END__);
+
+#if 0
 	adrp	PTR(0), :got:__DATA_START__
 	ldr	PTR(0), [PTR(0), :got_lo12:__DATA_START__]
 	adrp	PTR(1), :got:__DATA_END__
 	ldr	PTR(1), [PTR(1), :got_lo12:__DATA_END__]
+#endif
 	sub	x1, x1, x0
 	bl	clean_dcache_range
 

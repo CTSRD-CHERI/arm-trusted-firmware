@@ -13,17 +13,15 @@
 				(MIDR_PN_MASK << MIDR_PN_SHIFT)
 
 /* Hardcode to keep compatible with assembly. sizeof(uintptr_t) */
+#if __aarch64__
 #ifdef __CHERI_PURE_CAPABILITY__
 #define CPU_WORD_SIZE			16
 #else
-
-#if __aarch64__
 #define CPU_WORD_SIZE			8
+#endif
 #else
 #define CPU_WORD_SIZE			4
 #endif /* __aarch64__ */
-
-#endif
 
 /* The number of CPU operations allowed */
 #define CPU_MAX_PWR_DWN_OPS		2
@@ -150,7 +148,12 @@ struct cpu_ops {
 #if defined(IMAGE_BL31) && CRASH_REPORTING
 	void (*reg_dump)(void);
 #endif /* defined(IMAGE_BL31) && CRASH_REPORTING */
-} __aligned(16); //__packed;
+
+#ifdef __CHERI_PURE_CAPABILITY__
+} __aligned(16);
+#else
+} __packed;
+#endif
 
 CASSERT(sizeof(struct cpu_ops) == CPU_OPS_SIZE,
 	assert_cpu_ops_asm_c_different_sizes);

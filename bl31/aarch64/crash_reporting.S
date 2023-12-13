@@ -114,7 +114,7 @@ endfunc size_controlled_print
  	 */
 func print_alignment
 	/* The minimum ascii length is 3, e.g. for "x0" */
-	adr	c4, print_spacer - 3
+	adr	PTR(4), print_spacer - 3
 	add	x4, x4, x0
 	b	asm_print_str
 endfunc print_alignment
@@ -131,10 +131,10 @@ endfunc print_alignment
 func str_in_crash_buf_print
 	/* restore the crash buf address in x0 */
 	mrs	x0, tpidr_el3
-	stp	x8, x9, [c0]
-	stp	x10, x11, [c0, #REGSZ * 2]
-	stp	x12, x13, [c0, #REGSZ * 4]
-	stp	x14, x15, [c0, #REGSZ * 6]
+	stp	x8, x9, [PTR(0)]
+	stp	x10, x11, [PTR(0), #REGSZ * 2]
+	stp	x12, x13, [PTR(0), #REGSZ * 4]
+	stp	x14, x15, [PTR(0), #REGSZ * 6]
 	b	size_controlled_print
 endfunc str_in_crash_buf_print
 
@@ -205,7 +205,7 @@ func report_elx_panic
 	msr	spsel, #MODE_SP_ELX
 
 	/* Print the crash message */
-	adr	c4, excpt_msg_el
+	adr	PTR(4), excpt_msg_el
 	bl	asm_print_str
 
 	/* Report x0 - x29 values stored in 'gpregs_ctx' structure */
@@ -231,7 +231,7 @@ print_next:
 	b	print_next
 
 print_x30:
-	adr	c4, x30_msg
+	adr	PTR(4), x30_msg
 	bl	asm_print_str
 
 	/* Print spaces to align "x30" string */
