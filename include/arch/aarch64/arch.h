@@ -1434,6 +1434,7 @@
 #endif
 
 #ifdef __CHERI_PURE_CAPABILITY__
+#define	ZR		czr
 #define	PTR_WIDTH	CAP_WIDTH
 #define	PTRN(n)		CAPN(n)
 #define	PTR(n)		CAP(n)
@@ -1442,6 +1443,7 @@
 #define	clr		c30
 #define	chericap2	chericap
 #else
+#define	ZR		xzr
 #define	PTR_WIDTH	INT_WIDTH
 #define	PTRN(n)		INTN(n)
 #define	PTR(n)		INT(n)
@@ -1458,7 +1460,7 @@
 #else
 #define	LDR_LABEL(reg, label)			\
 	adrp	reg, ##label;			\
-	add	reg, reg, :lo12:##label
+	add	reg, reg, :lo12:##label;
 #endif
 
 #endif /* ARCH_H */

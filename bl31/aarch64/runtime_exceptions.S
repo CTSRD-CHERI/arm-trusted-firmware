@@ -576,8 +576,7 @@ sync_handler64:
 	orr	x16, x16, x15, lsl #FUNCID_OEN_WIDTH
 
 	/* Load descriptor index from array of indices */
-	adrp	PTR(14), :got:rt_svc_descs_indices
-	ldr	PTR(14), [PTR(14), :got_lo12:rt_svc_descs_indices]
+	LDR_LABEL(PTR(14), rt_svc_descs_indices)
 	ldrb	w15, [PTR(14), x16]
 
 	/* Any index greater than 127 is invalid. Check bit 7. */

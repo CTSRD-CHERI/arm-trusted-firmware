@@ -436,62 +436,46 @@
 		 */
 #if ENABLE_PIE
 #if SEPARATE_CODE_AND_RODATA
-		adrp	PTR(0), :got:__TEXT_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__TEXT_START__]
+		LDR_LABEL(PTR(0), __TEXT_START__)
 #else
-		adrp	PTR(0), :got:__RO_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__RO_START__]
+		LDR_LABEL(PTR(0), __RO_START__)
 #endif /* SEPARATE_CODE_AND_RODATA */
 #else
-		adrp	PTR(0), :got:__RW_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__RW_START__]
+		LDR_LABEL(PTR(0), __RW_START__)
 #endif /* ENABLE_PIE */
-		adrp	PTR(1), :got:__RW_END__
-		ldr	PTR(1), [PTR(1), :got_lo12:__RW_END__]
+		LDR_LABEL(PTR(0), __RW_END__)
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #if defined(IMAGE_BL31) && SEPARATE_NOBITS_REGION
-		adrp	PTR(0), :got:__NOBITS_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__NOBITS_START__]
-		adrp	PTR(1), :got:__NOBITS_END__
-		ldr	PTR(1), [PTR(1), :got_lo12:__NOBITS_END__]
+		LDR_LABEL(PTR(0), __NOBITS_START__)
+		LDR_LABEL(PTR(1), __NOBITS_END__)
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #endif
 #if defined(IMAGE_BL2) && SEPARATE_BL2_NOLOAD_REGION
-		adrp	PTR(0), :got:__BL2_NOLOAD_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__BL2_NOLOAD_START__]
-		adrp	PTR(1), :got:__BL2_NOLOAD_END__
-		ldr	PTR(1), [PTR(1), :got_lo12:__BL2_NOLOAD_END__]
+		LDR_LABEL(PTR(0), __BL2_NOLOAD_START__)
+		LDR_LABEL(PTR(1), __BL2_NOLOAD_END__)
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #endif
 #endif
-		adrp	PTR(0), :got:__BSS_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__BSS_START__]
-
-		adrp	PTR(1), :got:__BSS_END__
-		ldr	PTR(1), [PTR(1), :got_lo12:__BSS_END__]
+		LDR_LABEL(PTR(0), __BSS_START__)
+		LDR_LABEL(PTR(1), __BSS_END__)
 		sub	x1, x1, x0
 		bl	zeromem
 
 #if USE_COHERENT_MEM
-		adrp	PTR(0), :got:__COHERENT_RAM_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__COHERENT_RAM_START__]
-		adrp	PTR(1), :got:__COHERENT_RAM_END_UNALIGNED__
-		ldr	PTR(1), [PTR(1), :got_lo12:__COHERENT_RAM_END_UNALIGNED__]
+		LDR_LABEL(PTR(0), __COHERENT_RAM_START__)
+		LDR_LABEL(PTR(1), __COHERENT_RAM_END_UNALIGNED__)
 		sub	x1, x1, x0
 		bl	zeromem
 #endif
 
 #if defined(IMAGE_BL1) ||	\
 	(defined(IMAGE_BL2) && RESET_TO_BL2 && BL2_IN_XIP_MEM)
-		adrp	PTR(0), :got:__DATA_RAM_START__
-		ldr	PTR(0), [PTR(0), :got_lo12:__DATA_RAM_START__]
-		adrp	PTR(1), :got:__DATA_ROM_START__
-		ldr	PTR(1), [PTR(1), :got_lo12:__DATA_ROM_START__]
-		adrp	PTR(2), :got:__DATA_RAM_END__
-		ldr	PTR(2), [PTR(2), :got_lo12:__DATA_RAM_END__]
+		LDR_LABEL(PTR(0), __DATA_RAM_START__)
+		LDR_LABEL(PTR(1), __DATA_ROM_START__)
+		LDR_LABEL(PTR(2), __DATA_RAM_END__)
 		sub	PTR(2), PTR(2), x0
 		bl	memcpy16
 #endif

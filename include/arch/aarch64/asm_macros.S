@@ -144,14 +144,8 @@
 	 */
 	.macro get_my_mp_stack _name, _size
 	bl	plat_my_core_pos
-#ifdef __CHERI_PURE_CAPABILITY__
-	adrp	PTR(2), :got:(\_name)
-	ldr	PTR(2), [PTR(2), :got_lo12:(\_name)]
+	LDR_LABEL(PTR(2), \_name)
 	add	PTR(2), PTR(2), \_size
-#else
-	adrp	x2, (\_name + \_size)
-	add	x2, x2, :lo12:(\_name + \_size)
-#endif
 	mov x1, #\_size
 	mul x0, x0, x1
 	add PTR(0), PTR(2), x0
@@ -163,14 +157,8 @@
 	 * Out: X0 = physical address of stack base
 	 */
 	.macro get_up_stack _name, _size
-#ifdef __CHERI_PURE_CAPABILITY__
-	adrp	PTR(0), :got:(\_name)
-	ldr	PTR(0), [PTR(0), :got_lo12:(\_name)]
-	add	PTR(0), \_size
-#else
-	adrp	x0, (\_name + \_size)
-	add	x0, x0, :lo12:(\_name + \_size)
-#endif
+	LDR_LABEL(PTR(0), \_name)
+	add	PTR(0), PTR(0), \_size
 	.endm
 
 	/*

@@ -11,20 +11,19 @@
 	.globl	setjmp
 	.globl	longjmp
 
-#ifdef __CHERI_PURE_CAPABILITY__
 /*
  * int setjmp(jmp_buf env);
  */
 func setjmp
-	mov	c7, csp
+	mov	PTR(7), PTRN(sp)
 
-	stp	c19, c20, [c0, #JMP_CTX_X19]
-	stp	c21, c22, [c0, #JMP_CTX_X21]
-	stp	c23, c24, [c0, #JMP_CTX_X23]
-	stp	c25, c26, [c0, #JMP_CTX_X25]
-	stp	c27, c28, [c0, #JMP_CTX_X27]
-	stp	c29, c30, [c0, #JMP_CTX_X29]
-	stp	c7, czr, [c0, #JMP_CTX_SP]
+	stp	PTR(19), PTR(20), [PTR(0), #JMP_CTX_X19]
+	stp	PTR(21), PTR(22), [PTR(0), #JMP_CTX_X21]
+	stp	PTR(23), PTR(24), [PTR(0), #JMP_CTX_X23]
+	stp	PTR(25), PTR(26), [PTR(0), #JMP_CTX_X25]
+	stp	PTR(27), PTR(28), [PTR(0), #JMP_CTX_X27]
+	stp	PTR(29), PTR(30), [PTR(0), #JMP_CTX_X29]
+	stp	PTR(7), ZR, [PTR(0), #JMP_CTX_SP]
 
 	mov	x0, #0
 	ret
@@ -35,79 +34,28 @@ endfunc setjmp
  * void longjmp(jmp_buf env, int val);
  */
 func longjmp
-	ldp	c7, czr, [c0, #JMP_CTX_SP]
+	ldp	PTR(7), ZR, [PTR(0), #JMP_CTX_SP]
 
 #if ENABLE_ASSERTIONS
 	/*
 	 * Since we're unwinding the stack, assert that the stack being reset to
 	 * is shallower.
 	 */
-	mov	c19, csp
+	mov	PTR(19), PTRN(sp)
 	cmp	x7, x19
 	ASM_ASSERT(ge)
 #endif
 
-	ldp	c19, c20, [c0, #JMP_CTX_X19]
-	ldp	c21, c22, [c0, #JMP_CTX_X21]
-	ldp	c23, c24, [c0, #JMP_CTX_X23]
-	ldp	c25, c26, [c0, #JMP_CTX_X25]
-	ldp	c27, c28, [c0, #JMP_CTX_X27]
-	ldp	c29, c30, [c0, #JMP_CTX_X29]
+	ldp	PTR(19), PTR(20), [PTR(0), #JMP_CTX_X19]
+	ldp	PTR(21), PTR(22), [PTR(0), #JMP_CTX_X21]
+	ldp	PTR(23), PTR(24), [PTR(0), #JMP_CTX_X23]
+	ldp	PTR(25), PTR(26), [PTR(0), #JMP_CTX_X25]
+	ldp	PTR(27), PTR(28), [PTR(0), #JMP_CTX_X27]
+	ldp	PTR(29), PTR(30), [PTR(0), #JMP_CTX_X29]
 
-	mov	csp, c7
+	mov	PTRN(sp), PTR(7)
 
 	ands	x0, x1, x1 /* Move val to x0 and set flags */
 	cinc	x0, x0, eq /* If val is 0, return 1 */
 	ret
 endfunc longjmp
-#else
-/*
- * int setjmp(jmp_buf env);
- */
-func setjmp
-	mov	x7, sp
-
-	stp	x19, x20, [x0, #JMP_CTX_X19]
-	stp	x21, x22, [x0, #JMP_CTX_X21]
-	stp	x23, x24, [x0, #JMP_CTX_X23]
-	stp	x25, x26, [x0, #JMP_CTX_X25]
-	stp	x27, x28, [x0, #JMP_CTX_X27]
-	stp	x29, x30, [x0, #JMP_CTX_X29]
-	stp	x7, xzr, [x0, #JMP_CTX_SP]
-
-	mov	x0, #0
-	ret
-endfunc setjmp
-
-
-/*
- * void longjmp(jmp_buf env, int val);
- */
-func longjmp
-	ldp	x7, xzr, [x0, #JMP_CTX_SP]
-
-#if ENABLE_ASSERTIONS
-	/*
-	 * Since we're unwinding the stack, assert that the stack being reset to
-	 * is shallower.
-	 */
-	mov	x19, sp
-	cmp	x7, x19
-	ASM_ASSERT(ge)
-#endif
-
-	ldp	x19, x20, [x0, #JMP_CTX_X19]
-	ldp	x21, x22, [x0, #JMP_CTX_X21]
-	ldp	x23, x24, [x0, #JMP_CTX_X23]
-	ldp	x25, x26, [x0, #JMP_CTX_X25]
-	ldp	x27, x28, [x0, #JMP_CTX_X27]
-	ldp	x29, x30, [x0, #JMP_CTX_X29]
-
-	mov	sp, x7
-
-	ands	x0, x1, x1 /* Move val to x0 and set flags */
-	cinc	x0, x0, eq /* If val is 0, return 1 */
-	ret
-endfunc longjmp
-
-#endif

@@ -23,24 +23,21 @@
 	 * corresponding callback entry in console_t is set to 0.
 	 */
 	.ifne \putc
-	  adrp	PTR(1), :got:console_\_driver\()_putc
-	  ldr	PTR(1), [PTR(1), :got_lo12:console_\_driver\()_putc]
+	  LDR_LABEL(PTR(1), console_\_driver\()_putc)
 	  str	PTR(1), [PTR(0), #CONSOLE_T_PUTC]
 	.else
 	  str	xzr, [PTR(0), #CONSOLE_T_PUTC]
 	.endif
 
 	.ifne \getc
-	  adrp	PTR(1), :got:console_\_driver\()_getc
-	  ldr	PTR(1), [PTR(1), :got_lo12:console_\_driver\()_getc]
+	  LDR_LABEL(PTR(1), console_\_driver\()_getc)
 	  str	PTR(1), [PTR(0), #CONSOLE_T_GETC]
 	.else
 	  str	xzr, [x0, #CONSOLE_T_GETC]
 	.endif
 
 	.ifne \flush
-	  adrp	PTR(1), :got:console_\_driver\()_flush
-	  ldr	PTR(1), [PTR(1), :got_lo12:console_\_driver\()_flush]
+	  LDR_LABEL(PTR(1), console_\_driver\()_flush)
 	  str	PTR(1), [PTR(0), #CONSOLE_T_FLUSH]
 	.else
 	  str	xzr, [PTR(0), #CONSOLE_T_FLUSH]
