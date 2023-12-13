@@ -558,10 +558,8 @@
 		mov	x14, x0
 
 		/* short circuit the location to avoid searching the list */
-		adrp	PTR(12), :got:\_cpu\()_errata_list_start
-		ldr	PTR(12), [PTR(12), :got_lo12:\_cpu\()_errata_list_start]
-		adrp	PTR(13), :got:\_cpu\()_errata_list_end
-		ldr	PTR(13), [PTR(13), :got_lo12:\_cpu\()_errata_list_end]
+		LDR_LABEL(PTR(12), \_cpu\()_errata_list_start)
+		LDR_LABEL(PTR(13), \_cpu\()_errata_list_end)
 
 	errata_begin:
 		/* if head catches up with end of list, exit */

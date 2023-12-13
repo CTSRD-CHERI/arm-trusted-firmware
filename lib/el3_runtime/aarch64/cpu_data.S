@@ -41,8 +41,7 @@ endfunc init_cpu_data_ptr
 func _cpu_data_by_index
 	mov_imm	x1, CPU_DATA_SIZE
 	mul	x0, x0, x1
-	adrp	PTR(1), :got:percpu_data
-	ldr	PTR(1), [PTR(1), :got_lo12:percpu_data]
+	LDR_LABEL(PTR(1), percpu_data)
 	add	PTR(0), PTR(1), x0
 	ret
 endfunc _cpu_data_by_index

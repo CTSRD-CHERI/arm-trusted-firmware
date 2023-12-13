@@ -519,10 +519,8 @@ func fixup_gdt_reloc
 	subs	x0, x2, x6	/* Diff(S) = Current Address - Compiled Address */
 	b.eq	3f		/* Diff(S) = 0. No relocation needed */
 
-	adrp	PTR(1), :got:__GOT_START__
-	ldr	PTR(1), [PTR(1), :got_lo12:__GOT_START__]
-	adrp	PTR(2), :got:__GOT_END__
-	ldr	PTR(2), [PTR(2), :got_lo12:__GOT_END__]
+	LDR_LABEL(PTR(1), __GOT_START__)
+	LDR_LABEL(PTR(2), __GOT_END__)
 
 	/*
 	 * GOT is an array of 64_bit addresses which must be fixed up as
@@ -547,10 +545,9 @@ func fixup_gdt_reloc
 	b.lo	1b
 
 	/* Starting dynamic relocations. Use adrp/adr to get RELA_START and END */
-3:	adrp	PTR(1), :got:__RELA_START__
-	ldr	PTR(1), [PTR(1), :got_lo12:__RELA_START__]
-	adrp	PTR(2), :got:__RELA_END__
-	ldr	PTR(2), [PTR(2), :got_lo12:__RELA_END__]
+3:
+	LDR_LABEL(PTR(1), __RELA_START__)
+	LDR_LABEL(PTR(2), __RELA_END__)
 
 	/*
 	 * According to ELF-64 specification, the RELA data structure is as

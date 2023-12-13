@@ -186,8 +186,7 @@ func get_cpu_ops_ptr
 #ifdef SUPPORT_UNKNOWN_MPID
 	cbnz	x2, exit_mpid_found
 	/* Mark the unsupported MPID flag */
-	adrp	PTR(1), :got:unsupported_mpid_flag
-	ldr	PTR(1), [PTR(1), :got_lo12:unsupported_mpid_flag]
+	LDR_LABEL(PTR(1), unsupported_mpid_flag)
 	str	w2, [PTR(1)]
 exit_mpid_found:
 #endif
