@@ -25,7 +25,7 @@
 	 */
 	.globl	reset_handler
 func reset_handler
-	mov	PTR(19), PTR(30)
+	mov	CAP(19), CAP(30)
 
 	/* The plat_reset_handler can clobber x0 - x18, x30 */
 	bl	plat_reset_handler
@@ -34,12 +34,12 @@ func reset_handler
 	bl	get_cpu_ops_ptr
 
 	/* Get the cpu_ops reset handler */
-	ldr	PTR(2), [PTR(0), #CPU_RESET_FUNC]
-	mov	PTR(30), PTR(19)
+	ldr	CAP(2), [CAP(0), #CPU_RESET_FUNC]
+	mov	CAP(30), CAP(19)
 	cbz	x2, 1f
 
 	/* The cpu_ops reset handler can clobber x0 - x19, x30 */
-	br	PTR(2)
+	br	CAP(2)
 1:
 	ret
 endfunc reset_handler
@@ -65,8 +65,8 @@ func prepare_cpu_pwr_dwn
 	cmp	x0, x2
 	csel	x2, x2, x0, hi
 
-	mrs	PTR(1), REGN(tpidr_el3)
-	ldr	PTR(0), [PTR(1), #CPU_DATA_CPU_OPS_PTR]
+	mrs	CAP(1), REGN(tpidr_el3)
+	ldr	CAP(0), [CAP(1), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
@@ -75,12 +75,12 @@ func prepare_cpu_pwr_dwn
 	/* Get the appropriate power down handler */
 	mov	x1, #CPU_PWR_DWN_OPS
 	add	x1, x1, x2, lsl #3
-	ldr	PTR(1), [PTR(0), x1]
+	ldr	CAP(1), [CAP(0), x1]
 #if ENABLE_ASSERTIONS
 	cmp	x1, #0
 	ASM_ASSERT(ne)
 #endif
-	br	PTR(1)
+	br	CAP(1)
 endfunc prepare_cpu_pwr_dwn
 
 
@@ -92,13 +92,13 @@ endfunc prepare_cpu_pwr_dwn
 	 */
 	.globl	init_cpu_ops
 func init_cpu_ops
-	mrs	PTR(6), REGN(tpidr_el3)
-	ldr	PTR(0), [PTR(6), #CPU_DATA_CPU_OPS_PTR]
+	mrs	CAP(6), REGN(tpidr_el3)
+	ldr	CAP(0), [CAP(6), #CPU_DATA_CPU_OPS_PTR]
 	cbnz	x0, 1f
-	mov	PTR(10), PTR(30)
+	mov	CAP(10), CAP(30)
 	bl	get_cpu_ops_ptr
-	str	PTR(0), [PTR(6), #CPU_DATA_CPU_OPS_PTR]!
-	mov PTR(30), PTR(10)
+	str	CAP(0), [CAP(6), #CPU_DATA_CPU_OPS_PTR]!
+	mov CAP(30), CAP(10)
 1:
 	ret
 endfunc init_cpu_ops
@@ -113,18 +113,18 @@ endfunc init_cpu_ops
 	 */
 	.globl	do_cpu_reg_dump
 func do_cpu_reg_dump
-	mov	PTR(16), PTR(30)
+	mov	CAP(16), CAP(30)
 
 	/* Get the matching cpu_ops pointer */
 	bl	get_cpu_ops_ptr
 	cbz	x0, 1f
 
 	/* Get the cpu_ops cpu_reg_dump */
-	ldr	PTR(2), [PTR(0), #CPU_REG_DUMP]
+	ldr	CAP(2), [CAP(0), #CPU_REG_DUMP]
 	cbz	x2, 1f
-	blr	PTR(2)
+	blr	CAP(2)
 1:
-	mov	PTR(30), PTR(16)
+	mov	CAP(30), CAP(16)
 	ret
 endfunc do_cpu_reg_dump
 #endif
@@ -156,13 +156,13 @@ func get_cpu_ops_ptr
 	and	w2, w2, w3
 
 	/* Get the cpu_ops end location */
-	adr	PTR(5), (__CPU_OPS_END__ + CPU_MIDR)
+	adr	CAP(5), (__CPU_OPS_END__ + CPU_MIDR)
 
 	/* Initialize the return parameter */
 	mov	x0, #0
 1:
 	/* Get the cpu_ops start location */
-	adr	PTR(4), (__CPU_OPS_START__ + CPU_MIDR)
+	adr	CAP(4), (__CPU_OPS_START__ + CPU_MIDR)
 
 2:
 	/* Check if we have reached end of list */
@@ -170,7 +170,7 @@ func get_cpu_ops_ptr
 	b.eq	search_def_ptr
 
 	/* load the midr from the cpu_ops */
-	ldr	x1, [PTR(4)], #CPU_OPS_SIZE
+	ldr	x1, [CAP(4)], #CPU_OPS_SIZE
 	and	w1, w1, w3
 
 	/* Check if midr matches to midr of this core */
@@ -178,7 +178,7 @@ func get_cpu_ops_ptr
 	b.ne	2b
 
 	/* Subtract the increment and offset to get the cpu-ops pointer */
-	sub	PTR(0), PTR(4), #(CPU_OPS_SIZE + CPU_MIDR)
+	sub	CAP(0), CAP(4), #(CPU_OPS_SIZE + CPU_MIDR)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
@@ -186,8 +186,8 @@ func get_cpu_ops_ptr
 #ifdef SUPPORT_UNKNOWN_MPID
 	cbnz	x2, exit_mpid_found
 	/* Mark the unsupported MPID flag */
-	LDR_LABEL(PTR(1), unsupported_mpid_flag)
-	str	w2, [PTR(1)]
+	LDR_LABEL(CAP(1), unsupported_mpid_flag)
+	str	w2, [CAP(1)]
 exit_mpid_found:
 #endif
 	ret
@@ -293,24 +293,24 @@ endfunc cpu_rev_var_range
  */
 	.globl	check_wa_cve_2017_5715
 func check_wa_cve_2017_5715
-	mrs	PTR(0), REGN(tpidr_el3)
+	mrs	CAP(0), REGN(tpidr_el3)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	PTR(0), [PTR(0), #CPU_DATA_CPU_OPS_PTR]
+	ldr	CAP(0), [CAP(0), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	PTR(0), [PTR(0), #CPU_EXTRA1_FUNC]
+	ldr	CAP(0), [CAP(0), #CPU_EXTRA1_FUNC]
 	/*
 	 * If the reserved function pointer is NULL, this CPU
 	 * is unaffected by CVE-2017-5715 so bail out.
 	 */
 	cmp	x0, #CPU_NO_EXTRA1_FUNC
 	beq	1f
-	br	PTR(0)
+	br	CAP(0)
 1:
 	mov	x0, #ERRATA_NOT_APPLIES
 	ret
@@ -330,17 +330,17 @@ endfunc check_wa_cve_2017_5715
  */
 	.globl	wa_cve_2018_3639_get_disable_ptr
 func wa_cve_2018_3639_get_disable_ptr
-	mrs	PTR(0), REGN(tpidr_el3)
+	mrs	CAP(0), REGN(tpidr_el3)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	PTR(0), [PTR(0), #CPU_DATA_CPU_OPS_PTR]
+	ldr	CAP(0), [CAP(0), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	PTR(0), [PTR(0), #CPU_EXTRA2_FUNC]
+	ldr	CAP(0), [CAP(0), #CPU_EXTRA2_FUNC]
 	ret
 endfunc wa_cve_2018_3639_get_disable_ptr
 
@@ -359,24 +359,24 @@ endfunc wa_cve_2018_3639_get_disable_ptr
  */
 	.globl	check_smccc_arch_wa3_applies
 func check_smccc_arch_wa3_applies
-	mrs	PTR(0), REGN(tpidr_el3)
+	mrs	CAP(0), REGN(tpidr_el3)
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	PTR(0), [PTR(0), #CPU_DATA_CPU_OPS_PTR]
+	ldr	CAP(0), [CAP(0), #CPU_DATA_CPU_OPS_PTR]
 #if ENABLE_ASSERTIONS
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif
-	ldr	PTR(0), [PTR(0), #CPU_EXTRA3_FUNC]
+	ldr	CAP(0), [CAP(0), #CPU_EXTRA3_FUNC]
 	/*
 	 * If the reserved function pointer is NULL, this CPU
 	 * is unaffected by CVE-2022-23960 so bail out.
 	 */
 	cmp	x0, #CPU_NO_EXTRA3_FUNC
 	beq	1f
-	br	PTR(0)
+	br	CAP(0)
 1:
 	mov	x0, #ERRATA_NOT_APPLIES
 	ret
