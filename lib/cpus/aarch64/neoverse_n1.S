@@ -701,10 +701,10 @@ func neoverse_n1_errata_ic_trap_handler
 	add     x3, x3, #4
 	msr     elr_el3, x3
 
-	ldp	x0, x1, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	ldp	x2, x3, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	ldp	x4, x5, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
-	ldr	x30, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldp	CAP(0), CAP(1), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	CAP(2), CAP(3), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(4), CAP(5), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	ldr	CAP(30), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 	/*
 	 * Issue Error Synchronization Barrier to synchronize SErrors before
