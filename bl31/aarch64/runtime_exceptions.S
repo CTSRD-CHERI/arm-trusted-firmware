@@ -129,7 +129,7 @@
 	 */
 	mrs	x30, cntpct_el0
 	str	CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
-	mrs	x29, tpidr_el3
+	mrs	CAP(29), tpidr_el3
 	str	CAP(30), [CAP(29), #CPU_DATA_PMF_TS0_OFFSET]
 	ldr	x29, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 #endif
