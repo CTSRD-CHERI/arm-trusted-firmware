@@ -1427,14 +1427,15 @@
 #define	CAP_WIDTH	16
 #define	CAPN(n)		c ## n
 #define	CAP(n)		c ## n
+#define	CZR		czr
 #else
 #define	CAP_WIDTH	INT_WIDTH
 #define	CAPN(n)		INTN(n)
 #define	CAP(n)		INT(n)
+#define	CZR		xzr
 #endif
 
 #ifdef __CHERI_PURE_CAPABILITY__
-#define	ZR		czr
 #define	PTR_WIDTH	CAP_WIDTH
 #define	PTRN(n)		CAPN(n)
 #define	PTR(n)		CAP(n)
@@ -1442,8 +1443,8 @@
 /* Alias for link register c30 */
 #define	clr		c30
 #define	chericap2	chericap
+#define	ZR		czr
 #else
-#define	ZR		xzr
 #define	PTR_WIDTH	INT_WIDTH
 #define	PTRN(n)		INTN(n)
 #define	PTR(n)		INT(n)
@@ -1451,6 +1452,7 @@
 #define	chericap2	quad
 /* Alias for link register x30 */
 #define	lr		x30
+#define ZR		xzr
 #endif
 
 #ifdef __CHERI_PURE_CAPABILITY__

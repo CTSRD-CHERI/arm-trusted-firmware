@@ -221,93 +221,93 @@ endfunc el2_sysregs_context_restore_mte
 func el1_sysregs_context_save
 
 	mrs	x9, spsr_el1
-	mrs	PTR(10), PTRN(elr_el1)
-	str	x9, [PTR(0), #CTX_SPSR_EL1]
-	str	PTR(10), [PTR(0), #CTX_ELR_EL1]
+	mrs	CAP(10), CAPN(elr_el1)
+	str	CAP(9), [PTR(0), #CTX_SPSR_EL1]
+	str	CAP(10), [PTR(0), #CTX_ELR_EL1]
 
 #if !ERRATA_SPECULATIVE_AT
 	mrs	x15, sctlr_el1
 	mrs	x16, tcr_el1
-	stp	x15, x16, [PTR(0), #CTX_SCTLR_EL1]
+	stp	CAP(15), CAP(16), [PTR(0), #CTX_SCTLR_EL1]
 #endif /* ERRATA_SPECULATIVE_AT */
 
 	mrs	x17, cpacr_el1
 	mrs	x9, csselr_el1
-	stp	x17, x9, [PTR(0), #CTX_CPACR_EL1]
+	stp	CAP(17), CAP(9), [PTR(0), #CTX_CPACR_EL1]
 
-	mrs	PTR(10), PTRN(sp_el1)
+	mrs	CAP(10), CAPN(sp_el1)
 	mrs	x11, esr_el1
-	str	x10, [PTR(0), #CTX_SP_EL1]
-	str	x11, [PTR(0), #CTX_ESR_EL1]
+	str	CAP(10), [PTR(0), #CTX_SP_EL1]
+	str	CAP(11), [PTR(0), #CTX_ESR_EL1]
 
 	mrs	x12, ttbr0_el1
 	mrs	x13, ttbr1_el1
-	stp	x12, x13, [PTR(0), #CTX_TTBR0_EL1]
+	stp	CAP(12), CAP(13), [PTR(0), #CTX_TTBR0_EL1]
 
 	mrs	x14, mair_el1
 	mrs	x15, amair_el1
-	stp	x14, x15, [PTR(0), #CTX_MAIR_EL1]
+	stp	CAP(14), CAP(15), [PTR(0), #CTX_MAIR_EL1]
 
 	mrs	x16, actlr_el1
-	mrs	PTR(17), PTRN(tpidr_el1)
-	str	x16, [PTR(0), #CTX_ACTLR_EL1]
-	str	PTR(17), [PTR(0), #CTX_TPIDR_EL1]
+	mrs	CAP(17), CAPN(tpidr_el1)
+	str	CAP(16), [PTR(0), #CTX_ACTLR_EL1]
+	str	CAP(17), [PTR(0), #CTX_TPIDR_EL1]
 
-	mrs	PTR(9), PTRN(tpidr_el0)
-	mrs	x10, tpidrro_el0
-	str	PTR(9), [PTR(0), #CTX_TPIDR_EL0]
-	str	x10, [PTR(0), #CTX_TPIDRRO_EL0]
+	mrs	CAP(9), CAPN(tpidr_el0)
+	mrs	CAP(10), CAPN(tpidrro_el0)
+	str	CAP(9), [PTR(0), #CTX_TPIDR_EL0]
+	str	CAP(10), [PTR(0), #CTX_TPIDRRO_EL0]
 
 	mrs	x13, par_el1
 	mrs	x14, far_el1
-	stp	x13, x14, [PTR(0), #CTX_PAR_EL1]
+	stp	CAP(13), CAP(14), [PTR(0), #CTX_PAR_EL1]
 
 	mrs	x15, afsr0_el1
 	mrs	x16, afsr1_el1
-	stp	x15, x16, [PTR(0), #CTX_AFSR0_EL1]
+	stp	CAP(15), CAP(16), [PTR(0), #CTX_AFSR0_EL1]
 
 	mrs	x17, contextidr_el1
 	mrs	x9, vbar_el1
-	stp	x17, x9, [PTR(0), #CTX_CONTEXTIDR_EL1]
+	stp	CAP(17), CAP(9), [PTR(0), #CTX_CONTEXTIDR_EL1]
 
 	/* Save AArch32 system registers if the build has instructed so */
 #if CTX_INCLUDE_AARCH32_REGS
 	mrs	x11, spsr_abt
 	mrs	x12, spsr_und
-	stp	x11, x12, [PTR(0), #CTX_SPSR_ABT]
+	stp	CAP(11), CAP(12), [PTR(0), #CTX_SPSR_ABT]
 
 	mrs	x13, spsr_irq
 	mrs	x14, spsr_fiq
-	stp	x13, x14, [PTR(0), #CTX_SPSR_IRQ]
+	stp	CAP(13), CAP(14), [PTR(0), #CTX_SPSR_IRQ]
 
 	mrs	x15, dacr32_el2
 	mrs	x16, ifsr32_el2
-	stp	x15, x16, [PTR(0), #CTX_DACR32_EL2]
+	stp	CAP(15), CAP(16), [PTR(0), #CTX_DACR32_EL2]
 #endif /* CTX_INCLUDE_AARCH32_REGS */
 
 	/* Save NS timer registers if the build has instructed so */
 #if NS_TIMER_SWITCH
 	mrs	x10, cntp_ctl_el0
 	mrs	x11, cntp_cval_el0
-	stp	x10, x11, [PTR(0), #CTX_CNTP_CTL_EL0]
+	stp	CAP(10), CAP(11), [PTR(0), #CTX_CNTP_CTL_EL0]
 
-	mrs	x12, cntv_ctl_el0
-	mrs	x13, cntv_cval_el0
-	stp	x12, x13, [PTR(0), #CTX_CNTV_CTL_EL0]
+	mrs	CAP(12), cntv_ctl_el0
+	mrs	CAP(13), cntv_cval_el0
+	stp	CAP(12), CAP(13), [PTR(0), #CTX_CNTV_CTL_EL0]
 
 	mrs	x14, cntkctl_el1
-	str	x14, [PTR(0), #CTX_CNTKCTL_EL1]
+	str	CAP(14), [PTR(0), #CTX_CNTKCTL_EL1]
 #endif /* NS_TIMER_SWITCH */
 
 	/* Save MTE system registers if the build has instructed so */
 #if CTX_INCLUDE_MTE_REGS
 	mrs	x15, TFSRE0_EL1
 	mrs	x16, TFSR_EL1
-	stp	x15, x16, [PTR(0), #CTX_TFSRE0_EL1]
+	stp	CAP(15), CAP(16), [PTR(0), #CTX_TFSRE0_EL1]
 
 	mrs	x9, RGSR_EL1
 	mrs	x10, GCR_EL1
-	stp	x9, x10, [PTR(0), #CTX_RGSR_EL1]
+	stp	CAP(9), CAP(10), [PTR(0), #CTX_RGSR_EL1]
 #endif /* CTX_INCLUDE_MTE_REGS */
 
 	ret
@@ -323,92 +323,92 @@ endfunc el1_sysregs_context_save
  */
 func el1_sysregs_context_restore
 
-	ldr	x9, [PTR(0), #CTX_SPSR_EL1]
-	ldr	PTR(10), [PTR(0), #CTX_ELR_EL1]
+	ldr	CAP(9), [PTR(0), #CTX_SPSR_EL1]
+	ldr	CAP(10), [PTR(0), #CTX_ELR_EL1]
 	msr	spsr_el1, x9
-	msr	PTRN(elr_el1), PTR(10)
+	msr	CAPN(elr_el1), CAP(10)
 
 #if !ERRATA_SPECULATIVE_AT
-	ldp	x15, x16, [PTR(0), #CTX_SCTLR_EL1]
+	ldp	CAP(15), CAP(16), [PTR(0), #CTX_SCTLR_EL1]
 	msr	sctlr_el1, x15
 	msr	tcr_el1, x16
 #endif /* ERRATA_SPECULATIVE_AT */
 
-	ldp	x17, x9, [PTR(0), #CTX_CPACR_EL1]
+	ldp	CAP(17), CAP(9), [PTR(0), #CTX_CPACR_EL1]
 	msr	cpacr_el1, x17
 	msr	csselr_el1, x9
 
-	ldr	PTR(10), [PTR(0), #CTX_SP_EL1]
-	ldr	x11, [PTR(0), #CTX_ESR_EL1]
-	msr	PTRN(sp_el1), PTR(10)
+	ldr	CAP(10), [PTR(0), #CTX_SP_EL1]
+	ldr	CAP(11), [PTR(0), #CTX_ESR_EL1]
+	msr	CAPN(sp_el1), CAP(10)
 	msr	esr_el1, x11
 
-	ldp	x12, x13, [PTR(0), #CTX_TTBR0_EL1]
+	ldp	CAP(12), CAP(13), [PTR(0), #CTX_TTBR0_EL1]
 	msr	ttbr0_el1, x12
 	msr	ttbr1_el1, x13
 
-	ldp	x14, x15, [PTR(0), #CTX_MAIR_EL1]
+	ldp	CAP(14), CAP(15), [PTR(0), #CTX_MAIR_EL1]
 	msr	mair_el1, x14
 	msr	amair_el1, x15
 
-	ldr 	x16, [PTR(0), #CTX_ACTLR_EL1]
-	ldr 	PTR(17), [PTR(0), #CTX_TPIDR_EL1]
+	ldr 	CAP(16), [PTR(0), #CTX_ACTLR_EL1]
+	ldr 	CAP(17), [PTR(0), #CTX_TPIDR_EL1]
 	msr	actlr_el1, x16
-	msr	PTRN(tpidr_el1), PTR(17)
+	msr	CAPN(tpidr_el1), CAP(17)
 
-	ldr	PTR(9), [PTR(0), #CTX_TPIDR_EL0]
-	ldr	x10, [PTR(0), #CTX_TPIDRRO_EL0]
-	msr	PTRN(tpidr_el0), PTR(9)
-	msr	tpidrro_el0, x10
+	ldr	CAP(9), [PTR(0), #CTX_TPIDR_EL0]
+	ldr	CAP(10), [PTR(0), #CTX_TPIDRRO_EL0]
+	msr	CAPN(tpidr_el0), CAP(9)
+	msr	CAPN(tpidrro_el0), CAP(10)
 
-	ldp	x13, x14, [PTR(0), #CTX_PAR_EL1]
+	ldp	CAP(13), CAP(14), [PTR(0), #CTX_PAR_EL1]
 	msr	par_el1, x13
 	msr	far_el1, x14
 
-	ldp	x15, x16, [PTR(0), #CTX_AFSR0_EL1]
+	ldp	CAP(15), CAP(16), [PTR(0), #CTX_AFSR0_EL1]
 	msr	afsr0_el1, x15
 	msr	afsr1_el1, x16
 
-	ldp	x17, x9, [PTR(0), #CTX_CONTEXTIDR_EL1]
+	ldp	CAP(17), CAP(9), [PTR(0), #CTX_CONTEXTIDR_EL1]
 	msr	contextidr_el1, x17
 	msr	vbar_el1, x9
 
 	/* Restore AArch32 system registers if the build has instructed so */
 #if CTX_INCLUDE_AARCH32_REGS
-	ldp	x11, x12, [PTR(0), #CTX_SPSR_ABT]
+	ldp	CAP(11), CAP(12), [PTR(0), #CTX_SPSR_ABT]
 	msr	spsr_abt, x11
 	msr	spsr_und, x12
 
-	ldp	x13, x14, [PTR(0), #CTX_SPSR_IRQ]
+	ldp	CAP(13), CAP(14), [PTR(0), #CTX_SPSR_IRQ]
 	msr	spsr_irq, x13
 	msr	spsr_fiq, x14
 
-	ldp	x15, x16, [PTR(0), #CTX_DACR32_EL2]
+	ldp	CAP(15), CAP(16), [PTR(0), #CTX_DACR32_EL2]
 	msr	dacr32_el2, x15
 	msr	ifsr32_el2, x16
 #endif /* CTX_INCLUDE_AARCH32_REGS */
 
 	/* Restore NS timer registers if the build has instructed so */
 #if NS_TIMER_SWITCH
-	ldp	x10, x11, [PTR(0), #CTX_CNTP_CTL_EL0]
+	ldp	CAP(10), CAP(11), [PTR(0), #CTX_CNTP_CTL_EL0]
 	msr	cntp_ctl_el0, x10
 	msr	cntp_cval_el0, x11
 
-	ldp	x12, x13, [PTR(0), #CTX_CNTV_CTL_EL0]
+	ldp	CAP(12), CAP(13), [PTR(0), #CTX_CNTV_CTL_EL0]
 	msr	cntv_ctl_el0, x12
 	msr	cntv_cval_el0, x13
 
-	ldr	x14, [PTR(0), #CTX_CNTKCTL_EL1]
+	ldr	CAP(14), [PTR(0), #CTX_CNTKCTL_EL1]
 	msr	cntkctl_el1, x14
 #endif /* NS_TIMER_SWITCH */
 
 	/* Restore MTE system registers if the build has instructed so */
 #if CTX_INCLUDE_MTE_REGS
-	ldp	x11, x12, [PTR(0), #CTX_TFSRE0_EL1]
+	ldp	CAP(11), CAP(12), [PTR(0), #CTX_TFSRE0_EL1]
 	msr	TFSRE0_EL1, x11
 	msr	TFSR_EL1, x12
 
-	ldp	x13, x14, [PTR(0), #CTX_RGSR_EL1]
+	ldp	CAP(13), CAP(14), [PTR(0), #CTX_RGSR_EL1]
 	msr	RGSR_EL1, x13
 	msr	GCR_EL1, x14
 #endif /* CTX_INCLUDE_MTE_REGS */
@@ -582,7 +582,7 @@ endfunc fpregs_context_restore
 
 	/* PMUv3 is presumed to be always present */
 	mrs	x9, pmcr_el0
-	str	x9, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_PMCR_EL0]
+	str	CAP(9), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_PMCR_EL0]
 	/* Disable cycle counter when event counting is prohibited */
 	orr	x9, x9, #PMCR_EL0_DP_BIT
 	msr	pmcr_el0, x9
@@ -699,9 +699,9 @@ func save_and_update_ptw_el1_sys_regs
 	 * ----------------------------------------------------------
 	 */
 	mrs	x29, sctlr_el1
-	str	x29, [PTRN(sp), #(CTX_EL1_SYSREGS_OFFSET + CTX_SCTLR_EL1)]
+	str	CAP(29), [PTRN(sp), #(CTX_EL1_SYSREGS_OFFSET + CTX_SCTLR_EL1)]
 	mrs	x29, tcr_el1
-	str	x29, [PTRN(sp), #(CTX_EL1_SYSREGS_OFFSET + CTX_TCR_EL1)]
+	str	CAP(29), [PTRN(sp), #(CTX_EL1_SYSREGS_OFFSET + CTX_TCR_EL1)]
 
 	/* ------------------------------------------------------------
 	 * Must follow below order in order to disable page table
@@ -750,9 +750,9 @@ func el3_exit
 	 * Then switch to SP_EL3.
 	 * ----------------------------------------------------------
 	 */
-	mov	PTR(17), PTRN(sp)
+	mov	CAP(17), CAPN(sp)
 	msr	spsel, #MODE_SP_ELX
-	str	PTR(17), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	str	CAP(17), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 
 #if IMAGE_BL31
 	/* ----------------------------------------------------------
@@ -761,9 +761,9 @@ func el3_exit
 	 * Synchronization is required before zcr_el3 is addressed.
 	 * ----------------------------------------------------------
 	 */
-	ldr	x19, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_CPTR_EL3]
-	ldr	x20, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ZCR_EL3]
-	msr	cptr_el3, x19
+	ldr	CAP(19), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_CPTR_EL3]
+	ldr	CAP(20), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ZCR_EL3]
+	//msr	cptr_el3, x19
 
 	ands	x19, x19, #CPTR_EZ_BIT
 	beq	sve_not_enabled
@@ -806,9 +806,9 @@ sve_not_enabled:
 	 * Restore SPSR_EL3, ELR_EL3 and SCR_EL3 prior to ERET
 	 * ----------------------------------------------------------
 	 */
-	ldr	x18, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
-	ldr	x16, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	ldr	x17, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	ldr	CAP(18), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
+	ldr	CAP(16), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	ldr	CAP(17), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	msr	scr_el3, x18
 	msr	spsr_el3, x16
@@ -831,10 +831,10 @@ sve_not_enabled:
  	 * ----------------------------------------------------------
  	 */
 	bl	restore_gp_pmcr_pauth_regs
-	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldr	CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 #ifdef IMAGE_BL31
-	str	xzr, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
+	str	ZR, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
 #endif /* IMAGE_BL31 */
 
 	exception_return
