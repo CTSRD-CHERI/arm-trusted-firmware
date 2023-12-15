@@ -44,10 +44,10 @@ func console_pl011_core_init
 	cbz	w1, core_init_fail
 	cbz	w2, core_init_fail
 	/* Disable uart before programming */
-	ldr	w3, [PTR(0), #UARTCR]
+	ldr	w3, [CAP(0), #UARTCR]
 	mov	w4, #PL011_UARTCR_UARTEN
 	bic	w3, w3, w4
-	str	w3, [PTR(0), #UARTCR]
+	str	w3, [CAP(0), #UARTCR]
 	/* Program the baudrate */
 	/* Divisor =  (Uart clock * 4) / baudrate */
 	lsl	w1, w1, #2
@@ -55,18 +55,18 @@ func console_pl011_core_init
 	/* IBRD = Divisor >> 6 */
 	lsr	w1, w2, #6
 	/* Write the IBRD */
-	str	w1, [PTR(0), #UARTIBRD]
+	str	w1, [CAP(0), #UARTIBRD]
 	/* FBRD = Divisor & 0x3F */
 	and	w1, w2, #0x3f
 	/* Write the FBRD */
-	str	w1, [PTR(0), #UARTFBRD]
+	str	w1, [CAP(0), #UARTFBRD]
 	mov	w1, #PL011_LINE_CONTROL
-	str	w1, [PTR(0), #UARTLCR_H]
+	str	w1, [CAP(0), #UARTLCR_H]
 	/* Clear any pending errors */
-	str	wzr, [PTR(0), #UARTECR]
+	str	wzr, [CAP(0), #UARTECR]
 	/* Enable tx, rx, and uart overall */
 	mov	w1, #(PL011_UARTCR_RXE | PL011_UARTCR_TXE | PL011_UARTCR_UARTEN)
-	str	w1, [PTR(0), #UARTCR]
+	str	w1, [CAP(0), #UARTCR]
 #endif
 	mov	w0, #1
 	ret
@@ -93,23 +93,23 @@ endfunc console_pl011_core_init
 	 * -----------------------------------------------
 	 */
 func console_pl011_register
-	mov	PTR(7), PTR(30)
-	mov	PTR(6), PTR(3)
+	mov	CAP(7), CAP(30)
+	mov	CAP(6), CAP(3)
 	cbz	x6, register_fail
 #ifdef __CHERI_PURE_CAPABILITY__
 	cvtd	c0, x0
 #endif
-	str	PTR(0), [PTR(6), #CONSOLE_T_BASE]
+	str	CAP(0), [CAP(6), #CONSOLE_T_BASE]
 
 	bl	console_pl011_core_init
 	cbz	x0, register_fail
 
-	mov	PTR(0), PTR(6)
-	mov	PTR(30), PTR(7)
+	mov	CAP(0), CAP(6)
+	mov	CAP(30), CAP(7)
 	finish_console_register pl011 putc=1, getc=1, flush=1
 
 register_fail:
-	ret	PTR(7)
+	ret	CAP(7)
 endfunc console_pl011_register
 
 	/* --------------------------------------------------------
@@ -133,16 +133,16 @@ func console_pl011_core_putc
 	b.ne	2f
 1:
 	/* Check if the transmit FIFO is full */
-	ldr	w2, [PTR(1), #UARTFR]
+	ldr	w2, [CAP(1), #UARTFR]
 	tbnz	w2, #PL011_UARTFR_TXFF_BIT, 1b
 	mov	w2, #0xD
-	str	w2, [PTR(1), #UARTDR]
+	str	w2, [CAP(1), #UARTDR]
 	dsb	sy
 2:
 	/* Check if the transmit FIFO is full */
-	ldr	w2, [PTR(1), #UARTFR]
+	ldr	w2, [CAP(1), #UARTFR]
 	tbnz	w2, #PL011_UARTFR_TXFF_BIT, 2b
-	str	w0, [PTR(1), #UARTDR]
+	str	w0, [CAP(1), #UARTDR]
 	dsb	sy
 	ret
 endfunc console_pl011_core_putc
@@ -162,7 +162,7 @@ func console_pl011_putc
 	cmp	x1, #0
 	ASM_ASSERT(ne)
 #endif /* ENABLE_ASSERTIONS */
-	ldr	PTR(1), [PTR(1), #CONSOLE_T_BASE]
+	ldr	CAP(1), [CAP(1), #CONSOLE_T_BASE]
 	b	console_pl011_core_putc
 endfunc console_pl011_putc
 
@@ -183,9 +183,9 @@ func console_pl011_core_getc
 #endif /* ENABLE_ASSERTIONS */
 
 	/* Check if the receive FIFO is empty */
-	ldr	w1, [PTR(0), #UARTFR]
+	ldr	w1, [CAP(0), #UARTFR]
 	tbnz	w1, #PL011_UARTFR_RXFE_BIT, no_char
-	ldr	w1, [PTR(0), #UARTDR]
+	ldr	w1, [CAP(0), #UARTDR]
 	mov	w0, w1
 	ret
 no_char:
@@ -208,7 +208,7 @@ func console_pl011_getc
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif /* ENABLE_ASSERTIONS */
-	ldr	PTR(0), [PTR(0), #CONSOLE_T_BASE]
+	ldr	CAP(0), [CAP(0), #CONSOLE_T_BASE]
 	b	console_pl011_core_getc
 endfunc console_pl011_getc
 
@@ -228,7 +228,7 @@ func console_pl011_core_flush
 #endif /* ENABLE_ASSERTIONS */
 1:
 	/* Loop until the transmit FIFO is empty */
-	ldr	w1, [PTR(0), #UARTFR]
+	ldr	w1, [CAP(0), #UARTFR]
 	tbnz	w1, #PL011_UARTFR_BUSY_BIT, 1b
 	ret
 endfunc console_pl011_core_flush
@@ -247,6 +247,6 @@ func console_pl011_flush
 	cmp	x0, #0
 	ASM_ASSERT(ne)
 #endif /* ENABLE_ASSERTIONS */
-	ldr	PTR(0), [PTR(0), #CONSOLE_T_BASE]
+	ldr	CAP(0), [CAP(0), #CONSOLE_T_BASE]
 	b	console_pl011_core_flush
 endfunc console_pl011_flush

@@ -208,8 +208,8 @@
 	mov	x0, #ERRATA_MISSING
 	.endif
 900:
-	adr	PTR(1), \_cpu\()_cpu_str
-	adr	PTR(2), \_cpu\()_errata_\_id\()_str
+	adr	CAP(1), \_cpu\()_cpu_str
+	adr	CAP(2), \_cpu\()_errata_\_id\()_str
 	bl	errata_print_msg
 	.endm
 #endif
@@ -308,7 +308,7 @@
 	add_erratum_entry \_cpu, \_cve, \_id, \_chosen, \_apply_at_reset
 
 	func erratum_\_cpu\()_\_id\()_wa
-		mov	PTR(8), PTR(30)
+		mov	CAP(8), CAP(30)
 
 		/* save rev_var for workarounds that might need it but don't
 		 * restore to x0 because few will care */
@@ -319,7 +319,7 @@
 
 .macro _workaround_end _cpu:req, _id:req
 	erratum_\_cpu\()_\_id\()_skip:
-		ret	PTR(8)
+		ret	CAP(8)
 	endfunc erratum_\_cpu\()_\_id\()_wa
 .endm
 
@@ -553,23 +553,23 @@
  */
 .macro cpu_reset_func_start _cpu:req
 	func \_cpu\()_reset_func
-		mov	PTR(15), PTR(30)
+		mov	CAP(15), CAP(30)
 		bl	cpu_get_rev_var
 		mov	x14, x0
 
 		/* short circuit the location to avoid searching the list */
-		LDR_LABEL(PTR(12), \_cpu\()_errata_list_start)
-		LDR_LABEL(PTR(13), \_cpu\()_errata_list_end)
+		LDR_LABEL(CAP(12), \_cpu\()_errata_list_start)
+		LDR_LABEL(CAP(13), \_cpu\()_errata_list_end)
 
 	errata_begin:
 		/* if head catches up with end of list, exit */
 		cmp	x12, x13
 		b.eq	errata_end
 
-		ldr	PTR(10), [PTR(12), #ERRATUM_WA_FUNC]
+		ldr	CAP(10), [CAP(12), #ERRATUM_WA_FUNC]
 		/* TODO(errata ABI): check mitigated and checker function fields
 		 * for 0 */
-		ldrb	w11, [PTR(12), #ERRATUM_CHOSEN]
+		ldrb	w11, [CAP(12), #ERRATUM_CHOSEN]
 
 		/* skip if not chosen */
 		cbz	x11, 1f
@@ -578,16 +578,16 @@
 
 		/* put cpu revision in x0 and call workaround */
 		mov	x0, x14
-		blr	PTR(10)
+		blr	CAP(10)
 	1:
-		add	PTR(12), PTR(12), #ERRATUM_ENTRY_SIZE
+		add	CAP(12), CAP(12), #ERRATUM_ENTRY_SIZE
 		b	errata_begin
 	errata_end:
 .endm
 
 .macro cpu_reset_func_end _cpu:req
 		isb
-		ret	PTR(15)
+		ret	CAP(15)
 	endfunc \_cpu\()_reset_func
 .endm
 
@@ -600,12 +600,12 @@
 	#if REPORT_ERRATA
 	func \_cpu\()_errata_report
 		/* normal stack frame for pretty debugging */
-		stp	PTR(29), PTR(30), [PTRN(sp), #-32]!
-		mov	PTR(29), PTRN(sp)
+		stp	CAP(29), CAP(30), [CAPN(sp), #-32]!
+		mov	CAP(29), CAPN(sp)
 
 		bl	generic_errata_report
 
-		ldp	PTR(29), PTR(30), [PTRN(sp)], #32
+		ldp	CAP(29), CAP(30), [CAPN(sp)], #32
 		ret
 	endfunc \_cpu\()_errata_report
 	#endif

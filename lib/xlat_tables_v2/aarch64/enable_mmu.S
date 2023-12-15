@@ -45,18 +45,18 @@
 		tlbi_invalidate_all \el
 
 		mov	x7, x0
-		LDR_LABEL(PTR(0), mmu_cfg_params)
+		LDR_LABEL(CAP(0), mmu_cfg_params)
 
 		/* MAIR */
-		ldr	x1, [PTR(0), #(MMU_CFG_MAIR << 3)]
+		ldr	x1, [CAP(0), #(MMU_CFG_MAIR << 3)]
 		_msr	mair, \el, x1
 
 		/* TCR */
-		ldr	x2, [PTR(0), #(MMU_CFG_TCR << 3)]
+		ldr	x2, [CAP(0), #(MMU_CFG_TCR << 3)]
 		_msr	tcr, \el, x2
 
 		/* TTBR */
-		ldr	x3, [PTR(0), #(MMU_CFG_TTBR0 << 3)]
+		ldr	x3, [CAP(0), #(MMU_CFG_TTBR0 << 3)]
 		_msr	ttbr0, \el, x3
 
 		/*

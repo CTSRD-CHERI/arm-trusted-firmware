@@ -118,13 +118,13 @@ func bl31_entrypoint
 	 * Perform BL31 setup
 	 * --------------------------------------------------------------------
 	 */
-	mov	PTR(0), PTR(20)
+	mov	CAP(0), CAP(20)
 #ifdef __CHERI_PURE_CAPABILITY__
 	bl	cheri_convert_params
 #endif
-	mov	PTR(1), PTR(21)
-	mov	PTR(2), PTR(22)
-	mov	PTR(3), PTR(23)
+	mov	CAP(1), CAP(21)
+	mov	CAP(2), CAP(22)
+	mov	CAP(3), CAP(23)
 	bl	bl31_setup
 
 #if ENABLE_PAUTH
@@ -148,13 +148,13 @@ func bl31_entrypoint
 	 * caches and participate in coherency.
 	 * --------------------------------------------------------------------
 	 */
-	LDR_LABEL(PTR(0), __DATA_START__)
-	LDR_LABEL(PTR(1), __DATA_END__)
+	LDR_LABEL(CAP(0), __DATA_START__)
+	LDR_LABEL(CAP(1), __DATA_END__)
 	sub	x1, x1, x0
 	bl	clean_dcache_range
 
-	LDR_LABEL(PTR(0), __BSS_START__)
-	LDR_LABEL(PTR(1), __BSS_END__)
+	LDR_LABEL(CAP(0), __BSS_START__)
+	LDR_LABEL(CAP(1), __BSS_END__)
 	sub	x1, x1, x0
 	bl	clean_dcache_range
 
@@ -289,7 +289,7 @@ func bl31_warm_entrypoint
 	mov	x30, x20
 
 	mrs	x0, cntpct_el0
-	str	x0, [PTR(19)]
+	str	x0, [CAP(19)]
 #endif
 	b	el3_exit
 endfunc bl31_warm_entrypoint

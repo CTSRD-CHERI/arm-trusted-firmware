@@ -58,15 +58,15 @@ func handle_lower_el_sync_ea
 	b.eq	1f
 
 	/* Save GP registers */
-	stp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	stp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	stp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	stp	CAP(0), CAP(1), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	stp	CAP(2), CAP(3), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	stp	CAP(4), CAP(5), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
 
 	/* Get the cpu_ops pointer */
 	bl	get_cpu_ops_ptr
 
 	/* Get the cpu_ops exception handler */
-	ldr	PTR(0), [PTR(0), #CPU_E_HANDLER_FUNC]
+	ldr	CAP(0), [CAP(0), #CPU_E_HANDLER_FUNC]
 
 	/*
 	 * If the reserved function pointer is NULL, this CPU does not have an
@@ -75,7 +75,7 @@ func handle_lower_el_sync_ea
 	cbz	x0, 2f
 	mrs	x1, esr_el3
 	ubfx	x1, x1, #ESR_EC_SHIFT, #ESR_EC_LENGTH
-	blr	PTR(0)
+	blr	CAP(0)
 	b	2f
 
 1:
@@ -113,16 +113,16 @@ func handle_lower_el_sync_ea
 	msr	ddc, c24
 
 	/* Write original DDC_EL0 value to stack. */
-	str	c26, [PTR(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	str	c26, [CAP(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
 #endif
 	b	el3_exit
 2:
-	ldp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	ldp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	ldp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	ldp	CAP(0), CAP(1), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	CAP(2), CAP(3), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(4), CAP(5), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
 
 	/* Synchronous exceptions other than the above are assumed to be EA */
-	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldr	CAP(30), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	no_ret	report_unhandled_exception
 endfunc handle_lower_el_sync_ea
 
@@ -171,7 +171,7 @@ func handle_lower_el_async_ea
 	msr	ddc, c24
 
 	/* Write original DDC_EL0 value to stack. */
-	str	c26, [PTR(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	str	c26, [CAP(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
 #endif
 	b	el3_exit
 endfunc handle_lower_el_async_ea
@@ -262,16 +262,16 @@ func ea_proceed
 	 * If the ESR loaded earlier is not zero, we were processing an EA
 	 * already, and this is a double fault.
 	 */
-	ldr	x5, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	ldr	x5, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 	cbz	x5, 1f
 	no_ret	plat_handle_double_fault
 
 1:
 	/* Save EL3 state */
 	mrs	x2, spsr_el3
-	mrs	PTR(3), PTRN(elr_el3)
-	str	x2, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	str	PTR(3), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	mrs	CAP(3), CAPN(elr_el3)
+	str	x2, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	CAP(3), [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/*
 	 * Save ESR as handling might involve lower ELs, and returning back to
@@ -279,8 +279,8 @@ func ea_proceed
 	 */
 	mrs	x4, scr_el3
 	mrs	x5, esr_el3
-	str	x4, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
-	str	x5, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	str	x4, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
+	str	x5, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 
 	/*
 	 * Setup rest of arguments, and call platform External Abort handler.
@@ -292,18 +292,18 @@ func ea_proceed
 	 * x4: Flags (security state from SCR for now).
 	 */
 	mov	x2, xzr
-	mov	PTR(3), PTRN(sp)
+	mov	CAP(3), CAPN(sp)
 	ubfx	x4, x4, #0, #1
 
 	/* Switch to runtime stack */
-	ldr	PTR(5), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	ldr	CAP(5), [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 	msr	spsel, #MODE_SP_EL0
-	mov	PTRN(sp), PTR(5)
+	mov	CAPN(sp), CAP(5)
 
-	mov	PTR(29), PTR(30)
+	mov	CAP(29), CAP(30)
 #if ENABLE_ASSERTIONS
 	/* Stash the stack pointer */
-	mov	PTR(28), PTRN(sp)
+	mov	CAP(28), CAPN(sp)
 #endif
 	bl	plat_ea_handler
 
@@ -313,7 +313,7 @@ func ea_proceed
 	 * the platform error handler, validate that the we've completely
 	 * unwound the stack.
 	 */
-	mov	PTR(27), PTRN(sp)
+	mov	CAP(27), CAPN(sp)
 	cmp	x28, x27
 	ASM_ASSERT(eq)
 #endif
@@ -322,14 +322,14 @@ func ea_proceed
 	msr	spsel, #MODE_SP_ELX
 
 	/* Restore EL3 state and ESR */
-	ldr	x1, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	ldr	PTR(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	ldr	x1, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	ldr	CAP(2), [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 	msr	spsr_el3, x1
-	msr	PTRN(elr_el3), PTR(2)
+	msr	CAPN(elr_el3), CAP(2)
 
 	/* Restore ESR_EL3 and SCR_EL3 */
-	ldr	x3, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
-	ldr	x4, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	ldr	x3, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
+	ldr	x4, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 	msr	scr_el3, x3
 	msr	esr_el3, x4
 
@@ -339,7 +339,7 @@ func ea_proceed
 #endif
 
 	/* Clear ESR storage */
-	str	xzr, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	str	xzr, [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 
-	ret	PTR(29)
+	ret	CAP(29)
 endfunc ea_proceed

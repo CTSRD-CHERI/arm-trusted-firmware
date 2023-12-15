@@ -56,13 +56,13 @@ endfunc smc
  */
 func zeromem
 	/* x2 is the address past the last zeroed address */
-	add	PTR(2), PTR(0), x1
+	add	CAP(2), CAP(0), x1
 	/*
 	 * Uses the fallback path that does not use DC ZVA instruction and
 	 * therefore does not need enabled MMU
 	 */
-	adr	PTR(3), .Lzeromem_dczva_fallback_entry
-	br	PTR(3)
+	adr	CAP(3), .Lzeromem_dczva_fallback_entry
+	br	CAP(3)
 endfunc zeromem
 
 /* -----------------------------------------------------------------------
@@ -151,12 +151,12 @@ func zeromem_dczva
 	 * stop_address should not be retargeted to other registers.
 	 */
 	cursor       .req x0 /* Start address and then current address */
-	ccursor      .req PTR(0) /* Start address and then current address */
+	ccursor      .req CAP(0) /* Start address and then current address */
 	length       .req x1 /* Length in bytes of the region to zero out */
 	/* Reusing x1 as length is never used after block_mask is set */
 	block_mask   .req x1 /* Bitmask of the block size read in DCZID_EL0 */
 	stop_address .req x2 /* Address past the last zeroed byte */
-	cstop_address .req PTR(2) /* Address past the last zeroed byte */
+	cstop_address .req CAP(2) /* Address past the last zeroed byte */
 	block_size   .req x3 /* Size of a block in bytes as read in DCZID_EL0 */
 	tmp1         .req x4
 	tmp2         .req x5
@@ -400,15 +400,15 @@ func memcpy16
 m_loop16:
 	cmp	x2, #16
 	b.lo	m_loop1
-	ldp	x3, x4, [PTR(1)], #16
-	stp	x3, x4, [PTR(0)], #16
+	ldp	x3, x4, [CAP(1)], #16
+	stp	x3, x4, [CAP(0)], #16
 	sub	x2, x2, #16
 	b	m_loop16
 /* copy byte per byte */
 m_loop1:
 	cbz	x2, m_end
-	ldrb	w3, [PTR(1)], #1
-	strb	w3, [PTR(0)], #1
+	ldrb	w3, [CAP(1)], #1
+	strb	w3, [CAP(0)], #1
 	subs	x2, x2, #1
 	b.ne	m_loop1
 m_end:
@@ -434,8 +434,8 @@ endfunc disable_mmu_el3
 
 func disable_mmu_icache_el3
 	mov	x1, #(SCTLR_M_BIT | SCTLR_C_BIT | SCTLR_I_BIT)
-	adr	PTR(3),	do_disable_mmu_el3
-	br	PTR(3)
+	adr	CAP(3),	do_disable_mmu_el3
+	br	CAP(3)
 endfunc disable_mmu_icache_el3
 
 /* ---------------------------------------------------------------------------
@@ -519,8 +519,8 @@ func fixup_gdt_reloc
 	subs	x0, x2, x6	/* Diff(S) = Current Address - Compiled Address */
 	b.eq	3f		/* Diff(S) = 0. No relocation needed */
 
-	LDR_LABEL(PTR(1), __GOT_START__)
-	LDR_LABEL(PTR(2), __GOT_END__)
+	LDR_LABEL(CAP(1), __GOT_START__)
+	LDR_LABEL(CAP(2), __GOT_END__)
 
 	/*
 	 * GOT is an array of 64_bit addresses which must be fixed up as
@@ -528,7 +528,7 @@ func fixup_gdt_reloc
 	 * The new_addr is the address currently the binary is executing from
 	 * and old_addr is the address at compile time.
 	 */
-1:	ldr	x3, [PTR(1)]
+1:	ldr	x3, [CAP(1)]
 
 	/* Skip adding offset if address is < lower limit */
 	cmp	x3, x6
@@ -538,7 +538,7 @@ func fixup_gdt_reloc
 	cmp	x3, x7
 	b.hi	2f
 	add	x3, x3, x0
-	str	x3, [PTR(1)]
+	str	x3, [CAP(1)]
 
 2:	add	x1, x1, #8
 	cmp	x1, x2
@@ -546,8 +546,8 @@ func fixup_gdt_reloc
 
 	/* Starting dynamic relocations. Use adrp/adr to get RELA_START and END */
 3:
-	LDR_LABEL(PTR(1), __RELA_START__)
-	LDR_LABEL(PTR(2), __RELA_END__)
+	LDR_LABEL(CAP(1), __RELA_START__)
+	LDR_LABEL(CAP(2), __RELA_END__)
 
 	/*
 	 * According to ELF-64 specification, the RELA data structure is as
@@ -567,7 +567,7 @@ func fixup_gdt_reloc
 	 */
 
 	/* Skip R_AARCH64_NONE entry with code 0 */
-1:	ldr	x3, [PTR(1), #8]
+1:	ldr	x3, [CAP(1), #8]
 	cbz	x3, 2f
 
 #if ENABLE_ASSERTIONS
@@ -575,9 +575,9 @@ func fixup_gdt_reloc
 	cmp	x3, #R_AARCH64_RELATIVE
 	ASM_ASSERT(eq)
 #endif
-	ldr	x3, [PTR(1)]	/* r_offset */
+	ldr	x3, [CAP(1)]	/* r_offset */
 	add	x3, x0, x3
-	ldr	x4, [PTR(1), #16]	/* r_addend */
+	ldr	x4, [CAP(1), #16]	/* r_addend */
 
 	/* Skip adding offset if r_addend is < lower limit */
 	cmp	x4, x6
@@ -588,7 +588,7 @@ func fixup_gdt_reloc
 	b.hi	2f
 
 	add	x4, x0, x4	/* Diff(S) + r_addend */
-	str	x4, [PTR(3)]
+	str	x4, [CAP(3)]
 
 2:	add	x1, x1, #24
 	cmp	x1, x2

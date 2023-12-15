@@ -23,21 +23,21 @@
 	 */
 
 	/* Save GP regs */
-	stp	x0, x1, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	stp	x2, x3, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	stp	x4, x5, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
-	stp	x6, x7, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
-	stp	x8, x9, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
-	stp	x10, x11, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
-	stp	x12, x13, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
-	stp	x14, x15, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
-	stp	x16, x17, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
-	stp	x18, x19, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
-	stp	x20, x21, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
-	stp	x22, x23, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
-	stp	x24, x25, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
-	stp	x26, x27, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
-	stp	x28, x29, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
+	stp	x0, x1, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	stp	x2, x3, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	stp	x4, x5, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	stp	x6, x7, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
+	stp	x8, x9, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
+	stp	x10, x11, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
+	stp	x12, x13, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
+	stp	x14, x15, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
+	stp	x16, x17, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
+	stp	x18, x19, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
+	stp	x20, x21, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
+	stp	x22, x23, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
+	stp	x24, x25, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
+	stp	x26, x27, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
+	stp	x28, x29, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
 
 	/* Identify the original exception vector */
 	mov	w2, \_from_vector
@@ -56,7 +56,7 @@
 	 * register, which is unmodified by the workaround.
 	 */
 	mrs	x7, elr_el3
-	stp	x30, x7, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	stp	x30, x7, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 	/*
 	 * Load system registers for entry to S-EL1.
@@ -66,13 +66,13 @@
 	movz	w8, SPSR_MODE32(MODE32_svc, SPSR_T_ARM, SPSR_E_LITTLE, SPSR_AIF_MASK)
 
 	/* Switch EL3 exception vectors while the workaround is executing. */
-	adr	PTR(9), wa_cve_2017_5715_bpiall_ret_vbar
+	adr	CAP(9), wa_cve_2017_5715_bpiall_ret_vbar
 
 	/* Setup SCTLR_EL1 with MMU off and I$ on */
 	ldr	x10, stub_sel1_sctlr
 
 	/* Land at the S-EL1 workaround stub */
-	adr	PTR(11), aarch32_stub
+	adr	CAP(11), aarch32_stub
 
 	/*
 	 * Setting SCR_EL3 to all zeroes means that the NS, RW
@@ -267,7 +267,7 @@ vector_entry bpiall_ret_sync_exception_aarch32
 	 * w3-w6 contain saved system register state (esr_el3 in w3)
 	 * Restore LR and ELR_EL3 register state from the GP regs context
 	 */
-	ldp	x30, x7, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldp	x30, x7, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 	/* Apply the restored system register state */
 	msr	esr_el3, x3
@@ -281,27 +281,27 @@ vector_entry bpiall_ret_sync_exception_aarch32
 	 * to workaround entry table in preparation for subsequent
 	 * Sync/IRQ/FIQ/SError exceptions.
 	 */
-	adr	PTR(0), wa_cve_2017_5715_bpiall_vbar
+	adr	CAP(0), wa_cve_2017_5715_bpiall_vbar
 	msr	vbar_el3, x0
 
 	/*
 	 * Restore all GP regs except x2 and x3 (esr).  The value in x2
 	 * indicates the type of the original exception.
 	 */
-	ldp	x0, x1, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	ldp	x4, x5, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
-	ldp	x6, x7, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
-	ldp	x8, x9, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
-	ldp	x10, x11, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
-	ldp	x12, x13, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
-	ldp	x14, x15, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
-	ldp	x16, x17, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
-	ldp	x18, x19, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
-	ldp	x20, x21, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
-	ldp	x22, x23, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
-	ldp	x24, x25, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
-	ldp	x26, x27, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
-	ldp	x28, x29, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
+	ldp	x0, x1, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	x4, x5, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	ldp	x6, x7, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
+	ldp	x8, x9, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
+	ldp	x10, x11, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
+	ldp	x12, x13, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
+	ldp	x14, x15, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
+	ldp	x16, x17, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
+	ldp	x18, x19, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
+	ldp	x20, x21, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
+	ldp	x22, x23, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
+	ldp	x24, x25, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
+	ldp	x26, x27, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
+	ldp	x28, x29, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
 
 	/* Fast path Sync exceptions.  Static predictor will fall through. */
 	tbz	w2, #0, workaround_not_sync
@@ -339,15 +339,15 @@ workaround_not_sync:
 	tbnz	w2, #3, bpiall_ret_serror
 	tbnz	w2, #2, bpiall_ret_fiq
 	/* IRQ */
-	ldp	x2, x3, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	x2, x3, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	irq_aarch64
 
 bpiall_ret_fiq:
-	ldp	x2, x3, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	x2, x3, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	fiq_aarch64
 
 bpiall_ret_serror:
-	ldp	x2, x3, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	x2, x3, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	serror_aarch64
 end_vector_entry bpiall_ret_irq_aarch32
 
@@ -363,6 +363,6 @@ end_vector_entry bpiall_ret_serror_aarch32
 	 * Part of bpiall_ret_sync_exception_aarch32 to save vector space
 	 */
 func bpiall_ret_sync_exception_aarch32_tail
-	ldp	x2, x3, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	x2, x3, [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	sync_exception_aarch64
 endfunc bpiall_ret_sync_exception_aarch32_tail

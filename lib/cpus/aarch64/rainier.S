@@ -96,7 +96,7 @@ rainier_regs:  /* The ascii list of register names to be reported */
 	.asciz	"cpuectlr_el1", ""
 
 func rainier_cpu_reg_dump
-	adr	PTR(6), rainier_regs
+	adr	CAP(6), rainier_regs
 	mrs	x8, RAINIER_CPUECTLR_EL1
 	ret
 endfunc rainier_cpu_reg_dump

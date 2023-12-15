@@ -144,11 +144,11 @@
 	 */
 	.macro get_my_mp_stack _name, _size
 	bl	plat_my_core_pos
-	LDR_LABEL(PTR(2), \_name)
-	add	PTR(2), PTR(2), \_size
+	LDR_LABEL(CAP(2), \_name)
+	add	CAP(2), CAP(2), \_size
 	mov x1, #\_size
 	mul x0, x0, x1
-	add PTR(0), PTR(2), x0
+	add CAP(0), CAP(2), x0
 	.endm
 
 	/*
@@ -158,7 +158,7 @@
 	 */
 	.macro get_up_stack _name, _size
 	LDR_LABEL(PTR(0), \_name)
-	add	PTR(0), PTR(0), \_size
+	add	CAP(0), CAP(0), \_size
 	.endm
 
 	/*

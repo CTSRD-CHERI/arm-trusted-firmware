@@ -1423,7 +1423,7 @@
 #define	INTN(n)		n
 #define	INT(n)		x ## n
 
-#if __has_feature(capabilities) && !defined(IMAGE_BL1)
+#if __has_feature(capabilities) && !defined(IMAGE_BL1) && !defined(IMAGE_BL2)
 #define	CAP_WIDTH	16
 #define	CAPN(n)		c ## n
 #define	CAP(n)		c ## n

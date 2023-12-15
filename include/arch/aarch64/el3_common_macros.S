@@ -333,7 +333,7 @@
 	 * ---------------------------------------------------------------------
 	 */
 #if !ENABLE_MORELLO_CAP
-	LDR_LABEL(PTR(0), \_exception_vectors)
+	LDR_LABEL(CAP(0), \_exception_vectors)
 	msr	vbar_el3, x0
 	isb
 #endif
@@ -376,7 +376,7 @@
 	/*
 	 * Set capability vector base address register
 	 */
-	LDR_LABEL(PTR(0), \_exception_vectors)
+	LDR_LABEL(CAP(0), \_exception_vectors)
 	cvtp	c1, x0
 	msr	cvbar_el3, c1
 	isb
@@ -436,47 +436,47 @@
 		 */
 #if ENABLE_PIE
 #if SEPARATE_CODE_AND_RODATA
-		LDR_LABEL(PTR(0), __TEXT_START__)
+		LDR_LABEL(CAP(0), __TEXT_START__)
 #else
-		LDR_LABEL(PTR(0), __RO_START__)
+		LDR_LABEL(CAP(0), __RO_START__)
 #endif /* SEPARATE_CODE_AND_RODATA */
 #else
-		LDR_LABEL(PTR(0), __RW_START__)
+		LDR_LABEL(CAP(0), __RW_START__)
 #endif /* ENABLE_PIE */
-		LDR_LABEL(PTR(0), __RW_END__)
+		LDR_LABEL(CAP(0), __RW_END__)
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #if defined(IMAGE_BL31) && SEPARATE_NOBITS_REGION
-		LDR_LABEL(PTR(0), __NOBITS_START__)
-		LDR_LABEL(PTR(1), __NOBITS_END__)
+		LDR_LABEL(CAP(0), __NOBITS_START__)
+		LDR_LABEL(CAP(1), __NOBITS_END__)
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #endif
 #if defined(IMAGE_BL2) && SEPARATE_BL2_NOLOAD_REGION
-		LDR_LABEL(PTR(0), __BL2_NOLOAD_START__)
-		LDR_LABEL(PTR(1), __BL2_NOLOAD_END__)
+		LDR_LABEL(CAP(0), __BL2_NOLOAD_START__)
+		LDR_LABEL(CAP(1), __BL2_NOLOAD_END__)
 		sub	x1, x1, x0
 		bl	inv_dcache_range
 #endif
 #endif
-		LDR_LABEL(PTR(0), __BSS_START__)
-		LDR_LABEL(PTR(1), __BSS_END__)
+		LDR_LABEL(CAP(0), __BSS_START__)
+		LDR_LABEL(CAP(1), __BSS_END__)
 		sub	x1, x1, x0
 		bl	zeromem
 
 #if USE_COHERENT_MEM
-		LDR_LABEL(PTR(0), __COHERENT_RAM_START__)
-		LDR_LABEL(PTR(1), __COHERENT_RAM_END_UNALIGNED__)
+		LDR_LABEL(CAP(0), __COHERENT_RAM_START__)
+		LDR_LABEL(CAP(1), __COHERENT_RAM_END_UNALIGNED__)
 		sub	x1, x1, x0
 		bl	zeromem
 #endif
 
 #if defined(IMAGE_BL1) ||	\
 	(defined(IMAGE_BL2) && RESET_TO_BL2 && BL2_IN_XIP_MEM)
-		LDR_LABEL(PTR(0), __DATA_RAM_START__)
-		LDR_LABEL(PTR(1), __DATA_ROM_START__)
-		LDR_LABEL(PTR(2), __DATA_RAM_END__)
-		sub	PTR(2), PTR(2), x0
+		LDR_LABEL(CAP(0), __DATA_RAM_START__)
+		LDR_LABEL(CAP(1), __DATA_ROM_START__)
+		LDR_LABEL(CAP(2), __DATA_RAM_END__)
+		sub	CAP(2), CAP(2), x0
 		bl	memcpy16
 #endif
 	.endif /* _init_c_runtime */
