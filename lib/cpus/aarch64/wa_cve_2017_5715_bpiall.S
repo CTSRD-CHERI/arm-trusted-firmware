@@ -56,7 +56,7 @@
 	 * register, which is unmodified by the workaround.
 	 */
 	mrs	x7, elr_el3
-	stp	PTR(30, x7, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	stp	PTR(30), PTR(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 	/*
 	 * Load system registers for entry to S-EL1.
