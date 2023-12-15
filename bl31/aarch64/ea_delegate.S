@@ -58,9 +58,9 @@ func handle_lower_el_sync_ea
 	b.eq	1f
 
 	/* Save GP registers */
-	stp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	stp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	stp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	stp	CAP(0), CAP(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	stp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	stp	CAP(4), CAP(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
 
 	/* Get the cpu_ops pointer */
 	bl	get_cpu_ops_ptr
@@ -117,12 +117,12 @@ func handle_lower_el_sync_ea
 #endif
 	b	el3_exit
 2:
-	ldp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	ldp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	ldp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	ldp	CAP(0), CAP(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(4), CAP(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
 
 	/* Synchronous exceptions other than the above are assumed to be EA */
-	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldr	CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	no_ret	report_unhandled_exception
 endfunc handle_lower_el_sync_ea
 

@@ -13,7 +13,7 @@
          * SP should point to the CPU context.
 	 */
 	.macro	apply_cve_2022_23960_bhb_wa _bhb_loop_count
-	str	CAP(2), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	str	CAP(2), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 
 	/* CVE-BHB-NUM loop count */
 	mov	x2, \_bhb_loop_count
@@ -25,6 +25,6 @@
 	subs	x2, x2, #1
 	bne	1b
 	speculation_barrier
-	ldr	CAP(2), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldr	CAP(2), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	.endm
 #endif /* WORKAROUND_CVE_2022_23960 */

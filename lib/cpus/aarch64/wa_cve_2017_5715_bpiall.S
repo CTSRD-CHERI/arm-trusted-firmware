@@ -23,21 +23,21 @@
 	 */
 
 	/* Save GP regs */
-	stp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	stp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	stp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
-	stp	PTR(6), PTR(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
-	stp	PTR(8), PTR(9), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
-	stp	PTR(10), PTR(11), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
-	stp	PTR(12), PTR(13), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
-	stp	PTR(14), PTR(15), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
-	stp	PTR(16), PTR(17), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
-	stp	PTR(18), PTR(19), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
-	stp	PTR(20), PTR(21), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
-	stp	PTR(22), PTR(23), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
-	stp	PTR(24), PTR(25), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
-	stp	PTR(26), PTR(27), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
-	stp	PTR(28), PTR(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
+	stp	CAP(0), CAP(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	stp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	stp	CAP(4), CAP(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	stp	CAP(6), CAP(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
+	stp	CAP(8), CAP(9), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
+	stp	CAP(10), CAP(11), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
+	stp	CAP(12), CAP(13), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
+	stp	CAP(14), CAP(15), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
+	stp	CAP(16), CAP(17), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
+	stp	CAP(18), CAP(19), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
+	stp	CAP(20), CAP(21), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
+	stp	CAP(22), CAP(23), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
+	stp	CAP(24), CAP(25), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
+	stp	CAP(26), CAP(27), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
+	stp	CAP(28), CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
 
 	/* Identify the original exception vector */
 	mov	w2, \_from_vector
@@ -56,7 +56,7 @@
 	 * register, which is unmodified by the workaround.
 	 */
 	mrs	x7, elr_el3
-	stp	PTR(30), PTR(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	stp	CAP(30), CAP(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 	/*
 	 * Load system registers for entry to S-EL1.
@@ -288,21 +288,21 @@ vector_entry bpiall_ret_sync_exception_aarch32
 	 * Restore all GP regs except x2 and x3 (esr).  The value in x2
 	 * indicates the type of the original exception.
 	 */
-	ldp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
-	ldp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
-	ldp	PTR(4), PTR(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
-	ldp	PTR(6), PTR(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
-	ldp	PTR(8), PTR(9), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
-	ldp	PTR(10), PTR(11), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
-	ldp	PTR(12), PTR(13), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
-	ldp	PTR(14), PTR(15), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
-	ldp	PTR(16), PTR(17), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
-	ldp	PTR(18), PTR(19), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
-	ldp	PTR(20), PTR(21), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
-	ldp	PTR(22), PTR(23), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
-	ldp	PTR(24), PTR(25), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
-	ldp	PTR(26), PTR(27), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
-	ldp	PTR(28), PTR(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
+	ldp	CAP(0), CAP(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(4), CAP(5), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X4]
+	ldp	CAP(6), CAP(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X6]
+	ldp	CAP(8), CAP(9), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X8]
+	ldp	CAP(10), CAP(11), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X10]
+	ldp	CAP(12), CAP(13), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X12]
+	ldp	CAP(14), CAP(15), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X14]
+	ldp	CAP(16), CAP(17), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X16]
+	ldp	CAP(18), CAP(19), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X18]
+	ldp	CAP(20), CAP(21), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X20]
+	ldp	CAP(22), CAP(23), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X22]
+	ldp	CAP(24), CAP(25), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X24]
+	ldp	CAP(26), CAP(27), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X26]
+	ldp	CAP(28), CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
 
 	/* Fast path Sync exceptions.  Static predictor will fall through. */
 	tbz	w2, #0, workaround_not_sync
@@ -340,15 +340,15 @@ workaround_not_sync:
 	tbnz	w2, #3, bpiall_ret_serror
 	tbnz	w2, #2, bpiall_ret_fiq
 	/* IRQ */
-	ldp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	irq_aarch64
 
 bpiall_ret_fiq:
-	ldp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	fiq_aarch64
 
 bpiall_ret_serror:
-	ldp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	serror_aarch64
 end_vector_entry bpiall_ret_irq_aarch32
 

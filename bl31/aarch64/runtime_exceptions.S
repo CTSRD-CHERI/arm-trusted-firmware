@@ -44,7 +44,7 @@
 	 * need a free register
 	 */
 	.macro save_x30
-	str	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	str	CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	.endm
 
 	/*
@@ -110,7 +110,7 @@
 
 	/* Refer Note 1. */
 	mov 	x30, #1
-	str	PTR(30), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
+	str	CAP(30), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
 	dmb	sy
 #endif
 	.endm
@@ -128,10 +128,10 @@
 	 * saved to the PMF timestamp region.
 	 */
 	mrs	x30, cntpct_el0
-	str	PTR(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	str	CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 	mrs	PTR(29), tpidr_el3
 	str	PTR(30), [PTR(29), #CPU_DATA_PMF_TS0_OFFSET]
-	ldr	x29, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	ldr	CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 #endif
 
 	mrs	x30, esr_el3
@@ -148,7 +148,7 @@
 	b.eq	sync_handler64
 
 	/* Synchronous exceptions other than the above are assumed to be EA */
-	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldr	CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	b	handle_lower_el_sync_ea
 	.endm
 
@@ -638,7 +638,7 @@ smc_unknown:
 	 * to the desired lower EL.
 	 */
 	mov	x0, #SMC_UNK
-	str	PTR(0), [PTR(6), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	str	CAP(0), [CAP(6), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
 	b	el3_exit
 
 smc_prohibited:

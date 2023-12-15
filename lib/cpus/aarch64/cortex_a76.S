@@ -42,12 +42,12 @@
 	 * x29-x30 to the context in the sync_exception path.
 	 */
 	.macro apply_cve_2018_3639_wa _is_sync_exception _esr_el3_val
-	stp	PTR(2), PTR(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	stp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	.if \_is_sync_exception
-	stp	PTR(29), PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	stp	CAP(29), CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 	mov_imm	w2, \_esr_el3_val
 	bl	apply_cve_2018_3639_sync_wa
-	ldp	PTR(29), PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	ldp	CAP(29), CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 	.endif
 	/*
 	 * Always enable v4 mitigation during EL3 execution. This is not
@@ -64,7 +64,7 @@
 	 * Restore these registers from the context before jumping to the
 	 * main runtime vector table entry.
 	 */
-	ldp	PTR(2), PTR(3), [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(2), CAP(3), [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	.endm
 #endif /* DYNAMIC_WORKAROUND_CVE_2018_3639 */
 
@@ -288,7 +288,7 @@ func apply_cve_2018_3639_sync_wa
 	bic	x3, x2, #CORTEX_A76_CPUACTLR2_EL1_DISABLE_LOAD_PASS_STORE
 	csel	x3, x3, x1, eq
 	msr	CORTEX_A76_CPUACTLR2_EL1, x3
-	ldp	PTR(29), PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	ldp	CAP(29), CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 	/*
 	* `SMCCC_ARCH_WORKAROUND_2`fast path return to lower EL.
 	*/

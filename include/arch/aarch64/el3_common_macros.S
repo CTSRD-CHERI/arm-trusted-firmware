@@ -509,9 +509,9 @@
 	 * This function expects x30 has been saved.
 	 * Also, save x29 which will be used in the called function.
 	 */
-	str	CAP(29), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	str	CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 	bl	save_and_update_ptw_el1_sys_regs
-	ldr	CAP(29), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	ldr	CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 #endif
 	.endm
 

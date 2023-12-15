@@ -82,7 +82,7 @@ vector_entry SynchronousExceptionA64
 	/* Enable the SError interrupt */
 	msr	daifclr, #DAIF_ABT_BIT
 
-	str	CAP(30), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	str	CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 	/* Expect only SMC exceptions */
 	mrs	x30, esr_el3
