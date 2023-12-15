@@ -30,7 +30,7 @@
 vector_base workaround_bpflush_runtime_exceptions
 
 	.macro	apply_workaround
-	stp	CAP(0), CAP(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	stp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
 
 	/* Disable cycle counter when event counting is prohibited */
 	mrs	x1, pmcr_el0
@@ -51,7 +51,7 @@ vector_base workaround_bpflush_runtime_exceptions
 	msr	s3_0_c15_c0_6, x0
 	isb
 
-	ldp	CAP(0), CAP(1), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	ldp	PTR(0), PTR(1), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
 	.endm
 
 	/* ---------------------------------------------------------------------

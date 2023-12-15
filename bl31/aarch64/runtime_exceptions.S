@@ -44,7 +44,7 @@
 	 * need a free register
 	 */
 	.macro save_x30
-	str	CAP(30), [CAPN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	str	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	.endm
 
 	/*
@@ -110,7 +110,7 @@
 
 	/* Refer Note 1. */
 	mov 	x30, #1
-	str	CAP(30), [CAPN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
+	str	PTR(30), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
 	dmb	sy
 #endif
 	.endm
@@ -128,9 +128,9 @@
 	 * saved to the PMF timestamp region.
 	 */
 	mrs	x30, cntpct_el0
-	str	CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
-	mrs	CAP(29), tpidr_el3
-	str	CAP(30), [CAP(29), #CPU_DATA_PMF_TS0_OFFSET]
+	str	PTR(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
+	mrs	PTR(29), tpidr_el3
+	str	PTR(30), [PTR(29), #CPU_DATA_PMF_TS0_OFFSET]
 	ldr	x29, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X29]
 #endif
 
@@ -174,14 +174,14 @@
 	/* Save the EL3 system registers needed to return from this exception */
 	mrs	x0, spsr_el3
 	mrs	x1, elr_el3
-	str	CAP(0), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	str	CAP(1), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	str	PTR(0), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	PTR(1), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/* Switch to the runtime stack i.e. SP_EL0 */
 	ldr	PTR(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 	mov	PTR(20), PTRN(sp)
 
-#if ENABLE_MORELLO_CAP
+#if ENABLE_MORELLO_PTR
 	/*
 	 * Save DDC_EL3 value to C24. This will be used to write to DDC_EL0
 	 * once SP is switched to SP_EL0
@@ -191,7 +191,7 @@
 
 	msr	spsel, #MODE_SP_EL0
 
-#if ENABLE_MORELLO_CAP
+#if ENABLE_MORELLO_PTR
 	/* Save the original DDC_EL0 which will be pushed to stack. */
 	mrs	c26, ddc
 
@@ -268,7 +268,7 @@ vector_base runtime_exceptions
 	 */
 vector_entry sync_exception_sp_el0
 #ifdef MONITOR_TRAPS
-	stp CAP(29), CAP(30), [CAPN(sp), #-16]!
+	stp PTR(29), PTR(30), [PTRN(sp), #-16]!
 
 	mrs	x30, esr_el3
 	ubfx	x30, x30, #ESR_EC_SHIFT, #ESR_EC_LENGTH
@@ -277,7 +277,7 @@ vector_entry sync_exception_sp_el0
 	cmp	x30, #EC_BRK
 	b.eq	brk_handler
 
-	ldp CAP(29), CAP(30), [CAPN(sp)], #16
+	ldp PTR(29), PTR(30), [PTRN(sp)], #16
 #endif /* MONITOR_TRAPS */
 
 	/* We don't expect any synchronous exceptions from EL3 */
@@ -488,7 +488,7 @@ sync_handler64:
 	 */
 	ldr	PTR(12), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 
-#if ENABLE_MORELLO_CAP
+#if ENABLE_MORELLO_PTR
 	/*
 	 * Save DDC_EL3 value. This will be used to write to DDC_EL0 once SP is
 	 * switched to SP_EL0 and the original DDC_EL0 is saved to stack.
@@ -499,7 +499,7 @@ sync_handler64:
 	/* Switch to SP_EL0 */
 	msr	spsel, #MODE_SP_EL0
 
-#if ENABLE_MORELLO_CAP
+#if ENABLE_MORELLO_PTR
 	/* Save the original DDC_EL0 which will be pushed to stack. */
 	mrs	c26, ddc
 
@@ -638,7 +638,7 @@ smc_unknown:
 	 * to the desired lower EL.
 	 */
 	mov	x0, #SMC_UNK
-	str	CAP(0), [CAP(6), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
+	str	PTR(0), [PTR(6), #CTX_GPREGS_OFFSET + CTX_GPREG_X0]
 	b	el3_exit
 
 smc_prohibited:
