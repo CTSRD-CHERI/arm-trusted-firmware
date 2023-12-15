@@ -22,11 +22,11 @@
  * -----------------------------------------------------------------
  */
 func init_cpu_data_ptr
-	mov	CAP(10), CAP(30)
+	mov	PTR(10), PTR(30)
 	bl	plat_my_core_pos
 	bl	_cpu_data_by_index
-	msr	REGN(tpidr_el3), CAP(0)
-	ret	CAP(10)
+	msr	REGN(tpidr_el3), PTR(0)
+	ret	PTR(10)
 endfunc init_cpu_data_ptr
 
 /* -----------------------------------------------------------------
@@ -41,7 +41,7 @@ endfunc init_cpu_data_ptr
 func _cpu_data_by_index
 	mov_imm	x1, CPU_DATA_SIZE
 	mul	x0, x0, x1
-	LDR_LABEL(CAP(1), percpu_data)
-	add	CAP(0), CAP(1), x0
+	LDR_LABEL(PTR(1), percpu_data)
+	add	PTR(0), PTR(1), x0
 	ret
 endfunc _cpu_data_by_index

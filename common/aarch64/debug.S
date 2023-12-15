@@ -98,14 +98,14 @@ endfunc asm_assert
  * Clobber: x30, x0, x1, x2, x3
  */
 func asm_print_str
-	mov	CAP(3), CAP(30)
+	mov	PTR(3), PTR(30)
 1:
 	ldrb	w0, [PTR(4)], #0x1
 	cbz	x0, 2f
 	bl	plat_crash_console_putc
 	b	1b
 2:
-	ret	CAP(3)
+	ret	PTR(3)
 endfunc asm_print_str
 
 /*
@@ -118,7 +118,7 @@ func asm_print_hex
 
 	/* Convert to ascii number of bits in x5 */
 asm_print_hex_bits:
-	mov	CAP(3), CAP(30)
+	mov	PTR(3), PTR(30)
 1:
 	sub	x5, x5, #4
 	lsrv	x0, x4, x5
@@ -133,7 +133,7 @@ asm_print_hex_bits:
 	add	x0, x0, #ASCII_OFFSET_NUM
 	bl	plat_crash_console_putc
 	cbnz	x5, 1b
-	ret	CAP(3)
+	ret	PTR(3)
 endfunc asm_print_hex
 
 /*
@@ -174,7 +174,7 @@ func el3_panic
 #endif /* CRASH_REPORTING && IMAGE_BL31 */
 
 panic_common:
-	mov	CAP(6), CAP(30)
+	mov	PTR(6), PTR(30)
 	bl	plat_crash_console_init
 
 	/* Check if the console is initialized */
@@ -197,7 +197,7 @@ panic_common:
 _panic_handler:
 	/* Pass to plat_panic_handler the address from where el3_panic was
 	 * called, not the address of the call from el3_panic. */
-	mov	CAP(30), CAP(6)
+	mov	PTR(30), PTR(6)
 	b	plat_panic_handler
 
 endfunc el3_panic

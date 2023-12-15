@@ -23,28 +23,28 @@
 	 * corresponding callback entry in console_t is set to 0.
 	 */
 	.ifne \putc
-	  LDR_LABEL(CAP(1), console_\_driver\()_putc)
-	  str	CAP(1), [CAP(0), #CONSOLE_T_PUTC]
+	  LDR_LABEL(PTR(1), console_\_driver\()_putc)
+	  str	PTR(1), [PTR(0), #CONSOLE_T_PUTC]
 	.else
-	  str	xzr, [CAP(0), #CONSOLE_T_PUTC]
+	  str	xzr, [PTR(0), #CONSOLE_T_PUTC]
 	.endif
 
 	.ifne \getc
-	  LDR_LABEL(CAP(1), console_\_driver\()_getc)
-	  str	CAP(1), [CAP(0), #CONSOLE_T_GETC]
+	  LDR_LABEL(PTR(1), console_\_driver\()_getc)
+	  str	PTR(1), [PTR(0), #CONSOLE_T_GETC]
 	.else
 	  str	xzr, [x0, #CONSOLE_T_GETC]
 	.endif
 
 	.ifne \flush
-	  LDR_LABEL(CAP(1), console_\_driver\()_flush)
-	  str	CAP(1), [CAP(0), #CONSOLE_T_FLUSH]
+	  LDR_LABEL(PTR(1), console_\_driver\()_flush)
+	  str	PTR(1), [PTR(0), #CONSOLE_T_FLUSH]
 	.else
-	  str	xzr, [CAP(0), #CONSOLE_T_FLUSH]
+	  str	xzr, [PTR(0), #CONSOLE_T_FLUSH]
 	.endif
 
 	mov	x1, #(CONSOLE_FLAG_BOOT | CONSOLE_FLAG_CRASH)
-	str	x1, [CAP(0), #CONSOLE_T_FLAGS]
+	str	x1, [PTR(0), #CONSOLE_T_FLAGS]
 	b	console_register
 	.endm
 
