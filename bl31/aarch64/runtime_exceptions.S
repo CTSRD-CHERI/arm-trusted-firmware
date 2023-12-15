@@ -199,7 +199,7 @@
 	msr	ddc, c24
 
 	/* Write original DDC_EL0 value to stack. */
-	str	PTR(26), [PTR(20), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	str	c26, [PTR(20), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
 #endif
 
 	mov	PTRN(sp), PTR(2)
@@ -507,7 +507,7 @@ sync_handler64:
 	msr	ddc, c24
 
 	/* Write original DDC_EL0 value to stack. */
-	str	PTR(26), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
+	str	c26, [PTR(6), #CTX_EL3STATE_OFFSET + CTX_DDC_EL0]
 #endif
 
 	/*

@@ -1459,8 +1459,7 @@
 	ldr	reg, [reg, :got_lo12:##label];
 #else
 #define	LDR_LABEL(reg, label)			\
-	adrp	reg, ##label;			\
-	add	reg, reg, :lo12:##label;
+	ldr	reg, =##label;
 #endif
 
 #endif /* ARCH_H */

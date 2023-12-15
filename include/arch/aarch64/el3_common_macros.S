@@ -333,7 +333,7 @@
 	 * ---------------------------------------------------------------------
 	 */
 #if !ENABLE_MORELLO_CAP
-	adr	x0, \_exception_vectors
+	LDR_LABEL(PTR(0), \_exception_vectors)
 	msr	vbar_el3, x0
 	isb
 #endif
@@ -376,7 +376,7 @@
 	/*
 	 * Set capability vector base address register
 	 */
-	adr	PTR(0), \_exception_vectors
+	LDR_LABEL(PTR(0), \_exception_vectors)
 	cvtp	c1, x0
 	msr	cvbar_el3, c1
 	isb

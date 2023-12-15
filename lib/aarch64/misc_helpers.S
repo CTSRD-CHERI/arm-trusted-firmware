@@ -588,7 +588,7 @@ func fixup_gdt_reloc
 	b.hi	2f
 
 	add	x4, x0, x4	/* Diff(S) + r_addend */
-	str	x4, [c3]
+	str	x4, [PTR(3)]
 
 2:	add	x1, x1, #24
 	cmp	x1, x2

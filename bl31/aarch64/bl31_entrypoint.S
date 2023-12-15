@@ -25,12 +25,15 @@
 	 */
 
 func bl31_entrypoint
+	//hlt 0x1
+
 	/* Enable Morello instructions at EL3 */
 	mrs	x2, cptr_el3
 	orr	x2, x2, (1 << 9)
 	msr	cptr_el3, x2
 	isb
 
+#ifdef __CHERI_PURE_CAPABILITY__
 	mrs	x2, cctlr_el3
 	bic	x2, x2, (1 << 2) /* DDCBO */
 	bic	x2, x2, (1 << 3) /* PCCBO */
@@ -52,8 +55,6 @@ func bl31_entrypoint
 	cvtd	c22, x2
 	cvtd	c23, x3
 
-#if __has_feature(capabilities)
-#ifdef __CHERI_PURE_CAPABILITY__
 	ldr	x0, =~CHERI_PERMS_KERNEL_DATA
 	mrs	c1, ddc
 	clrperm	c1, c1, x0
@@ -61,11 +62,19 @@ func bl31_entrypoint
 	adr	c2, #0
 	clrperm	c2, c2, x0
 	bl	crt_init_globals
-#endif
 
 	/* Initialize capabilities. */
 	mrs	c0, ddc
 	bl	cheri_init_capabilities
+#else
+	/* ---------------------------------------------------------------
+	 * Stash the previous bootloader arguments x0 - x3 for later use.
+	 * ---------------------------------------------------------------
+	 */
+	mov	x20, x0
+	mov	x21, x1
+	mov	x22, x2
+	mov	x23, x3
 #endif
 
 
@@ -110,7 +119,9 @@ func bl31_entrypoint
 	 * --------------------------------------------------------------------
 	 */
 	mov	PTR(0), PTR(20)
+#ifdef __CHERI_PURE_CAPABILITY__
 	bl	cheri_convert_params
+#endif
 	mov	PTR(1), PTR(21)
 	mov	PTR(2), PTR(22)
 	mov	PTR(3), PTR(23)
@@ -158,6 +169,7 @@ endfunc bl31_entrypoint
 	 */
 func bl31_warm_entrypoint
 
+#ifdef __CHERI_PURE_CAPABILITY__
 	/* Enable Morello instructions at EL3 */
 	mrs	x2, cptr_el3
 	orr	x2, x2, (1 << 9)
@@ -175,6 +187,7 @@ func bl31_warm_entrypoint
 
 	bx	#4
 	.arch_extension c64
+#endif
 
 #if ENABLE_RUNTIME_INSTRUMENTATION
 

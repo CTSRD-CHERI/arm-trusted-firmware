@@ -61,7 +61,7 @@ typedef struct bl_params {
 	bl_params_node_t *head;
 } bl_params_t;
 
-#if 1
+#ifdef __CHERI_PURE_CAPABILITY__
 typedef struct image_info64 {
 	param_header_t h;
 	uint64_t image_base;	/* physical address of base of image */
