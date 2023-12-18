@@ -163,7 +163,7 @@ func smc_handler64
 	 * SP_EL0 for the C runtime stack.
 	 * ----------------------------------------------
 	 */
-	ldr	x30, [sp, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	ldr	CAP(30), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 	msr	spsel, #MODE_SP_EL0
 	mov	sp, x30
 
@@ -256,7 +256,7 @@ smc_handler:
 	 * ERET from EL3.
 	 * -----------------------------------------------------
 	 */
-	ldr	x12, [x6, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	ldr	CAP(12), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 
 	/* ---------------------------------------------
 	 * Switch back to SP_EL0 for the C runtime stack.
@@ -271,11 +271,11 @@ smc_handler:
 	 * -----------------------------------------------------
 	 */
 	mrs	x16, spsr_el3
-	mrs	x17, elr_el3
+	mrs	CAP(17), elr_el3
 	mrs	x18, scr_el3
-	str	x16, [x6, #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	str	x17, [x6, #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
-	str	x18, [x6, #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
+	str	CAP(16), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	CAP(17), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	str	CAP(18), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
 
 	/* Copy SCR_EL3.NS bit to the flag to indicate caller's security */
 	bfi	x7, x18, #0, #1

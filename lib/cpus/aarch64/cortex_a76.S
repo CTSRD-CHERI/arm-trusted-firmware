@@ -281,7 +281,7 @@ func apply_cve_2018_3639_sync_wa
 	mov	x0, xzr
 	adr	x1, cortex_a76_disable_wa_cve_2018_3639
 	csel	x1, x1, x0, eq
-	str	x1, [sp, #CTX_CVE_2018_3639_OFFSET + CTX_CVE_2018_3639_DISABLE]
+	str	CAP(1), [PTRN(sp), #CTX_CVE_2018_3639_OFFSET + CTX_CVE_2018_3639_DISABLE]
 
 	mrs	x2, CORTEX_A76_CPUACTLR2_EL1
 	orr	x1, x2, #CORTEX_A76_CPUACTLR2_EL1_DISABLE_LOAD_PASS_STORE

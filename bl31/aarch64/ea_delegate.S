@@ -262,7 +262,7 @@ func ea_proceed
 	 * If the ESR loaded earlier is not zero, we were processing an EA
 	 * already, and this is a double fault.
 	 */
-	ldr	x5, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	ldr	CAP(5), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 	cbz	x5, 1f
 	no_ret	plat_handle_double_fault
 
@@ -270,8 +270,8 @@ func ea_proceed
 	/* Save EL3 state */
 	mrs	x2, spsr_el3
 	mrs	PTR(3), PTRN(elr_el3)
-	str	x2, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	str	PTR(3), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	str	CAP(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	CAP(3), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/*
 	 * Save ESR as handling might involve lower ELs, and returning back to
@@ -279,8 +279,8 @@ func ea_proceed
 	 */
 	mrs	x4, scr_el3
 	mrs	x5, esr_el3
-	str	x4, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
-	str	x5, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	str	CAP(4), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
+	str	CAP(5), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 
 	/*
 	 * Setup rest of arguments, and call platform External Abort handler.
@@ -296,7 +296,7 @@ func ea_proceed
 	ubfx	x4, x4, #0, #1
 
 	/* Switch to runtime stack */
-	ldr	PTR(5), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	ldr	CAP(5), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 	msr	spsel, #MODE_SP_EL0
 	mov	PTRN(sp), PTR(5)
 
@@ -322,14 +322,14 @@ func ea_proceed
 	msr	spsel, #MODE_SP_ELX
 
 	/* Restore EL3 state and ESR */
-	ldr	x1, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	ldr	PTR(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	ldr	CAP(1), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	ldr	CAP(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 	msr	spsr_el3, x1
 	msr	PTRN(elr_el3), PTR(2)
 
 	/* Restore ESR_EL3 and SCR_EL3 */
-	ldr	x3, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
-	ldr	x4, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	ldr	CAP(3), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]
+	ldr	CAP(4), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 	msr	scr_el3, x3
 	msr	esr_el3, x4
 
@@ -339,7 +339,7 @@ func ea_proceed
 #endif
 
 	/* Clear ESR storage */
-	str	xzr, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
+	str	ZR, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ESR_EL3]
 
 	ret	PTR(29)
 endfunc ea_proceed

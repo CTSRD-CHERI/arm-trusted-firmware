@@ -174,11 +174,11 @@
 	/* Save the EL3 system registers needed to return from this exception */
 	mrs	x0, spsr_el3
 	mrs	x1, elr_el3
-	str	PTR(0), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
-	str	PTR(1), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	str	CAP(0), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	CAP(1), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/* Switch to the runtime stack i.e. SP_EL0 */
-	ldr	PTR(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	ldr	CAP(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 	mov	PTR(20), PTRN(sp)
 
 #if ENABLE_MORELLO_PTR
@@ -338,7 +338,7 @@ vector_entry serror_sp_elx
 	 */
 	/* Assumes SP_EL3 on entry */
 	save_x30
-	ldr	x30, [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
+	ldr	CAP(30), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_IS_IN_EL3]
 	cbnz	x30, 1f
 
 	/* Handle asynchronous external abort from lower EL */
@@ -486,7 +486,7 @@ sync_handler64:
 	 * SP_EL0 i.e. EL3 runtime stack. It was saved in the 'cpu_context'
 	 * structure prior to the last ERET from EL3.
 	 */
-	ldr	PTR(12), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
+	ldr	CAP(12), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 
 #if ENABLE_MORELLO_PTR
 	/*
@@ -516,9 +516,9 @@ sync_handler64:
 	 * TODO: Revisit if all system registers can be saved later.
 	 */
 	mrs	x16, spsr_el3
-	str	x16, [PTR(6), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
+	str	CAP(16), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]
 	mrs	PTR(17), PTRN(elr_el3)
-	str	PTR(17), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	str	CAP(17), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 
 	/* Load SCR_EL3 */
 	mrs	x18, scr_el3
@@ -624,9 +624,9 @@ sysreg_handler64:
 	b.eq	1f		/* zero: do not change ELR_EL3 */
 
 	/* advance the PC to continue after the instruction */
-	ldr	PTR(1), [PTR(19), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	ldr	CAP(1), [PTR(19), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 	add	PTR(1), PTR(1), #4
-	str	PTR(1), [PTR(19), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
+	str	CAP(1), [PTR(19), #CTX_EL3STATE_OFFSET + CTX_ELR_EL3]
 1:
 	b	el3_exit
 
@@ -643,8 +643,8 @@ smc_unknown:
 
 smc_prohibited:
 	restore_ptw_el1_sys_regs
-	ldp	PTR(28), PTR(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
-	ldr	PTR(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldp	CAP(28), CAP(29), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X28]
+	ldr	CAP(30), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 	mov	x0, #SMC_UNK
 	exception_return
 

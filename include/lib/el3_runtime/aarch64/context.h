@@ -236,14 +236,14 @@
 // Starting with Armv8.9
 #define CTX_TCR2_EL2            U(0x3b0)
 #define CTX_POR_EL2             U(0x3c0)
-#define CTX_PIRE0_EL2           U(0x3e0)
-#define CTX_PIR_EL2             U(0x3f0)
-#define CTX_S2PIR_EL2		U(0x400)
-#define CTX_GCSCR_EL2           U(0x410)
-#define CTX_GCSPR_EL2           U(0x420)
+#define CTX_PIRE0_EL2           U(0x3d0)
+#define CTX_PIR_EL2             U(0x3e0)
+#define CTX_S2PIR_EL2		U(0x3f0)
+#define CTX_GCSCR_EL2           U(0x400)
+#define CTX_GCSPR_EL2           U(0x410)
 
 /* Align to the next 16 byte boundary */
-#define CTX_EL2_SYSREGS_END	U(0x430)
+#define CTX_EL2_SYSREGS_END	U(0x420)
 
 #endif /* CTX_INCLUDE_EL2_REGS */
 

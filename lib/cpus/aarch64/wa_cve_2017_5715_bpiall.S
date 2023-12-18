@@ -267,7 +267,7 @@ vector_entry bpiall_ret_sync_exception_aarch32
 	 * w3-w6 contain saved system register state (esr_el3 in w3)
 	 * Restore LR and ELR_EL3 register state from the GP regs context
 	 */
-	ldp	x30, x7, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
+	ldp	CAP(30), CAP(7), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_LR]
 
 	/* Apply the restored system register state */
 	msr	esr_el3, x3
@@ -364,6 +364,6 @@ end_vector_entry bpiall_ret_serror_aarch32
 	 * Part of bpiall_ret_sync_exception_aarch32 to save vector space
 	 */
 func bpiall_ret_sync_exception_aarch32_tail
-	ldp	x2, x3, [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
+	ldp	CAP(2), CAP(3), [PTRN(sp), #CTX_GPREGS_OFFSET + CTX_GPREG_X2]
 	b	sync_exception_aarch64
 endfunc bpiall_ret_sync_exception_aarch32_tail
