@@ -725,6 +725,9 @@ BL1_CPPFLAGS  += -DREPORT_ERRATA=${DEBUG}
 BL31_CPPFLAGS += -DREPORT_ERRATA=${DEBUG}
 BL32_CPPFLAGS += -DREPORT_ERRATA=${DEBUG}
 
+ifeq ($(ENABLE_MORELLO_CAP),1)
+march-directive=-march=morello
+
 BL1_CFLAGS += -march=morello
 BL1_ASFLAGS += -march=morello
 BL1_LIBS += -lc -lfdt -lmbedtls
@@ -733,15 +736,23 @@ BL2_CFLAGS += -march=morello
 BL2_ASFLAGS += -march=morello
 BL2_LIBS += -lc -lfdt -lmbedtls
 
-BL31_CFLAGS += -march=morello -mabi=purecap
-BL31_ASFLAGS += -march=morello -mabi=purecap
-BL31_LIBS += -lcpurecap
-BL31_LDFLAGS += --local-caprelocs=legacy
+BL31_CFLAGS += -march=morello
+BL31_ASFLAGS += -march=morello
 
-LIBC_CFLAGS += -march=morello
-LIBC_ASFLAGS += -march=morello
+ifeq ($(ENABLE_MORELLO_PURECAP),1)
+BL31_CFLAGS += -mabi=purecap
+BL31_ASFLAGS += -mabi=purecap
+BL31_LDFLAGS += --local-caprelocs=legacy
+BL31_LIBS += -lcpurecap
+else
+BL31_LIBS += -lc
+endif #(ENABLE_MORELLO_PURECAP)
+
 LIBCPURECAP_CFLAGS += -march=morello -mabi=purecap
 LIBCPURECAP_ASFLAGS += -march=morello -mabi=purecap
+LIBC_CFLAGS += -march=morello
+LIBC_ASFLAGS += -march=morello
+endif #(ENABLE_MORELLO_CAP)
 
 BL1_CPPFLAGS += -DIMAGE_AT_EL3
 ifeq ($(RESET_TO_BL2),1)
@@ -1487,7 +1498,9 @@ endif #(!ERROR_DEPRECATED)
 
 $(eval $(call MAKE_LIB_DIRS))
 $(eval $(call MAKE_LIB,c))
+ifeq ($(ENABLE_MORELLO_PURECAP),1)
 $(eval $(call MAKE_LIB,c,purecap))
+endif
 
 # Expand build macros for the different images
 ifeq (${NEED_BL1},yes)

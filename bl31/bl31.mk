@@ -36,8 +36,6 @@ endif
 include lib/psci/psci_lib.mk
 
 BL31_SOURCES		+=	bl31/bl31_main.c				\
-				bl31/crt_init_globals.c				\
-				bl31/init_cap.c					\
 				bl31/interrupt_mgmt.c				\
 				bl31/aarch64/bl31_entrypoint.S			\
 				bl31/aarch64/crash_reporting.S			\
@@ -55,6 +53,11 @@ BL31_SOURCES		+=	bl31/bl31_main.c				\
 				${SPM_MM_SOURCES}				\
 				${SPMC_SOURCES}					\
 				${SPM_SOURCES}
+
+ifeq (${ENABLE_MORELLO_PURECAP}, 1)
+BL31_SOURCES		+=	bl31/crt_init_globals.c			\
+				bl31/init_cap.c
+endif
 
 ifeq (${ENABLE_PMF}, 1)
 BL31_SOURCES		+=	lib/pmf/pmf_main.c
