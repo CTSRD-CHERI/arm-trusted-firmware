@@ -341,18 +341,10 @@
 #define DWORD_SHIFT		U(3)
 #define QWORD_SHIFT		U(4)
 
-#ifdef __CHERI_PURE_CAPABILITY__
 #define DEFINE_REG_STRUCT(name, num_regs)	\
 	typedef struct name {			\
-		uintptr_t ctx_regs[num_regs];	\
+		uintcap_t ctx_regs[num_regs];	\
 	}  __aligned(16) name##_t
-#else
-#define DEFINE_REG_STRUCT(name, num_regs)	\
-	typedef struct name {			\
-		uintptr_t ctx_regs[num_regs * 2];	\
-	}  __aligned(16) name##_t
-#endif
-
 
 /* Constants to determine the size of individual context structures */
 #define CTX_GPREG_ALL		(CTX_GPREGS_END >> QWORD_SHIFT)

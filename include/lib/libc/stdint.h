@@ -113,10 +113,13 @@ typedef	__intcap_t	__intptr_t;
 typedef	__uintcap_t	__uintptr_t;
 typedef	__intptr_t	intptr_t;
 typedef	__uintptr_t	uintptr_t;
-typedef	__uintcap_t	uintcap_t;
 #else
 typedef long intptr_t;
 typedef unsigned long uintptr_t;
+#endif
+
+#if __has_feature(capabilities)
+typedef	unsigned __intcap	uintcap_t;
 #endif
 
 /*
