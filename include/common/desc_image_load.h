@@ -16,7 +16,6 @@ typedef struct bl_mem_params_node {
 	unsigned int next_handoff_image_id;
 	bl_load_info_node_t load_node_mem;
 	bl_params_node_t params_node_mem;
-	uint64_t resv;
 } bl_mem_params_node_t;
 
 extern bl_mem_params_node_t *bl_mem_params_desc_ptr;

@@ -45,7 +45,6 @@ struct erratum_entry {
 	uint8_t chosen;
 	/* TODO(errata ABI): placeholder for the mitigated field */
 	uint8_t _mitigated;
-	uint64_t resv;
 } __aligned(16);
 
 CASSERT(sizeof(struct erratum_entry) == ERRATUM_ENTRY_SIZE,
