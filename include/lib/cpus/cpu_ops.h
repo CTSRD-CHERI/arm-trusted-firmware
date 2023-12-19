@@ -15,9 +15,11 @@
 /* Hardcode to keep compatible with assembly. sizeof(uintptr_t) */
 #if __aarch64__
 #ifdef __CHERI_PURE_CAPABILITY__
-#define CPU_WORD_SIZE			16
+#define	CPU_WORD_SIZE			16
+#define	STRUCT_ALIGN			16
 #else
-#define CPU_WORD_SIZE			8
+#define	CPU_WORD_SIZE			8
+#define	STRUCT_ALIGN			8
 #endif
 #else
 #define CPU_WORD_SIZE			4
@@ -144,12 +146,7 @@ struct cpu_ops {
 #if defined(IMAGE_BL31) && CRASH_REPORTING
 	void (*reg_dump)(void);
 #endif /* defined(IMAGE_BL31) && CRASH_REPORTING */
-
-#ifdef __CHERI_PURE_CAPABILITY__
-} __aligned(16);
-#else
-} __packed;
-#endif
+} __aligned(STRUCT_ALIGN);
 
 CASSERT(sizeof(struct cpu_ops) == CPU_OPS_SIZE,
 	assert_cpu_ops_asm_c_different_sizes);
