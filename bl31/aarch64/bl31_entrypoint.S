@@ -77,7 +77,6 @@ func bl31_entrypoint
 	mov	x23, x3
 #endif
 
-
 #if !RESET_TO_BL31
 	/* ---------------------------------------------------------------------
 	 * For !RESET_TO_BL31 systems, only the primary CPU ever reaches

@@ -46,13 +46,11 @@ endfunc plat_get_my_stack
 	 */
 func plat_set_my_stack
 	mov	PTR(9), PTR(30)
-	bl 	plat_get_my_stack
+	bl	plat_get_my_stack
 #ifdef __CHERI_PURE_CAPABILITY__
 	cvtd	PTR(0), x0
-	mov	csp, PTR(0)
-#else
-	mov	sp, PTR(0)
 #endif
+	mov	PTRN(sp), PTR(0)
 	ret	PTR(9)
 endfunc plat_set_my_stack
 
