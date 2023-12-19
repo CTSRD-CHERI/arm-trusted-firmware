@@ -106,8 +106,6 @@ typedef unsigned int uint8_fast_t;
 typedef unsigned int uint16_fast_t;
 typedef unsigned int uint32_fast_t;
 
-typedef uint32_t u_int32_t;
-
 #ifdef __CHERI_PURE_CAPABILITY__
 typedef	__intcap_t	__intptr_t;
 typedef	__uintcap_t	__uintptr_t;
@@ -129,7 +127,7 @@ typedef	unsigned __intcap	uintcap_t;
 typedef long long intmax_t;
 typedef unsigned long long uintmax_t;
 
-typedef int64_t register_t;
-typedef uint64_t u_register_t;
+typedef long register_t;
+typedef unsigned long u_register_t;
 
 #endif /* STDINT_H */
