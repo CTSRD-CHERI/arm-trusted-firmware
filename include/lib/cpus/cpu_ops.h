@@ -40,11 +40,7 @@
  * Aarch so keep these definitions the same and each can include whatever it
  * needs.
  */
-#ifdef __CHERI_PURE_CAPABILITY__
 #define CPU_MIDR_SIZE		CPU_WORD_SIZE
-#else
-#define CPU_MIDR_SIZE		CPU_WORD_SIZE
-#endif
 #ifdef IMAGE_AT_EL3
 #define CPU_RESET_FUNC_SIZE	CPU_WORD_SIZE
 #else
