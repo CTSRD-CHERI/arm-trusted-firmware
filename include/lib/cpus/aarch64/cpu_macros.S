@@ -77,7 +77,7 @@
 	.macro declare_cpu_ops_base _name:req, _midr:req, _resetfunc:req, \
 		_extra1:req, _extra2:req, _extra3:req, _e_handler:req, _power_down_ops:vararg
 	.section .cpu_ops, "a"
-	.align 4
+	.align STRUCT_ALIGN_BIT
 	.type cpu_ops_\_name, %object
 	.quad \_midr
 #if defined(IMAGE_AT_EL3)
@@ -277,7 +277,7 @@
  */
 .macro add_erratum_entry _cpu:req, _cve:req, _id:req, _chosen:req, _apply_at_reset:req
 	.pushsection .rodata.errata_entries
-		.align	4
+		.align	STRUCT_ALIGN_BIT
 		.ifndef \_cpu\()_errata_list_start
 		\_cpu\()_errata_list_start:
 		.endif
@@ -286,8 +286,7 @@
 		.if \_apply_at_reset && \_chosen
 			.chericap2	erratum_\_cpu\()_\_id\()_wa
 		.else
-			.quad	0
-			.quad	0
+			.chericap2	0
 		.endif
 		/* TODO(errata ABI): this prevents all checker functions from
 		 * being optimised away. Can be done away with unless the ABI
@@ -300,7 +299,7 @@
 		/* TODO(errata ABI): mitigated field for known but unmitigated
 		 * errata */
 		.byte	0x1
-		.quad	0 /* align */
+		.align STRUCT_ALIGN_BIT
 	.popsection
 .endm
 

@@ -17,9 +17,11 @@
 #ifdef __CHERI_PURE_CAPABILITY__
 #define	CPU_WORD_SIZE			16
 #define	STRUCT_ALIGN			16
+#define	STRUCT_ALIGN_BIT		4
 #else
 #define	CPU_WORD_SIZE			8
 #define	STRUCT_ALIGN			8
+#define	STRUCT_ALIGN_BIT		3
 #endif
 #else
 #define CPU_WORD_SIZE			4
