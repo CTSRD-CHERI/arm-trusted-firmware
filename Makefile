@@ -730,11 +730,9 @@ march-directive=-march=morello
 
 BL1_CFLAGS += -march=morello
 BL1_ASFLAGS += -march=morello
-BL1_LIBS += -lc -lfdt -lmbedtls
 
 BL2_CFLAGS += -march=morello
 BL2_ASFLAGS += -march=morello
-BL2_LIBS += -lc -lfdt -lmbedtls
 
 BL31_CFLAGS += -march=morello
 BL31_ASFLAGS += -march=morello
@@ -752,6 +750,10 @@ LIBCPURECAP_CFLAGS += -march=morello -mabi=purecap
 LIBCPURECAP_ASFLAGS += -march=morello -mabi=purecap
 LIBC_CFLAGS += -march=morello
 LIBC_ASFLAGS += -march=morello
+else
+BL1_LIBS += -lc -lfdt -lmbedtls
+BL2_LIBS += -lc -lfdt -lmbedtls
+BL31_LIBS += -lc
 endif #(ENABLE_MORELLO_CAP)
 
 BL1_CPPFLAGS += -DIMAGE_AT_EL3

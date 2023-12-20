@@ -118,6 +118,8 @@ typedef unsigned long uintptr_t;
 
 #if __has_feature(capabilities)
 typedef	unsigned __intcap	uintcap_t;
+#else
+typedef	uint128_t uintcap_t;
 #endif
 
 /*
