@@ -54,9 +54,11 @@ BL31_SOURCES		+=	bl31/bl31_main.c				\
 				${SPMC_SOURCES}					\
 				${SPM_SOURCES}
 
+ifeq (${ENABLE_MORELLO_CAP}, 1)
 ifeq (${ENABLE_MORELLO_PURECAP}, 1)
 BL31_SOURCES		+=	bl31/crt_init_globals.c			\
 				bl31/init_cap.c
+endif
 endif
 
 ifeq (${ENABLE_PMF}, 1)
