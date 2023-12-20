@@ -751,10 +751,11 @@ LIBCPURECAP_ASFLAGS += -march=morello -mabi=purecap
 LIBC_CFLAGS += -march=morello
 LIBC_ASFLAGS += -march=morello
 else
-BL1_LIBS += -lc -lfdt -lmbedtls
-BL2_LIBS += -lc -lfdt -lmbedtls
 BL31_LIBS += -lc
 endif #(ENABLE_MORELLO_CAP)
+
+BL1_LIBS += -lc -lfdt -lmbedtls
+BL2_LIBS += -lc -lfdt -lmbedtls
 
 BL1_CPPFLAGS += -DIMAGE_AT_EL3
 ifeq ($(RESET_TO_BL2),1)
