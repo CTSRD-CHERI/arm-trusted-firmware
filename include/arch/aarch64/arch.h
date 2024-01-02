@@ -1423,13 +1423,17 @@
 #define	INTN(n)		n
 #define	INT(n)		x ## n
 
-#if __has_feature(capabilities) && !defined(IMAGE_BL1) && !defined(IMAGE_BL2)
+#if __has_feature(capabilities)
 #define	CAP_WIDTH	16
+#else
+#define	CAP_WIDTH	INT_WIDTH
+#endif
+
+#if __has_feature(capabilities) && !defined(IMAGE_BL1) && !defined(IMAGE_BL2)
 #define	CAPN(n)		c ## n
 #define	CAP(n)		c ## n
 #define	CZR		czr
 #else
-#define	CAP_WIDTH	INT_WIDTH
 #define	CAPN(n)		INTN(n)
 #define	CAP(n)		INT(n)
 #define	CZR		xzr

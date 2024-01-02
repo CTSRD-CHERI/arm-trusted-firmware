@@ -8,45 +8,46 @@
 #define CONTEXT_H
 
 #include <lib/utils_def.h>
+#include <arch.h>
 
 /*******************************************************************************
  * Constants that allow assembler code to access members of and the 'gp_regs'
  * structure at their correct offsets.
  ******************************************************************************/
 #define CTX_GPREGS_OFFSET	U(0x0)
-#define CTX_GPREG_X0		U(0x0)
-#define CTX_GPREG_X1		U(0x10)
-#define CTX_GPREG_X2		U(0x20)
-#define CTX_GPREG_X3		U(0x30)
-#define CTX_GPREG_X4		U(0x40)
-#define CTX_GPREG_X5		U(0x50)
-#define CTX_GPREG_X6		U(0x60)
-#define CTX_GPREG_X7		U(0x70)
-#define CTX_GPREG_X8		U(0x80)
-#define CTX_GPREG_X9		U(0x90)
-#define CTX_GPREG_X10		U(0xa0)
-#define CTX_GPREG_X11		U(0xb0)
-#define CTX_GPREG_X12		U(0xc0)
-#define CTX_GPREG_X13		U(0xd0)
-#define CTX_GPREG_X14		U(0xe0)
-#define CTX_GPREG_X15		U(0xf0)
-#define CTX_GPREG_X16		U(0x100)
-#define CTX_GPREG_X17		U(0x110)
-#define CTX_GPREG_X18		U(0x120)
-#define CTX_GPREG_X19		U(0x130)
-#define CTX_GPREG_X20		U(0x140)
-#define CTX_GPREG_X21		U(0x150)
-#define CTX_GPREG_X22		U(0x160)
-#define CTX_GPREG_X23		U(0x170)
-#define CTX_GPREG_X24		U(0x180)
-#define CTX_GPREG_X25		U(0x190)
-#define CTX_GPREG_X26		U(0x1a0)
-#define CTX_GPREG_X27		U(0x1b0)
-#define CTX_GPREG_X28		U(0x1c0)
-#define CTX_GPREG_X29		U(0x1d0)
-#define CTX_GPREG_LR		U(0x1e0)
-#define CTX_GPREG_SP_EL0	U(0x1f0)
-#define CTX_GPREGS_END		U(0x200)
+#define CTX_GPREG_X0		U(0 * CAP_WIDTH)
+#define CTX_GPREG_X1		U(1 * CAP_WIDTH)
+#define CTX_GPREG_X2		U(2 * CAP_WIDTH)
+#define CTX_GPREG_X3		U(3 * CAP_WIDTH)
+#define CTX_GPREG_X4		U(4 * CAP_WIDTH)
+#define CTX_GPREG_X5		U(5 * CAP_WIDTH)
+#define CTX_GPREG_X6		U(6 * CAP_WIDTH)
+#define CTX_GPREG_X7		U(7 * CAP_WIDTH)
+#define CTX_GPREG_X8		U(8 * CAP_WIDTH)
+#define CTX_GPREG_X9		U(9 * CAP_WIDTH)
+#define CTX_GPREG_X10		U(10 * CAP_WIDTH)
+#define CTX_GPREG_X11		U(11 * CAP_WIDTH)
+#define CTX_GPREG_X12		U(12 * CAP_WIDTH)
+#define CTX_GPREG_X13		U(13 * CAP_WIDTH)
+#define CTX_GPREG_X14		U(14 * CAP_WIDTH)
+#define CTX_GPREG_X15		U(15 * CAP_WIDTH)
+#define CTX_GPREG_X16		U(16 * CAP_WIDTH)
+#define CTX_GPREG_X17		U(17 * CAP_WIDTH)
+#define CTX_GPREG_X18		U(18 * CAP_WIDTH)
+#define CTX_GPREG_X19		U(19 * CAP_WIDTH)
+#define CTX_GPREG_X20		U(20 * CAP_WIDTH)
+#define CTX_GPREG_X21		U(21 * CAP_WIDTH)
+#define CTX_GPREG_X22		U(22 * CAP_WIDTH)
+#define CTX_GPREG_X23		U(23 * CAP_WIDTH)
+#define CTX_GPREG_X24		U(24 * CAP_WIDTH)
+#define CTX_GPREG_X25		U(25 * CAP_WIDTH)
+#define CTX_GPREG_X26		U(26 * CAP_WIDTH)
+#define CTX_GPREG_X27		U(27 * CAP_WIDTH)
+#define CTX_GPREG_X28		U(28 * CAP_WIDTH)
+#define CTX_GPREG_X29		U(29 * CAP_WIDTH)
+#define CTX_GPREG_LR		U(30 * CAP_WIDTH)
+#define CTX_GPREG_SP_EL0	U(31 * CAP_WIDTH)
+#define CTX_GPREGS_END		U(CAP_WIDTH * 32)
 
 /*******************************************************************************
  * Constants that allow assembler code to access members of and the 'el3_state'
@@ -54,20 +55,20 @@
  * 32-bits wide but are stored as 64-bit values for convenience
  ******************************************************************************/
 #define CTX_EL3STATE_OFFSET	(CTX_GPREGS_OFFSET + CTX_GPREGS_END)
-#define CTX_SCR_EL3		U(0x0)
-#define CTX_ESR_EL3		U(0x10)
-#define CTX_RUNTIME_SP		U(0x20)
-#define CTX_SPSR_EL3		U(0x30)
-#define CTX_ELR_EL3		U(0x40)
-#define CTX_PMCR_EL0		U(0x50)
-#define CTX_IS_IN_EL3		U(0x60)
-#define CTX_CPTR_EL3		U(0x70)
-#define CTX_ZCR_EL3		U(0x80)
+#define CTX_SCR_EL3		U(0 * CAP_WIDTH)
+#define CTX_ESR_EL3		U(1 * CAP_WIDTH)
+#define CTX_RUNTIME_SP		U(2 * CAP_WIDTH)
+#define CTX_SPSR_EL3		U(3 * CAP_WIDTH)
+#define CTX_ELR_EL3		U(4 * CAP_WIDTH)
+#define CTX_PMCR_EL0		U(5 * CAP_WIDTH)
+#define CTX_IS_IN_EL3		U(6 * CAP_WIDTH)
+#define CTX_CPTR_EL3		U(7 * CAP_WIDTH)
+#define CTX_ZCR_EL3		U(8 * CAP_WIDTH)
 #if ENABLE_MORELLO_CAP
-#define CTX_DDC_EL0		U(0x90)
-#define CTX_EL3STATE_END	U(0xa0) /* Align to the next 16 byte boundary */
+#define CTX_DDC_EL0		U(9 * CAP_WIDTH)
+#define CTX_EL3STATE_END	U(10 * CAP_WIDTH) /* Align to the next 16 byte boundary */
 #else
-#define CTX_EL3STATE_END	U(0x90) /* Align to the next 16 byte boundary */
+#define CTX_EL3STATE_END	U(9 * CAP_WIDTH) /* Align to the next 16 byte boundary */
 #endif
 
 /*******************************************************************************
@@ -77,28 +78,28 @@
  * convenience
  ******************************************************************************/
 #define CTX_EL1_SYSREGS_OFFSET	(CTX_EL3STATE_OFFSET + CTX_EL3STATE_END)
-#define CTX_SPSR_EL1		U(0x0)
-#define CTX_ELR_EL1		U(0x10)
-#define CTX_SCTLR_EL1		U(0x20)
-#define CTX_TCR_EL1		U(0x30)
-#define CTX_CPACR_EL1		U(0x40)
-#define CTX_CSSELR_EL1		U(0x50)
-#define CTX_SP_EL1		U(0x60)
-#define CTX_ESR_EL1		U(0x70)
-#define CTX_TTBR0_EL1		U(0x80)
-#define CTX_TTBR1_EL1		U(0x90)
-#define CTX_MAIR_EL1		U(0xa0)
-#define CTX_AMAIR_EL1		U(0xb0)
-#define CTX_ACTLR_EL1		U(0xc0)
-#define CTX_TPIDR_EL1		U(0xd0)
-#define CTX_TPIDR_EL0		U(0xe0)
-#define CTX_TPIDRRO_EL0		U(0xf0)
-#define CTX_PAR_EL1		U(0x100)
-#define CTX_FAR_EL1		U(0x110)
-#define CTX_AFSR0_EL1		U(0x120)
-#define CTX_AFSR1_EL1		U(0x130)
-#define CTX_CONTEXTIDR_EL1	U(0x140)
-#define CTX_VBAR_EL1		U(0x150)
+#define CTX_SPSR_EL1		U(0 * CAP_WIDTH)
+#define CTX_ELR_EL1		U(1 * CAP_WIDTH)
+#define CTX_SCTLR_EL1		U(2 * CAP_WIDTH)
+#define CTX_TCR_EL1		U(3 * CAP_WIDTH)
+#define CTX_CPACR_EL1		U(4 * CAP_WIDTH)
+#define CTX_CSSELR_EL1		U(5 * CAP_WIDTH)
+#define CTX_SP_EL1		U(6 * CAP_WIDTH)
+#define CTX_ESR_EL1		U(7 * CAP_WIDTH)
+#define CTX_TTBR0_EL1		U(8 * CAP_WIDTH)
+#define CTX_TTBR1_EL1		U(9 * CAP_WIDTH)
+#define CTX_MAIR_EL1		U(10 * CAP_WIDTH)
+#define CTX_AMAIR_EL1		U(11 * CAP_WIDTH)
+#define CTX_ACTLR_EL1		U(12 * CAP_WIDTH)
+#define CTX_TPIDR_EL1		U(13 * CAP_WIDTH)
+#define CTX_TPIDR_EL0		U(14 * CAP_WIDTH)
+#define CTX_TPIDRRO_EL0		U(15 * CAP_WIDTH)
+#define CTX_PAR_EL1		U(16 * CAP_WIDTH)
+#define CTX_FAR_EL1		U(17 * CAP_WIDTH)
+#define CTX_AFSR0_EL1		U(18 * CAP_WIDTH)
+#define CTX_AFSR1_EL1		U(19 * CAP_WIDTH)
+#define CTX_CONTEXTIDR_EL1	U(20 * CAP_WIDTH)
+#define CTX_VBAR_EL1		U(21 * CAP_WIDTH)
 
 /*
  * If the platform is AArch64-only, there is no need to save and restore these
@@ -113,7 +114,7 @@
 #define CTX_IFSR32_EL2		U(0xd8)
 #define CTX_AARCH32_END		U(0xe0) /* Align to the next 16 byte boundary */
 #else
-#define CTX_AARCH32_END		U(0x160)/* Align to the next 16 byte boundary */
+#define CTX_AARCH32_END		U(22 * CAP_WIDTH) /* Align to the next 16 byte boundary */
 #endif /* CTX_INCLUDE_AARCH32_REGS */
 
 /*
@@ -162,88 +163,88 @@
  */
 #define CTX_EL2_SYSREGS_OFFSET	(CTX_EL1_SYSREGS_OFFSET + CTX_EL1_SYSREGS_END)
 
-#define CTX_ACTLR_EL2		U(0x0)
-#define CTX_AFSR0_EL2		U(0x10)
-#define CTX_AFSR1_EL2		U(0x20)
-#define CTX_AMAIR_EL2		U(0x30)
-#define CTX_CNTHCTL_EL2		U(0x40)
-#define CTX_CNTVOFF_EL2		U(0x50)
-#define CTX_CPTR_EL2		U(0x60)
-#define CTX_DBGVCR32_EL2	U(0x70)
-#define CTX_ELR_EL2		U(0x80)
-#define CTX_ESR_EL2		U(0x90)
-#define CTX_FAR_EL2		U(0xa0)
-#define CTX_HACR_EL2		U(0xb0)
-#define CTX_HCR_EL2		U(0xc0)
-#define CTX_HPFAR_EL2		U(0xd0)
-#define CTX_HSTR_EL2		U(0xe0)
-#define CTX_ICC_SRE_EL2		U(0xf0)
-#define CTX_ICH_HCR_EL2		U(0x100)
-#define CTX_ICH_VMCR_EL2	U(0x110)
-#define CTX_MAIR_EL2		U(0x120)
-#define CTX_MDCR_EL2		U(0x130)
-#define CTX_PMSCR_EL2		U(0x140)
-#define CTX_SCTLR_EL2		U(0x150)
-#define CTX_SPSR_EL2		U(0x160)
-#define CTX_SP_EL2		U(0x170)
-#define CTX_TCR_EL2		U(0x180)
-#define CTX_TPIDR_EL2		U(0x190)
-#define CTX_TTBR0_EL2		U(0x1a0)
-#define CTX_VBAR_EL2		U(0x1b0)
-#define CTX_VMPIDR_EL2		U(0x1c0)
-#define CTX_VPIDR_EL2		U(0x1d0)
-#define CTX_VTCR_EL2		U(0x1e0)
-#define CTX_VTTBR_EL2		U(0x1f0)
+#define CTX_ACTLR_EL2		U(0 * CAP_WIDTH)
+#define CTX_AFSR0_EL2		U(1 * CAP_WIDTH)
+#define CTX_AFSR1_EL2		U(2 * CAP_WIDTH)
+#define CTX_AMAIR_EL2		U(3 * CAP_WIDTH)
+#define CTX_CNTHCTL_EL2		U(4 * CAP_WIDTH)
+#define CTX_CNTVOFF_EL2		U(5 * CAP_WIDTH)
+#define CTX_CPTR_EL2		U(6 * CAP_WIDTH)
+#define CTX_DBGVCR32_EL2	U(7 * CAP_WIDTH)
+#define CTX_ELR_EL2		U(8 * CAP_WIDTH)
+#define CTX_ESR_EL2		U(9 * CAP_WIDTH)
+#define CTX_FAR_EL2		U(10 * CAP_WIDTH)
+#define CTX_HACR_EL2		U(11 * CAP_WIDTH)
+#define CTX_HCR_EL2		U(12 * CAP_WIDTH)
+#define CTX_HPFAR_EL2		U(13 * CAP_WIDTH)
+#define CTX_HSTR_EL2		U(14 * CAP_WIDTH)
+#define CTX_ICC_SRE_EL2		U(15 * CAP_WIDTH)
+#define CTX_ICH_HCR_EL2		U(16 * CAP_WIDTH)
+#define CTX_ICH_VMCR_EL2	U(17 * CAP_WIDTH)
+#define CTX_MAIR_EL2		U(18 * CAP_WIDTH)
+#define CTX_MDCR_EL2		U(19 * CAP_WIDTH)
+#define CTX_PMSCR_EL2		U(20 * CAP_WIDTH)
+#define CTX_SCTLR_EL2		U(21 * CAP_WIDTH)
+#define CTX_SPSR_EL2		U(22 * CAP_WIDTH)
+#define CTX_SP_EL2		U(23 * CAP_WIDTH)
+#define CTX_TCR_EL2		U(24 * CAP_WIDTH)
+#define CTX_TPIDR_EL2		U(25 * CAP_WIDTH)
+#define CTX_TTBR0_EL2		U(26 * CAP_WIDTH)
+#define CTX_VBAR_EL2		U(27 * CAP_WIDTH)
+#define CTX_VMPIDR_EL2		U(28 * CAP_WIDTH)
+#define CTX_VPIDR_EL2		U(29 * CAP_WIDTH)
+#define CTX_VTCR_EL2		U(30 * CAP_WIDTH)
+#define CTX_VTTBR_EL2		U(31 * CAP_WIDTH)
 
 // Only if MTE registers in use
-#define CTX_TFSR_EL2		U(0x200)
+#define CTX_TFSR_EL2		U(32 * CAP_WIDTH)
 
-#define CTX_MPAM2_EL2		U(0x210)
-#define CTX_MPAMHCR_EL2		U(0x220)
-#define CTX_MPAMVPM0_EL2	U(0x230)
-#define CTX_MPAMVPM1_EL2	U(0x240)
-#define CTX_MPAMVPM2_EL2	U(0x250)
-#define CTX_MPAMVPM3_EL2	U(0x260)
-#define CTX_MPAMVPM4_EL2	U(0x270)
-#define CTX_MPAMVPM5_EL2	U(0x280)
-#define CTX_MPAMVPM6_EL2	U(0x290)
-#define CTX_MPAMVPM7_EL2	U(0x2a0)
-#define CTX_MPAMVPMV_EL2	U(0x2b0)
+#define CTX_MPAM2_EL2		U(33 * CAP_WIDTH)
+#define CTX_MPAMHCR_EL2		U(34 * CAP_WIDTH)
+#define CTX_MPAMVPM0_EL2	U(35 * CAP_WIDTH)
+#define CTX_MPAMVPM1_EL2	U(36 * CAP_WIDTH)
+#define CTX_MPAMVPM2_EL2	U(37 * CAP_WIDTH)
+#define CTX_MPAMVPM3_EL2	U(38 * CAP_WIDTH)
+#define CTX_MPAMVPM4_EL2	U(39 * CAP_WIDTH)
+#define CTX_MPAMVPM5_EL2	U(40 * CAP_WIDTH)
+#define CTX_MPAMVPM6_EL2	U(41 * CAP_WIDTH)
+#define CTX_MPAMVPM7_EL2	U(42 * CAP_WIDTH)
+#define CTX_MPAMVPMV_EL2	U(43 * CAP_WIDTH)
 
 // Starting with Armv8.6
-#define CTX_HDFGRTR_EL2		U(0x2c0)
-#define CTX_HAFGRTR_EL2		U(0x2d0)
-#define CTX_HDFGWTR_EL2		U(0x2e0)
-#define CTX_HFGITR_EL2		U(0x2f0)
-#define CTX_HFGRTR_EL2		U(0x300)
-#define CTX_HFGWTR_EL2		U(0x310)
-#define CTX_CNTPOFF_EL2		U(0x320)
+#define CTX_HDFGRTR_EL2		U(44 * CAP_WIDTH)
+#define CTX_HAFGRTR_EL2		U(45 * CAP_WIDTH)
+#define CTX_HDFGWTR_EL2		U(46 * CAP_WIDTH)
+#define CTX_HFGITR_EL2		U(47 * CAP_WIDTH)
+#define CTX_HFGRTR_EL2		U(48 * CAP_WIDTH)
+#define CTX_HFGWTR_EL2		U(49 * CAP_WIDTH)
+#define CTX_CNTPOFF_EL2		U(50 * CAP_WIDTH)
 
 // Starting with Armv8.4
-#define CTX_CONTEXTIDR_EL2	U(0x330)
-#define CTX_TTBR1_EL2		U(0x340)
-#define CTX_VDISR_EL2		U(0x350)
-#define CTX_VSESR_EL2		U(0x360)
-#define CTX_VNCR_EL2		U(0x370)
-#define CTX_TRFCR_EL2		U(0x380)
+#define CTX_CONTEXTIDR_EL2	U(51 * CAP_WIDTH)
+#define CTX_TTBR1_EL2		U(52 * CAP_WIDTH)
+#define CTX_VDISR_EL2		U(53 * CAP_WIDTH)
+#define CTX_VSESR_EL2		U(54 * CAP_WIDTH)
+#define CTX_VNCR_EL2		U(55 * CAP_WIDTH)
+#define CTX_TRFCR_EL2		U(56 * CAP_WIDTH)
 
 // Starting with Armv8.5
-#define CTX_SCXTNUM_EL2		U(0x390)
+#define CTX_SCXTNUM_EL2		U(57 * CAP_WIDTH)
 
 // Register for FEAT_HCX
-#define CTX_HCRX_EL2            U(0x3a0)
+#define CTX_HCRX_EL2            U(58 * CAP_WIDTH)
 
 // Starting with Armv8.9
-#define CTX_TCR2_EL2            U(0x3b0)
-#define CTX_POR_EL2             U(0x3c0)
-#define CTX_PIRE0_EL2           U(0x3d0)
-#define CTX_PIR_EL2             U(0x3e0)
-#define CTX_S2PIR_EL2		U(0x3f0)
-#define CTX_GCSCR_EL2           U(0x400)
-#define CTX_GCSPR_EL2           U(0x410)
+#define CTX_TCR2_EL2            U(59 * CAP_WIDTH)
+#define CTX_POR_EL2             U(60 * CAP_WIDTH)
+#define CTX_PIRE0_EL2           U(61 * CAP_WIDTH)
+#define CTX_PIR_EL2             U(62 * CAP_WIDTH)
+#define CTX_S2PIR_EL2		U(63 * CAP_WIDTH)
+#define CTX_GCSCR_EL2           U(64 * CAP_WIDTH)
+#define CTX_GCSPR_EL2           U(65 * CAP_WIDTH)
 
 /* Align to the next 16 byte boundary */
-#define CTX_EL2_SYSREGS_END	U(0x420)
+#define CTX_EL2_SYSREGS_END	U(66 * CAP_WIDTH)
 
 #endif /* CTX_INCLUDE_EL2_REGS */
 
@@ -339,26 +340,33 @@
  * members below.
  */
 #define DWORD_SHIFT		U(3)
-#define QWORD_SHIFT		U(4)
+
+#if __has_feature(capabilities)
+#define CWORD_SHIFT		U(4)
+#define	S_ALIGN			16
+#else
+#define CWORD_SHIFT		DWORD_SHIFT
+#define	S_ALIGN			8
+#endif
 
 #define DEFINE_REG_STRUCT(name, num_regs)	\
 	typedef struct name {			\
 		uintcap_t ctx_regs[num_regs];	\
-	}  __aligned(16) name##_t
+	}  __aligned(S_ALIGN) name##_t
 
 /* Constants to determine the size of individual context structures */
-#define CTX_GPREG_ALL		(CTX_GPREGS_END >> QWORD_SHIFT)
-#define CTX_EL1_SYSREGS_ALL	(CTX_EL1_SYSREGS_END >> QWORD_SHIFT)
+#define CTX_GPREG_ALL		(CTX_GPREGS_END >> CWORD_SHIFT)
+#define CTX_EL1_SYSREGS_ALL	(CTX_EL1_SYSREGS_END >> CWORD_SHIFT)
 #if CTX_INCLUDE_EL2_REGS
-# define CTX_EL2_SYSREGS_ALL	(CTX_EL2_SYSREGS_END >> QWORD_SHIFT)
+# define CTX_EL2_SYSREGS_ALL	(CTX_EL2_SYSREGS_END >> CWORD_SHIFT)
 #endif
 #if CTX_INCLUDE_FPREGS
-# define CTX_FPREG_ALL		(CTX_FPREGS_END >> QWORD_SHIFT)
+# define CTX_FPREG_ALL		(CTX_FPREGS_END >> CWORD_SHIFT)
 #endif
-#define CTX_EL3STATE_ALL	(CTX_EL3STATE_END >> QWORD_SHIFT)
-#define CTX_CVE_2018_3639_ALL	(CTX_CVE_2018_3639_END >> QWORD_SHIFT)
+#define CTX_EL3STATE_ALL	(CTX_EL3STATE_END >> CWORD_SHIFT)
+#define CTX_CVE_2018_3639_ALL	(CTX_CVE_2018_3639_END >> CWORD_SHIFT)
 #if CTX_INCLUDE_PAUTH_REGS
-# define CTX_PAUTH_REGS_ALL	(CTX_PAUTH_REGS_END >> QWORD_SHIFT)
+# define CTX_PAUTH_REGS_ALL	(CTX_PAUTH_REGS_END >> CWORD_SHIFT)
 #endif
 
 /*
@@ -412,8 +420,8 @@ DEFINE_REG_STRUCT(pauth, CTX_PAUTH_REGS_ALL);
  * Macros to access members of any of the above structures using their
  * offsets
  */
-#define read_ctx_reg(ctx, offset)	((ctx)->ctx_regs[(offset) >> QWORD_SHIFT])
-#define write_ctx_reg(ctx, offset, val)	(((ctx)->ctx_regs[(offset) >> QWORD_SHIFT]) \
+#define read_ctx_reg(ctx, offset)	((ctx)->ctx_regs[(offset) >> CWORD_SHIFT])
+#define write_ctx_reg(ctx, offset, val)	(((ctx)->ctx_regs[(offset) >> CWORD_SHIFT]) \
 					 = (uintptr_t) (val))
 
 /*
@@ -472,8 +480,7 @@ CASSERT(CTX_EL2_SYSREGS_OFFSET == __builtin_offsetof(cpu_context_t, el2_sysregs_
 CASSERT(CTX_FPREGS_OFFSET == __builtin_offsetof(cpu_context_t, fpregs_ctx),
 	assert_core_context_fp_offset_mismatch);
 #endif
-CASSERT(CTX_EL3STATE_OFFSET == __builtin_offsetof(cpu_context_t, el3state_ctx),
-	assert_core_context_el3state_offset_mismatch);
+CASSERT(CTX_EL3STATE_OFFSET == __builtin_offsetof(cpu_context_t, el3state_ctx), assert_core_context_el3state_offset_mismatch);
 CASSERT(CTX_CVE_2018_3639_OFFSET == __builtin_offsetof(cpu_context_t, cve_2018_3639_ctx),
 	assert_core_context_cve_2018_3639_offset_mismatch);
 #if CTX_INCLUDE_PAUTH_REGS
