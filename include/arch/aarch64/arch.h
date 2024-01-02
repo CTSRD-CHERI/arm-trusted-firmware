@@ -1429,6 +1429,10 @@
 #define	CAP_WIDTH	INT_WIDTH
 #endif
 
+/*
+ * BL1/BL2 are aware of capabilities, but they use SRAM which does not
+ * feature CHERI-tag controller.
+ */
 #if __has_feature(capabilities) && !defined(IMAGE_BL1) && !defined(IMAGE_BL2)
 #define	CAPN(n)		c ## n
 #define	CAP(n)		c ## n
