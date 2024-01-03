@@ -181,7 +181,7 @@
 	ldr	CAP(2), [PTRN(sp), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 	mov	PTR(20), PTRN(sp)
 
-#if ENABLE_MORELLO_PTR
+#if ENABLE_MORELLO_CAP
 	/*
 	 * Save DDC_EL3 value to C24. This will be used to write to DDC_EL0
 	 * once SP is switched to SP_EL0
@@ -191,7 +191,7 @@
 
 	msr	spsel, #MODE_SP_EL0
 
-#if ENABLE_MORELLO_PTR
+#if ENABLE_MORELLO_CAP
 	/* Save the original DDC_EL0 which will be pushed to stack. */
 	mrs	c26, ddc
 
@@ -488,7 +488,7 @@ sync_handler64:
 	 */
 	ldr	CAP(12), [PTR(6), #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]
 
-#if ENABLE_MORELLO_PTR
+#if ENABLE_MORELLO_CAP
 	/*
 	 * Save DDC_EL3 value. This will be used to write to DDC_EL0 once SP is
 	 * switched to SP_EL0 and the original DDC_EL0 is saved to stack.
@@ -499,7 +499,7 @@ sync_handler64:
 	/* Switch to SP_EL0 */
 	msr	spsel, #MODE_SP_EL0
 
-#if ENABLE_MORELLO_PTR
+#if ENABLE_MORELLO_CAP
 	/* Save the original DDC_EL0 which will be pushed to stack. */
 	mrs	c26, ddc
 
