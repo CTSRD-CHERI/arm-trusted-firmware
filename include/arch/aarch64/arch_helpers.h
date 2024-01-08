@@ -789,8 +789,10 @@ void gpt_tlbi_by_pa_ll(uint64_t pa, size_t size);
 
 #ifdef __CHERI_PURE_CAPABILITY__
 uintptr_t make_cap(uint64_t addr);
+uintptr_t make_cap_size(uint64_t addr, uint64_t size);
 #else
-#define	make_cap(x)	(x)
+#define	make_cap(x)		(x)
+#define	make_cap_size(x, y)	(x)
 #endif
 
 #endif /* ARCH_HELPERS_H */
