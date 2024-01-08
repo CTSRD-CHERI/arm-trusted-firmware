@@ -128,6 +128,16 @@ make_cap(uint64_t addr)
 }
 
 uintptr_t
+set_bounds(uintptr_t cap0, uint64_t size)
+{
+	uintptr_t cap;
+
+	cap = cheri_setbounds(cap0, size);
+
+	return (cap);
+}
+
+uintptr_t
 make_cap_size(uint64_t addr, uint64_t size)
 {
 	uintptr_t cap;
