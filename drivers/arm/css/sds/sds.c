@@ -231,7 +231,7 @@ int sds_struct_write(uint32_t structure_id, unsigned int fld_off,
  */
 int sds_init(void)
 {
-	sds_mem_base = (uintptr_t)make_cap(PLAT_ARM_SDS_MEM_BASE);
+	sds_mem_base = (uintptr_t)make_cap_size(PLAT_ARM_SDS_MEM_BASE, 8);
 
 	if (!IS_SDS_REGION_VALID(sds_mem_base)) {
 		WARN("SDS: No valid SDS Memory Region found\n");
@@ -249,6 +249,8 @@ int sds_init(void)
 		WARN("SDS: SDS Memory Region exceeds size limit\n");
 		return SDS_ERR_FAIL;
 	}
+
+	sds_mem_base = set_bounds(sds_mem_base, sds_mem_size);
 
 	INFO("SDS: Detected SDS Memory Region (%zu bytes)\n", sds_mem_size);
 
