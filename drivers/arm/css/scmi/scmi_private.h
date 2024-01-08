@@ -126,21 +126,6 @@
 		(val4) = mmio_read_32((uintptr_t)&payld_arr[3]);		\
 	} while (0)
 
-/*
- * Private data structure for representing the mailbox memory layout. Refer
- * the SCMI specification for more details.
- */
-typedef struct mailbox_mem {
-	uint32_t res_a; /* Reserved */
-	volatile uint32_t status;
-	uint64_t res_b; /* Reserved */
-	uint32_t flags;
-	volatile uint32_t len;
-	volatile uint32_t msg_header;
-	uint32_t payload[];
-} mailbox_mem_t;
-
-
 /* Private APIs for use within SCMI driver */
 void scmi_get_channel(scmi_channel_t *ch);
 void scmi_send_sync_command(scmi_channel_t *ch);

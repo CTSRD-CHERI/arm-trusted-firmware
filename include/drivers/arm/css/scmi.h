@@ -143,6 +143,21 @@ typedef struct scmi_channel {
 	int is_initialized;
 } scmi_channel_t;
 
+/*
+ * Data structure for representing the mailbox memory layout. Refer
+ * the SCMI specification for more details.
+ */
+typedef struct mailbox_mem {
+	uint32_t res_a; /* Reserved */
+	volatile uint32_t status;
+	uint64_t res_b; /* Reserved */
+	uint32_t flags;
+	volatile uint32_t len;
+	volatile uint32_t msg_header;
+	uint32_t payload[];
+} mailbox_mem_t;
+
+
 /* External Common API */
 void *scmi_init(scmi_channel_t *ch);
 int scmi_proto_msg_attr(void *p, uint32_t proto_id, uint32_t command_id,
